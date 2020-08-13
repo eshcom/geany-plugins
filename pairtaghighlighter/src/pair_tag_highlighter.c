@@ -237,19 +237,22 @@ static void findMatchingOpeningTag(ScintillaObject *sci, gchar *tagName, gint op
             && (matchingClosingBracket > matchingOpeningBracket))
         {
             /* we are inside of some tag. Let us check what tag*/
-            gboolean isMatchingTagOpening = is_tag_opening(sci, matchingOpeningBracket);
-            gchar *matchingTagName = get_tag_name(sci, matchingOpeningBracket,
-                                                  matchingClosingBracket,
-                                                  isMatchingTagOpening);
-            if(matchingTagName && strcmp(tagName, matchingTagName) == 0)
+            if(!is_tag_self_closing(sci, matchingClosingBracket))
             {
-                if(TRUE == isMatchingTagOpening)
-                    openingTagsCount++;
-                else
-                    closingTagsCount++;
+                gboolean isMatchingTagOpening = is_tag_opening(sci, matchingOpeningBracket);
+                gchar *matchingTagName = get_tag_name(sci, matchingOpeningBracket,
+                                                      matchingClosingBracket,
+                                                      isMatchingTagOpening);
+                if(matchingTagName && strcmp(tagName, matchingTagName) == 0)
+                {
+                    if(TRUE == isMatchingTagOpening)
+                        openingTagsCount++;
+                    else
+                        closingTagsCount++;
+                }
+                g_free(matchingTagName);
             }
             pos = matchingOpeningBracket+1;
-            g_free(matchingTagName);
         }
         /* Speed up search: if findBracket returns -1, that means start of line
          * is reached. There is no need to go through the same positions again.
@@ -293,19 +296,22 @@ static void findMatchingClosingTag(ScintillaObject *sci, gchar *tagName, gint cl
             && (matchingClosingBracket > matchingOpeningBracket))
         {
             /* we are inside of some tag. Let us check what tag*/
-            gboolean isMatchingTagOpening = is_tag_opening(sci, matchingOpeningBracket);
-            gchar *matchingTagName = get_tag_name(sci, matchingOpeningBracket,
-                                                  matchingClosingBracket,
-                                                  isMatchingTagOpening);
-            if(matchingTagName && strcmp(tagName, matchingTagName) == 0)
+            if(!is_tag_self_closing(sci, matchingClosingBracket))
             {
-                if(TRUE == isMatchingTagOpening)
-                    openingTagsCount++;
-                else
-                    closingTagsCount++;
+                gboolean isMatchingTagOpening = is_tag_opening(sci, matchingOpeningBracket);
+                gchar *matchingTagName = get_tag_name(sci, matchingOpeningBracket,
+                                                      matchingClosingBracket,
+                                                      isMatchingTagOpening);
+                if(matchingTagName && strcmp(tagName, matchingTagName) == 0)
+                {
+                    if(TRUE == isMatchingTagOpening)
+                        openingTagsCount++;
+                    else
+                        closingTagsCount++;
+                }
+                g_free(matchingTagName);
             }
             pos = matchingClosingBracket;
-            g_free(matchingTagName);
         }
 
         if(openingTagsCount == closingTagsCount)
