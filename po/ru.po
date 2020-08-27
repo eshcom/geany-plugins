@@ -5279,7 +5279,7 @@ msgstr "Значение"
 
 #: ../lineoperations/src/lo_prefs.c:83
 msgid "Use collation based string compare"
-msgstr ""
+msgstr "Использовать сравнение строк на основе лингвистических правил для текущей локали"
 
 #: ../lipsum/src/lipsum.c:43
 #, fuzzy
