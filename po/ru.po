@@ -6090,12 +6090,10 @@ msgstr "Добавить"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
 #: ../treebrowser/src/treebrowser.c:2358
-#, fuzzy
 msgid "New File"
 msgstr "Новый файл"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:391
-#, fuzzy
 msgid "File name:"
 msgstr "Имя файла:"
 
@@ -7486,7 +7484,6 @@ msgid "TreeBrowser"
 msgstr "Дерево файлов"
 
 #: ../treebrowser/src/treebrowser.c:127
-#, fuzzy
 msgid ""
 "This plugin adds a tree browser to Geany, allowing the user to browse files "
 "using a tree view of the directory being browsed."
@@ -7516,7 +7513,7 @@ msgid "NewFile"
 msgstr "Новый файл"
 
 #: ../treebrowser/src/treebrowser.c:1097
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Target file '%s' exists.\n"
 "Do you really want to replace it with an empty file?"
@@ -7530,32 +7527,26 @@ msgid "Do you really want to delete '%s' ?"
 msgstr "Вы действительно хотите удалить файл '%s' ?"
 
 #: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
-#, fuzzy
 msgid "Go _Up"
-msgstr "Переместить _вверх"
+msgstr "Перейти на уровень вверх"
 
 #: ../treebrowser/src/treebrowser.c:1264 ../treebrowser/src/treebrowser.c:1266
-#, fuzzy
 msgid "Set _Path From Document"
 msgstr "Установить путь из документа"
 
 #: ../treebrowser/src/treebrowser.c:1272 ../treebrowser/src/treebrowser.c:1274
-#, fuzzy
 msgid "_Open Externally"
 msgstr "Открыть используя внешнюю программу"
 
 #: ../treebrowser/src/treebrowser.c:1280
-#, fuzzy
 msgid "Open _Terminal"
 msgstr "Открыть терминал"
 
 #: ../treebrowser/src/treebrowser.c:1285 ../treebrowser/src/treebrowser.c:1287
-#, fuzzy
 msgid "Set as _Root"
 msgstr "Сделать корневым каталогом"
 
 #: ../treebrowser/src/treebrowser.c:1294 ../treebrowser/src/treebrowser.c:1296
-#, fuzzy
 msgid "Refres_h"
 msgstr "Обновить"
 
@@ -7564,17 +7555,14 @@ msgid "_Find in Files"
 msgstr "Найти в файлах"
 
 #: ../treebrowser/src/treebrowser.c:1314 ../treebrowser/src/treebrowser.c:1316
-#, fuzzy
 msgid "N_ew Folder"
-msgstr "Выберите каталог"
+msgstr "Новый каталог"
 
 #: ../treebrowser/src/treebrowser.c:1322 ../treebrowser/src/treebrowser.c:1324
-#, fuzzy
 msgid "_New File"
 msgstr "Новый файл"
 
 #: ../treebrowser/src/treebrowser.c:1330 ../treebrowser/src/treebrowser.c:1332
-#, fuzzy
 msgid "Rena_me"
 msgstr "Переименовать"
 
@@ -7584,37 +7572,31 @@ msgid "Close: %s"
 msgstr "Закрыть: %s"
 
 #: ../treebrowser/src/treebrowser.c:1360 ../treebrowser/src/treebrowser.c:1362
-#, fuzzy, c-format
+#, c-format
 msgid "Clo_se Child Documents "
 msgstr "Закрыть дочерние документы"
 
 #: ../treebrowser/src/treebrowser.c:1369 ../treebrowser/src/treebrowser.c:1371
-#, fuzzy
 msgid "_Copy Full Path to Clipboard"
 msgstr "Скопировать полный путь в буфер обмена"
 
 #: ../treebrowser/src/treebrowser.c:1382 ../treebrowser/src/treebrowser.c:1384
-#, fuzzy
 msgid "E_xpand All"
 msgstr "Развернуть всё"
 
 #: ../treebrowser/src/treebrowser.c:1390 ../treebrowser/src/treebrowser.c:1392
-#, fuzzy
 msgid "Coll_apse All"
 msgstr "Свернуть всё"
 
 #: ../treebrowser/src/treebrowser.c:1400
-#, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "Показывать закладки"
 
 #: ../treebrowser/src/treebrowser.c:1405
-#, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "Показывать скрытые файлы"
 
 #: ../treebrowser/src/treebrowser.c:1410
-#, fuzzy
 msgid "Show Tool_bars"
 msgstr "Показывать панель инструментов"
 
@@ -7792,12 +7774,10 @@ msgid "Rename Object"
 msgstr "Переименовать объект"
 
 #: ../treebrowser/src/treebrowser.c:2360
-#, fuzzy
 msgid "New Folder"
-msgstr "Выберите каталог"
+msgstr "Новый каталог"
 
 #: ../treebrowser/src/treebrowser.c:2364
-#, fuzzy
 msgid "Track Current"
 msgstr "Перейти к текущему файлу"
 
