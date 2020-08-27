@@ -296,7 +296,8 @@ check_filtered(const gchar *base_name)
 	gchar		**filters;
 	guint 		i;
 	gboolean 	temporary_reverse 	= FALSE;
-	const gchar *exts[] 			= {".o", ".obj", ".so", ".dll", ".a", ".lib", ".la", ".lo", ".pyc"};
+	const gchar *exts[] 			= {".o", ".obj", ".so", ".dll", ".a", ".lib", ".la", ".lo",
+									   ".pyc", ".class", ".beam"};
 	guint exts_len;
 	const gchar *ext;
 	gboolean	filtered;
@@ -2190,7 +2191,7 @@ plugin_configure(GtkDialog *dialog)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(configure_widgets.HIDE_OBJECT_FILES), CONFIG_HIDE_OBJECT_FILES);
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.HIDE_OBJECT_FILES, FALSE, FALSE, 0);
 	gtk_widget_set_tooltip_text(configure_widgets.HIDE_OBJECT_FILES,
-		_("Don't show generated object files in the file browser, this includes *.o, *.obj. *.so, *.dll, *.a, *.lib"));
+		_("Don't show generated object files in the file browser, this includes *.o, *.obj, *.so, *.dll, *.a, *.lib"));
 
 	configure_widgets.REVERSE_FILTER = gtk_check_button_new_with_label(_("Reverse filter"));
 #if GTK_CHECK_VERSION(3, 20, 0)

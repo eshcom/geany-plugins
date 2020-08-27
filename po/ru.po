@@ -7659,7 +7659,7 @@ msgstr "Строка адреса"
 
 #: ../treebrowser/src/treebrowser.c:1974
 msgid "Tree Browser"
-msgstr "Дерево файлов"
+msgstr "Файлы"
 
 #: ../treebrowser/src/treebrowser.c:2115
 msgid "External open command"
@@ -7735,11 +7735,11 @@ msgstr "Не показывать объектные файлы"
 
 #: ../treebrowser/src/treebrowser.c:2193
 msgid ""
-"Don't show generated object files in the file browser, this includes *.o, *."
-"obj. *.so, *.dll, *.a, *.lib"
+"Don't show generated object files in the file browser, this includes "
+"*.o, *.obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
-"Не показывать объектные файлы (*.o, *.obj. *.so, *.dll, *.a, *.lib) в дереве "
-"файлов"
+"Не показывать объектные файлы (*.o, *.obj, *.so, *.dll, *.a, *.lib) "
+"в дереве файлов"
 
 #: ../treebrowser/src/treebrowser.c:2195
 msgid "Reverse filter"

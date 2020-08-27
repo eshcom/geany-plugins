@@ -7571,11 +7571,11 @@ msgstr "Nesne dosyalarını gizle"
 
 #: ../treebrowser/src/treebrowser.c:2193
 msgid ""
-"Don't show generated object files in the file browser, this includes *.o, *."
-"obj. *.so, *.dll, *.a, *.lib"
+"Don't show generated object files in the file browser, this includes "
+"*.o, *.obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
-"Dahili oluşturulmuş dosyaları dosya tarayıcıda göstermez, bu *.o, *.obj. *."
-"so, *.dll, *.a, *.lib dosyalarını içerir."
+"Dahili oluşturulmuş dosyaları dosya tarayıcıda göstermez, bu "
+"*.o, *.obj, *.so, *.dll, *.a, *.lib dosyalarını içerir."
 
 #: ../treebrowser/src/treebrowser.c:2195
 msgid "Reverse filter"

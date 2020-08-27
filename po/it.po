@@ -7776,11 +7776,11 @@ msgstr "Nascondi i file oggetto"
 
 #: ../treebrowser/src/treebrowser.c:2193
 msgid ""
-"Don't show generated object files in the file browser, this includes *.o, *."
-"obj. *.so, *.dll, *.a, *.lib"
+"Don't show generated object files in the file browser, this includes "
+"*.o, *.obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
-"Non visualizzare i file oggetto generati nel file browser, questo include *."
-"o *.obj, *.so, *.dll, *.a, *.lib"
+"Non visualizzare i file oggetto generati nel file browser, questo include "
+"*.o, *.obj, *.so, *.dll, *.a, *.lib"
 
 #: ../treebrowser/src/treebrowser.c:2195
 msgid "Reverse filter"
