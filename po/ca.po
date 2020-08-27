@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-22 11:56+0200\n"
+"POT-Creation-Date: 2020-08-27 19:51+0300\n"
 "PO-Revision-Date: 2013-03-07 23:48+0100\n"
 "Last-Translator: Toni Garcia-Navarro <topi@elpiset.net>\n"
 "Language-Team: ca <topi@elpiset.net>\n"
@@ -36,7 +36,7 @@ msgstr "No."
 msgid "Contents"
 msgstr "Continguts"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:666
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:667
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "Marcadors"
@@ -166,7 +166,7 @@ msgstr "Comprova l'ortografia del document actual."
 #: ../geanyvc/src/geanyvc.c:1973 ../geniuspaste/src/geniuspaste.c:336
 #: ../lineoperations/src/lo_prefs.c:58 ../sendmail/src/sendmail.c:128
 #: ../sendmail/src/sendmail.c:293 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2103
+#: ../treebrowser/src/treebrowser.c:2104
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "No s'ha pogut crear el directori de configuració de connectors."
@@ -3721,7 +3721,7 @@ msgid "New _Below"
 msgstr ""
 
 #: ../geanymacro/src/geanymacro.c:1824 ../geanymacro/src/geanymacro.c:2120
-#: ../treebrowser/src/treebrowser.c:1338 ../treebrowser/src/treebrowser.c:1340
+#: ../treebrowser/src/treebrowser.c:1339 ../treebrowser/src/treebrowser.c:1341
 msgid "_Delete"
 msgstr "_Elimina"
 
@@ -5243,7 +5243,7 @@ msgstr "No s'ha pogut escriure la configuració per defecte: %s"
 msgid "Unable to read value for '%s' key: %s"
 msgstr "No s'ha pogut crear el directori de configuració '%s'"
 
-#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2133
+#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2134
 #, fuzzy
 msgid "Terminal"
 msgstr "Finalitza"
@@ -5402,7 +5402,7 @@ msgstr ""
 msgid "Finds and highlights matching opening/closing HTML tag"
 msgstr ""
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:440
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:446
 #, fuzzy
 msgid "Go To Matching Tag"
 msgstr "Vés al Parèntesi _Corresponent"
@@ -5834,7 +5834,7 @@ msgid "Add"
 msgstr "Afegits"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2357
+#: ../treebrowser/src/treebrowser.c:2358
 #, fuzzy
 msgid "New File"
 msgstr "NouFitxer"
@@ -7223,179 +7223,179 @@ msgid ""
 "using a tree view of the directory being browsed."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:462
+#: ../treebrowser/src/treebrowser.c:463
 #, c-format
 msgid "%s: no such directory."
 msgstr "%s: no existeix el directori."
 
-#: ../treebrowser/src/treebrowser.c:570 ../treebrowser/src/treebrowser.c:609
-#: ../treebrowser/src/treebrowser.c:715
+#: ../treebrowser/src/treebrowser.c:571 ../treebrowser/src/treebrowser.c:610
+#: ../treebrowser/src/treebrowser.c:716
 msgid "(Empty)"
 msgstr "(Buit)"
 
-#: ../treebrowser/src/treebrowser.c:1018
+#: ../treebrowser/src/treebrowser.c:1019
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "No s'ha pogut executar l'ordre externa '%s' (%s)."
 
-#: ../treebrowser/src/treebrowser.c:1089
+#: ../treebrowser/src/treebrowser.c:1090
 msgid "NewDirectory"
 msgstr "NouDirectori"
 
-#: ../treebrowser/src/treebrowser.c:1091
+#: ../treebrowser/src/treebrowser.c:1092
 msgid "NewFile"
 msgstr "NouFitxer"
 
-#: ../treebrowser/src/treebrowser.c:1096
+#: ../treebrowser/src/treebrowser.c:1097
 #, fuzzy, c-format
 msgid ""
 "Target file '%s' exists.\n"
 "Do you really want to replace it with an empty file?"
 msgstr "Ja existeix un fitxer anomenat \"%s\", voleu reemplaçar-lo?"
 
-#: ../treebrowser/src/treebrowser.c:1142
+#: ../treebrowser/src/treebrowser.c:1143
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "Esteu segurs de voler eliminar '%s'?"
 
-#: ../treebrowser/src/treebrowser.c:1255 ../treebrowser/src/treebrowser.c:1257
+#: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
 #, fuzzy
 msgid "Go _Up"
 msgstr "Mou Am_unt"
 
-#: ../treebrowser/src/treebrowser.c:1263 ../treebrowser/src/treebrowser.c:1265
+#: ../treebrowser/src/treebrowser.c:1264 ../treebrowser/src/treebrowser.c:1266
 #, fuzzy
 msgid "Set _Path From Document"
 msgstr "Especifica el directori pel document"
 
-#: ../treebrowser/src/treebrowser.c:1271 ../treebrowser/src/treebrowser.c:1273
+#: ../treebrowser/src/treebrowser.c:1272 ../treebrowser/src/treebrowser.c:1274
 #, fuzzy
 msgid "_Open Externally"
 msgstr "Obre externament"
 
-#: ../treebrowser/src/treebrowser.c:1279
+#: ../treebrowser/src/treebrowser.c:1280
 #, fuzzy
 msgid "Open _Terminal"
 msgstr "Obre el terminal"
 
-#: ../treebrowser/src/treebrowser.c:1284 ../treebrowser/src/treebrowser.c:1286
+#: ../treebrowser/src/treebrowser.c:1285 ../treebrowser/src/treebrowser.c:1287
 #, fuzzy
 msgid "Set as _Root"
 msgstr "Instal·la com a superusuari"
 
-#: ../treebrowser/src/treebrowser.c:1293 ../treebrowser/src/treebrowser.c:1295
+#: ../treebrowser/src/treebrowser.c:1294 ../treebrowser/src/treebrowser.c:1296
 #, fuzzy
 msgid "Refres_h"
 msgstr "Actualitza"
 
-#: ../treebrowser/src/treebrowser.c:1301 ../treebrowser/src/treebrowser.c:1303
+#: ../treebrowser/src/treebrowser.c:1302 ../treebrowser/src/treebrowser.c:1304
 #, fuzzy
 msgid "_Find in Files"
 msgstr "Cerca en els Fitxers"
 
-#: ../treebrowser/src/treebrowser.c:1313 ../treebrowser/src/treebrowser.c:1315
+#: ../treebrowser/src/treebrowser.c:1314 ../treebrowser/src/treebrowser.c:1316
 #, fuzzy
 msgid "N_ew Folder"
 msgstr "Selecciona Directory"
 
-#: ../treebrowser/src/treebrowser.c:1321 ../treebrowser/src/treebrowser.c:1323
+#: ../treebrowser/src/treebrowser.c:1322 ../treebrowser/src/treebrowser.c:1324
 #, fuzzy
 msgid "_New File"
 msgstr "NouFitxer"
 
-#: ../treebrowser/src/treebrowser.c:1329 ../treebrowser/src/treebrowser.c:1331
+#: ../treebrowser/src/treebrowser.c:1330 ../treebrowser/src/treebrowser.c:1332
 #, fuzzy
 msgid "Rena_me"
 msgstr "Reanomena"
 
-#: ../treebrowser/src/treebrowser.c:1350 ../treebrowser/src/treebrowser.c:1352
+#: ../treebrowser/src/treebrowser.c:1351 ../treebrowser/src/treebrowser.c:1353
 #, c-format
 msgid "Close: %s"
 msgstr "Tanca: %s"
 
-#: ../treebrowser/src/treebrowser.c:1359 ../treebrowser/src/treebrowser.c:1361
+#: ../treebrowser/src/treebrowser.c:1360 ../treebrowser/src/treebrowser.c:1362
 #, fuzzy, c-format
 msgid "Clo_se Child Documents "
 msgstr "Tanca els Documents Fills"
 
-#: ../treebrowser/src/treebrowser.c:1368 ../treebrowser/src/treebrowser.c:1370
+#: ../treebrowser/src/treebrowser.c:1369 ../treebrowser/src/treebrowser.c:1371
 #, fuzzy
 msgid "_Copy Full Path to Clipboard"
 msgstr "Copia la ruta completa al porta-retalls"
 
-#: ../treebrowser/src/treebrowser.c:1381 ../treebrowser/src/treebrowser.c:1383
+#: ../treebrowser/src/treebrowser.c:1382 ../treebrowser/src/treebrowser.c:1384
 #, fuzzy
 msgid "E_xpand All"
 msgstr "Expandeix-ho Tot"
 
-#: ../treebrowser/src/treebrowser.c:1389 ../treebrowser/src/treebrowser.c:1391
+#: ../treebrowser/src/treebrowser.c:1390 ../treebrowser/src/treebrowser.c:1392
 #, fuzzy
 msgid "Coll_apse All"
 msgstr "Tanca-ho Tot"
 
-#: ../treebrowser/src/treebrowser.c:1399
+#: ../treebrowser/src/treebrowser.c:1400
 #, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "Mostra les adreces d'interès"
 
-#: ../treebrowser/src/treebrowser.c:1404
+#: ../treebrowser/src/treebrowser.c:1405
 #, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "Mostra els fitxers ocults"
 
-#: ../treebrowser/src/treebrowser.c:1409
+#: ../treebrowser/src/treebrowser.c:1410
 #, fuzzy
 msgid "Show Tool_bars"
 msgstr "Mostra les barres d'eines"
 
-#: ../treebrowser/src/treebrowser.c:1748
+#: ../treebrowser/src/treebrowser.c:1749
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr "Ja existeix un fitxer anomenat \"%s\", voleu reemplaçar-lo?"
 
-#: ../treebrowser/src/treebrowser.c:1884
+#: ../treebrowser/src/treebrowser.c:1885
 msgid "Go up"
 msgstr "Vés cap a dalt"
 
-#: ../treebrowser/src/treebrowser.c:1894 ../treebrowser/src/treebrowser.c:2361
+#: ../treebrowser/src/treebrowser.c:1895 ../treebrowser/src/treebrowser.c:2362
 msgid "Refresh"
 msgstr "Actualitza"
 
-#: ../treebrowser/src/treebrowser.c:1904
+#: ../treebrowser/src/treebrowser.c:1905
 msgid "Home"
 msgstr "Inici"
 
-#: ../treebrowser/src/treebrowser.c:1914
+#: ../treebrowser/src/treebrowser.c:1915
 msgid "Set path from document"
 msgstr "Especifica el directori pel document"
 
-#: ../treebrowser/src/treebrowser.c:1924
+#: ../treebrowser/src/treebrowser.c:1925
 msgid "Track path"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1934
+#: ../treebrowser/src/treebrowser.c:1935
 msgid "Hide bars"
 msgstr "Amaga les barres"
 
-#: ../treebrowser/src/treebrowser.c:1944
+#: ../treebrowser/src/treebrowser.c:1945
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1949
+#: ../treebrowser/src/treebrowser.c:1950
 msgid "Addressbar for example '/projects/my-project'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1974
+#: ../treebrowser/src/treebrowser.c:1975
 msgid "Tree Browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2115
+#: ../treebrowser/src/treebrowser.c:2116
 msgid "External open command"
 msgstr "Ordre externa per obrir"
 
-#: ../treebrowser/src/treebrowser.c:2125
+#: ../treebrowser/src/treebrowser.c:2126
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7409,119 +7409,119 @@ msgstr ""
 "%f serà substituit amb el nom del fitxer, incloent la ruta completa\n"
 "%d serà substituit amb la ruta completa, sense el nom del fitxer"
 
-#: ../treebrowser/src/treebrowser.c:2144
+#: ../treebrowser/src/treebrowser.c:2145
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2150
+#: ../treebrowser/src/treebrowser.c:2151
 msgid "Toolbar"
 msgstr "Barra d'Eines"
 
-#: ../treebrowser/src/treebrowser.c:2152
+#: ../treebrowser/src/treebrowser.c:2153
 msgid "Hidden"
 msgstr "Ocult"
 
-#: ../treebrowser/src/treebrowser.c:2153
+#: ../treebrowser/src/treebrowser.c:2154
 msgid "Top"
 msgstr "Part superior"
 
-#: ../treebrowser/src/treebrowser.c:2154
+#: ../treebrowser/src/treebrowser.c:2155
 msgid "Bottom"
 msgstr "Part inferior"
 
-#: ../treebrowser/src/treebrowser.c:2159
+#: ../treebrowser/src/treebrowser.c:2160
 msgid "If position is changed, the option require plugin restart."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2163
+#: ../treebrowser/src/treebrowser.c:2164
 msgid "Show icons"
 msgstr "Mostra les icones"
 
-#: ../treebrowser/src/treebrowser.c:2165
+#: ../treebrowser/src/treebrowser.c:2166
 msgid "None"
 msgstr "Cap"
 
-#: ../treebrowser/src/treebrowser.c:2166
+#: ../treebrowser/src/treebrowser.c:2167
 msgid "Base"
 msgstr "Base"
 
-#: ../treebrowser/src/treebrowser.c:2167
+#: ../treebrowser/src/treebrowser.c:2168
 msgid "Content-type"
 msgstr "Tipus de continguts"
 
-#: ../treebrowser/src/treebrowser.c:2173
+#: ../treebrowser/src/treebrowser.c:2174
 msgid "Show hidden files"
 msgstr "Mostra els fitxers ocults"
 
-#: ../treebrowser/src/treebrowser.c:2182
+#: ../treebrowser/src/treebrowser.c:2183
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2184
+#: ../treebrowser/src/treebrowser.c:2185
 msgid "Hide object files"
 msgstr "Amaga els fitxers objecte"
 
-#: ../treebrowser/src/treebrowser.c:2193
+#: ../treebrowser/src/treebrowser.c:2194
 msgid ""
-"Don't show generated object files in the file browser, this includes "
-"*.o, *.obj, *.so, *.dll, *.a, *.lib"
+"Don't show generated object files in the file browser, this includes *.o, *."
+"obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2195
+#: ../treebrowser/src/treebrowser.c:2196
 msgid "Reverse filter"
 msgstr "Inverteix el filtre"
 
-#: ../treebrowser/src/treebrowser.c:2204
+#: ../treebrowser/src/treebrowser.c:2205
 msgid "Follow current document"
 msgstr "Segueix el document actual"
 
-#: ../treebrowser/src/treebrowser.c:2213
+#: ../treebrowser/src/treebrowser.c:2214
 msgid "Single click, open document and focus it"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2222
+#: ../treebrowser/src/treebrowser.c:2223
 msgid "Double click open directory"
 msgstr "Doble clic obre els directoris"
 
-#: ../treebrowser/src/treebrowser.c:2231
+#: ../treebrowser/src/treebrowser.c:2232
 msgid "On delete file, close it if is opened"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2240
+#: ../treebrowser/src/treebrowser.c:2241
 msgid "Focus editor on file open"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2249
+#: ../treebrowser/src/treebrowser.c:2250
 msgid "Show tree lines"
 msgstr "Mostra les línies de l'arbre"
 
-#: ../treebrowser/src/treebrowser.c:2258
+#: ../treebrowser/src/treebrowser.c:2259
 msgid "Show bookmarks"
 msgstr "Mostra les adreces d'interès"
 
-#: ../treebrowser/src/treebrowser.c:2267
+#: ../treebrowser/src/treebrowser.c:2268
 #, fuzzy
 msgid "Open new files"
 msgstr "Obre un Fitxer"
 
-#: ../treebrowser/src/treebrowser.c:2351
+#: ../treebrowser/src/treebrowser.c:2352
 msgid "Focus File List"
 msgstr "Enfoca la Llista de Fitxers"
 
-#: ../treebrowser/src/treebrowser.c:2353
+#: ../treebrowser/src/treebrowser.c:2354
 msgid "Focus Path Entry"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2355
+#: ../treebrowser/src/treebrowser.c:2356
 msgid "Rename Object"
 msgstr "Reanomena Objecte"
 
-#: ../treebrowser/src/treebrowser.c:2359
+#: ../treebrowser/src/treebrowser.c:2360
 #, fuzzy
 msgid "New Folder"
 msgstr "Selecciona Directory"
 
-#: ../treebrowser/src/treebrowser.c:2363
+#: ../treebrowser/src/treebrowser.c:2364
 msgid "Track Current"
 msgstr ""
 
