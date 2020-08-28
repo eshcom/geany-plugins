@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-27 19:51+0300\n"
+"POT-Creation-Date: 2020-08-28 19:11+0300\n"
 "PO-Revision-Date: 2020-05-01 16:20+1000\n"
 "Last-Translator: Dmitry Unruh <dmitryunruh@googlemail.com>\n"
 "Language-Team: Russian <geany-i18n@uvena.de>\n"
@@ -5642,15 +5642,15 @@ msgstr ""
 msgid "Overlay"
 msgstr "Затемнение"
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:40
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:41
 msgid "Pair Tag Highlighter"
 msgstr "Подсветка парных тегов"
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:41
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:42
 msgid "Finds and highlights matching opening/closing HTML tag"
 msgstr "Находит и подсвечивает парные HTML-теги"
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:446
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:441
 msgid "Go To Matching Tag"
 msgstr "Перейти к парному тегу"
 

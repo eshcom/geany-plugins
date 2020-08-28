@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-27 19:51+0300\n"
+"POT-Creation-Date: 2020-08-28 19:11+0300\n"
 "PO-Revision-Date: 2014-04-09 07:23+0200\n"
 "Last-Translator: Federico Reghenzani <federico.dev@reghe.net>\n"
 "Language-Team: Italian\n"
@@ -5645,15 +5645,15 @@ msgstr ""
 msgid "Overlay"
 msgstr ""
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:40
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:41
 msgid "Pair Tag Highlighter"
 msgstr "Coppia tag Highlighter"
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:41
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:42
 msgid "Finds and highlights matching opening/closing HTML tag"
 msgstr "Cerca e evidenzia corrispondenza apertura/chiusura tag HTML"
 
-#: ../pairtaghighlighter/src/pair_tag_highlighter.c:446
+#: ../pairtaghighlighter/src/pair_tag_highlighter.c:441
 #, fuzzy
 msgid "Go To Matching Tag"
 msgstr "Seleziona alla _parentesi corrispondente"
