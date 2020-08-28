@@ -5651,9 +5651,8 @@ msgid "Finds and highlights matching opening/closing HTML tag"
 msgstr "Находит и подсвечивает парные HTML-теги"
 
 #: ../pairtaghighlighter/src/pair_tag_highlighter.c:446
-#, fuzzy
 msgid "Go To Matching Tag"
-msgstr "Выделить до парной скобки"
+msgstr "Перейти к парному тегу"
 
 #: ../pohelper/data/menus.ui.h:1
 msgid "_Translation Helper"
