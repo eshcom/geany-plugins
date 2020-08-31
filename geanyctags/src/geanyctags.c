@@ -631,7 +631,9 @@ static gboolean kb_callback(guint key_id)
 	switch (key_id)
 	{
 		case KB_FIND_TAG:
-			on_find_tag(NULL, NULL);
+			// esh: reassigned hotkeys: on_find_tag -> on_find_definition
+			//~ on_find_tag(NULL, NULL);
+			on_find_definition(NULL, NULL);
 			return TRUE;
 		case KB_GENERATE_TAGS:
 			on_generate_tags(NULL, NULL);
@@ -662,6 +664,9 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpoint
 	gtk_widget_show(s_context_fdef_item);
 	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu), s_context_fdef_item);
 	g_signal_connect((gpointer) s_context_fdef_item, "activate", G_CALLBACK(on_find_definition), NULL);
+	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
+	keybindings_set_item(key_group, KB_FIND_TAG, NULL,
+		0, 0, "find_tag", _("Find tag"), s_context_fdef_item);
 
 	s_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_sep_item);
@@ -678,8 +683,9 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpoint
 	gtk_widget_show(s_ft_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_ft_item);
 	g_signal_connect((gpointer) s_ft_item, "activate", G_CALLBACK(on_find_tag), NULL);
-	keybindings_set_item(key_group, KB_FIND_TAG, NULL,
-		0, 0, "find_tag", _("Find tag"), s_ft_item);
+	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
+	//~ keybindings_set_item(key_group, KB_FIND_TAG, NULL,
+		//~ 0, 0, "find_tag", _("Find tag"), s_ft_item);
 
 	set_widgets_sensitive(geany_data->app->project != NULL);
 
