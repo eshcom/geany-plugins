@@ -289,8 +289,9 @@ check_chars(
 		case '>':
 			if (!ac_info->abracket)
 				return FALSE;
+			gint lexer = sci_get_lexer(sci);
 			if (ac_info->abracket_htmlonly &&
-					sci_get_lexer(sci) != SCLEX_HTML)
+				lexer != SCLEX_HTML && lexer != SCLEX_XML)
 				return FALSE;
 			*chars_left = '<';
 			*chars_right = '>';
@@ -321,6 +322,7 @@ check_chars(
 
 static gboolean
 improve_indent(
+	AutocloseUserData *data,
 	ScintillaObject *sci,
 	GeanyEditor     *editor,
 	gint             pos)
@@ -342,7 +344,9 @@ improve_indent(
 		return AC_CONTINUE_ACTION;
 	line = sci_get_line_from_position(sci, pos);
 	indent = sci_get_line_indentation(sci, line);
-	indent_width = editor_get_indent_prefs(editor)->width;
+	
+	const GeanyIndentPrefs *iprefs = editor_get_indent_prefs(editor);
+	indent_width = iprefs->width;
 	sci_start_undo_action(sci);
 	if (ac_info->cbracket)
 		SSM(sci, SCI_ADDTEXT, 2, (sptr_t)"\n\n");
@@ -363,6 +367,16 @@ improve_indent(
 	end_pos = sci_get_line_end_position(sci, line + 1);
 	sci_set_current_position(sci, end_pos, TRUE);
 	sci_end_undo_action(sci);
+	
+	// esh: fixed jump_on_tab functional
+	gint delta;
+	if (iprefs->type == GEANY_INDENT_TYPE_TABS ||
+		iprefs->type == GEANY_INDENT_TYPE_BOTH)
+		delta = indent/indent_width;
+	else
+		delta = indent;
+	data->jump_on_tab += delta + 1;
+	
 	/* do not alow internal auto-indenter to do the work */
 	return AC_STOP_ACTION;
 }
@@ -675,7 +689,7 @@ auto_close_chars(
 	}
 	else if (ch == GDK_Return)
 	{
-		return improve_indent(sci, editor, pos);
+		return improve_indent(data, sci, editor, pos);
 	}
 	else if (ch == GDK_Tab && ac_info->jump_on_tab)
 	{

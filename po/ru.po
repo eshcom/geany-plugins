@@ -339,11 +339,11 @@ msgstr "Автозакрытие угловых скобок \"<\" -> \"<|>\""
 
 #: ../autoclose/src/autoclose.c:1044
 msgid "\tOnly for HTML"
-msgstr "\tТолько для HTML"
+msgstr "\tТолько для HTML/XML"
 
 #: ../autoclose/src/autoclose.c:1045
 msgid "Auto-close angular brackets only in HTML documents"
-msgstr "Автозакрытие угловых скобок только в HTML документах"
+msgstr "Автозакрытие угловых скобок только в HTML/XML документах"
 
 #: ../autoclose/src/autoclose.c:1046
 msgid "Double quotes \" \""
