@@ -292,7 +292,7 @@ static gboolean check_chars(
 			if (!ac_info->backquote)
 				return FALSE;
 			if (ac_info->backquote_bashonly &&
-					sci_get_lexer(sci) != SCLEX_BASH)
+				sci_get_lexer(sci) != SCLEX_BASH)
 				return FALSE;
 			*chars_left = *chars_right = ch;
 			break;
@@ -385,7 +385,7 @@ static gboolean handle_backspace(
 	if (event->state & GDK_SHIFT_MASK)
 	{
 		if ((ch_left[0] == ch || ch_right[0] == ch) &&
-				ac_info->bcksp_remove_pair)
+			ac_info->bcksp_remove_pair)
 		{
 			end_pos = sci_find_matching_brace(sci, pos - 1);
 			if (-1 == end_pos)
@@ -465,7 +465,7 @@ static gboolean enclose_selection(
 	
 	/* case if selection covers mixed style */
 	if (highlighting_is_code_style(lexer, sci_get_style_at(sci, start)) !=
-		 highlighting_is_code_style(lexer, sci_get_style_at(sci, end)))
+		highlighting_is_code_style(lexer, sci_get_style_at(sci, end)))
 		in_comment = FALSE;
 	else
 		in_comment = !highlighting_is_code_style(lexer, style);
@@ -476,7 +476,7 @@ static gboolean enclose_selection(
 	
 	/* Insert {} block - special case: make indents, move cursor to beginning */
 	if (char_is_curly_bracket(ch) && lexer_has_braces(sci, lexer) &&
-			ac_info->make_indent_for_cbracket && !in_comment)
+		ac_info->make_indent_for_cbracket && !in_comment)
 	{
 		start_line = sci_get_line_from_position(sci, start);
 		start_pos = SSM(sci, SCI_GETLINEINDENTPOSITION, (uptr_t)start_line, 0);
@@ -603,7 +603,8 @@ static void struct_semicolon(
 	gint             filetype)
 {
 	if (filetype_c_or_cpp(filetype) &&
-	   (check_struct(sci, pos, "struct") || check_struct(sci, pos, "typedef struct")))
+		(check_struct(sci, pos, "struct") ||
+		 check_struct(sci, pos, "typedef struct")))
 	{
 		chars_right[1] = ';';
 		return;
@@ -709,15 +710,13 @@ static gboolean auto_close_chars(
 	style = sci_get_style_at(sci, pos + lex_offset);
 	
 	/* add ; after functions */
-	if (
-		!has_sel &&
+	if (!has_sel &&
 		ac_info->close_functions &&
 		chars_left[0] == '(' &&
 		lexer_cpp_like(lexer, style) &&
 		pos == get_end_pos(sci, line) &&
 		sci_get_line_indentation(sci, line) != 0 &&
-		!check_define(sci, line)
-	)
+		!check_define(sci, line))
 		chars_right[1] = ';';
 	
 	style = sci_get_style_at(sci, pos);
@@ -725,13 +724,14 @@ static gboolean auto_close_chars(
 	/* suppress double completion symbols */
 	ch_next = char_at(sci, pos);
 	if (ch == ch_next && !has_sel && ac_info->suppress_doubling &&
-	  !(chars_left[0] != chars_right[0] && ch == chars_left[0]))
+		!(chars_left[0] != chars_right[0] && ch == chars_left[0]))
 	{
 		/* jump_on_data may be 2 (due to autoclosing ");"). Need to decrement if ")" is pressed */
 		if (data->jump_on_tab > 0)
 			data->jump_on_tab -= 1;
-		if ((!ac_info->comments_ac_enable && !highlighting_is_code_style(lexer, style)) &&
-			  ch != '"' && ch != '\'')
+		if ((!ac_info->comments_ac_enable &&
+			 !highlighting_is_code_style(lexer, style)) &&
+			ch != '"' && ch != '\'')
 			return AC_CONTINUE_ACTION;
 		
 		/* suppress ; only at end of line */
@@ -746,10 +746,12 @@ static gboolean auto_close_chars(
 	
 	/* If we have selected text */
 	if (has_sel && ac_info->enclose_selections)
-		return enclose_selection(data, sci, ch, lexer, style, chars_left, chars_right, editor);
+		return enclose_selection(data, sci, ch, lexer, style,
+								 chars_left, chars_right, editor);
 	
 	/* disable autocompletion inside comments and strings */
-	if (!ac_info->comments_ac_enable && !highlighting_is_code_style(lexer, style))
+	if (!ac_info->comments_ac_enable &&
+		!highlighting_is_code_style(lexer, style))
 		return AC_CONTINUE_ACTION;
 	
 	if (ch == chars_right[0] && chars_left[0] != chars_right[0])
@@ -903,8 +905,10 @@ static gboolean plugin_autoclose_init(GeanyPlugin *plugin,
 	
 	ac_info = g_new0(AutocloseInfo, 1);
 	
-	ac_info->config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-		"plugins", G_DIR_SEPARATOR_S, "autoclose", G_DIR_SEPARATOR_S, "autoclose.conf", NULL);
+	ac_info->config_file = g_strconcat(geany->app->configdir,
+									   G_DIR_SEPARATOR_S, "plugins",
+									   G_DIR_SEPARATOR_S, "autoclose",
+									   G_DIR_SEPARATOR_S, "autoclose.conf", NULL);
 	
 	g_key_file_load_from_file(config, ac_info->config_file, G_KEY_FILE_NONE, NULL);
 	
