@@ -84,101 +84,87 @@ typedef struct {
 	struct GeanyDocument *doc;
 } AutocloseUserData;
 
-static gint
-get_indent(ScintillaObject *sci, gint line)
+static gint get_indent(ScintillaObject *sci, gint line)
 {
 	return (gint) SSM(sci, SCI_GETLINEINDENTPOSITION, (uptr_t) line, 0);
 }
 
-static gchar
-char_at(ScintillaObject *sci, gint pos)
+static gchar char_at(ScintillaObject *sci, gint pos)
 {
 	return sci_get_char_at(sci, pos);
 }
 
-static const gchar *
-get_char_range(ScintillaObject *sci, gint start, gint length)
+static const gchar *get_char_range(ScintillaObject *sci, gint start, gint length)
 {
 	return (const gchar *) SSM(sci, SCI_GETRANGEPOINTER, start, length);
 }
 
-static gboolean
-blank_line(ScintillaObject *sci, gint line)
+static gboolean blank_line(ScintillaObject *sci, gint line)
 {
 	return get_indent(sci, line) ==
 		sci_get_line_end_position(sci, line);
 }
 
-static void
-unindent_line(ScintillaObject *sci, gint line, gint indent_width)
+static void unindent_line(ScintillaObject *sci, gint line, gint indent_width)
 {
 	gint indent = sci_get_line_indentation(sci, line);
 	sci_set_line_indentation(sci, line, indent > 0 ? indent - indent_width : 0);
 }
 
-static void
-delete_line(ScintillaObject *sci, gint line)
+static void delete_line(ScintillaObject *sci, gint line)
 {
 	gint start = sci_get_position_from_line(sci, line);
 	gint len = sci_get_line_length(sci, line);
 	SSM(sci, SCI_DELETERANGE, start, len);
 }
 
-static gint
-get_lines_selected(ScintillaObject *sci)
+static gint get_lines_selected(ScintillaObject *sci)
 {
 	gint start = (gint) SSM(sci, SCI_GETSELECTIONSTART, 0, 0);
 	gint end = (gint) SSM(sci, SCI_GETSELECTIONEND, 0, 0);
 	gint line_start;
 	gint line_end;
-
+	
 	if (start == end)
 		return 0; /* no selection */
-
+	
 	line_start = (gint) SSM(sci, SCI_LINEFROMPOSITION, (uptr_t) start, 0);
 	line_end = (gint) SSM(sci, SCI_LINEFROMPOSITION, (uptr_t) end, 0);
-
+	
 	return line_end - line_start + 1;
 }
 
-static void
-insert_text(ScintillaObject *sci, gint pos, const gchar *text)
+static void insert_text(ScintillaObject *sci, gint pos, const gchar *text)
 {
 	SSM(sci, SCI_INSERTTEXT, pos, (sptr_t) text);
 }
 
-static gint
-get_selections(ScintillaObject *sci)
+static gint get_selections(ScintillaObject *sci)
 {
 	return (gint) SSM(sci, SCI_GETSELECTIONS, 0, 0);
 }
 
-static gint
-get_caret_pos(ScintillaObject *sci, gint selection)
+static gint get_caret_pos(ScintillaObject *sci, gint selection)
 {
 	return (gint) SSM(sci, SCI_GETSELECTIONNCARET, selection, 0);
 }
 
-static gint
-get_ancor_pos(ScintillaObject *sci, gint selection)
+static gint get_ancor_pos(ScintillaObject *sci, gint selection)
 {
 	return (gint) SSM(sci, SCI_GETSELECTIONNANCHOR, selection, 0);
 }
 
-static gboolean
-char_is_quote(gchar ch)
+static gboolean char_is_quote(gchar ch)
 {
 	return '\'' == ch || '"' == ch;
 }
 
-static gboolean
-char_is_curly_bracket(gchar ch)
+static gboolean char_is_curly_bracket(gchar ch)
 {
 	return '{' == ch || '}' == ch;
 }
 
-static gboolean
-isspace_no_newline(gchar ch)
+static gboolean isspace_no_newline(gchar ch)
 {
 	return g_ascii_isspace(ch) && ch != '\n' && ch != '\r';
 }
@@ -188,8 +174,7 @@ isspace_no_newline(gchar ch)
  * ability to enclose selection. Calls only for selected text so using
  * sci_get_selection_start/end is ok here.
  * */
-static gboolean
-lexer_has_braces(ScintillaObject *sci, gint lexer)
+static gboolean lexer_has_braces(ScintillaObject *sci, gint lexer)
 {
 	gint sel_start;
 	switch (lexer)
@@ -215,28 +200,27 @@ lexer_has_braces(ScintillaObject *sci, gint lexer)
 	}
 }
 
-static gboolean
-lexer_cpp_like(gint lexer, gint style)
+static gboolean lexer_html_like(gint lexer)
 {
-	if (lexer == SCLEX_CPP && style == SCE_C_IDENTIFIER)
-		return TRUE;
-	return FALSE;
+	return lexer == SCLEX_HTML || lexer == SCLEX_XML;
 }
 
-static gboolean
-filetype_c_or_cpp(gint type)
+static gboolean lexer_cpp_like(gint lexer, gint style)
+{
+	return lexer == SCLEX_CPP && style == SCE_C_IDENTIFIER;
+}
+
+static gboolean filetype_c_or_cpp(gint type)
 {
 	return type == GEANY_FILETYPES_C || type == GEANY_FILETYPES_CPP;
 }
 
-static gboolean
-filetype_cpp(gint type)
+static gboolean filetype_cpp(gint type)
 {
 	return type == GEANY_FILETYPES_CPP;
 }
 
-static gint
-get_end_pos(ScintillaObject *sci, gint line)
+static gint get_end_pos(ScintillaObject *sci, gint line)
 {
 	gint end;
 	gchar ch;
@@ -251,8 +235,7 @@ get_end_pos(ScintillaObject *sci, gint line)
 	return end;
 }
 
-static gboolean
-check_chars(
+static gboolean check_chars(
 	ScintillaObject *sci,
 	gint             ch,
 	gchar           *chars_left,
@@ -290,8 +273,7 @@ check_chars(
 			if (!ac_info->abracket)
 				return FALSE;
 			gint lexer = sci_get_lexer(sci);
-			if (ac_info->abracket_htmlonly &&
-				lexer != SCLEX_HTML && lexer != SCLEX_XML)
+			if (ac_info->abracket_htmlonly && !lexer_html_like(lexer))
 				return FALSE;
 			*chars_left = '<';
 			*chars_right = '>';
@@ -320,8 +302,7 @@ check_chars(
 	return TRUE;
 }
 
-static gboolean
-improve_indent(
+static gboolean improve_indent(
 	AutocloseUserData *data,
 	ScintillaObject *sci,
 	GeanyEditor     *editor,
@@ -381,8 +362,7 @@ improve_indent(
 	return AC_STOP_ACTION;
 }
 
-static gboolean
-handle_backspace(
+static gboolean handle_backspace(
 	AutocloseUserData *data,
 	ScintillaObject   *sci,
 	gchar              ch,
@@ -398,10 +378,10 @@ handle_backspace(
 	if (!ac_info->delete_pairing_brace)
 		return AC_CONTINUE_ACTION;
 	ch = char_at(sci, pos - 1);
-
+	
 	if (!check_chars(sci, ch, ch_left, ch_right))
 		return AC_CONTINUE_ACTION;
-
+	
 	if (event->state & GDK_SHIFT_MASK)
 	{
 		if ((ch_left[0] == ch || ch_right[0] == ch) &&
@@ -449,11 +429,11 @@ final:
 			return AC_STOP_ACTION;
 		}
 	}
-
+	
 	/* handle \'|' situation */
 	if (char_is_quote(ch) && char_at(sci, pos - 2) == '\\')
 		return AC_CONTINUE_ACTION;
-
+	
 	if (ch_left[0] == ch && ch_right[0] == char_at(sci, pos))
 	{
 		SSM(sci, SCI_DELETERANGE, pos, 1);
@@ -464,8 +444,7 @@ final:
 }
 
 
-static gboolean
-enclose_selection(
+static gboolean enclose_selection(
 	AutocloseUserData *data,
 	ScintillaObject   *sci,
 	gchar              ch,
@@ -480,10 +459,10 @@ enclose_selection(
 	gboolean   in_comment;
 	gint       start_line, start_pos, end_line, text_end_pos;
 	gint       start_indent, indent_width, current_indent;
-
+	
 	start = sci_get_selection_start(sci);
 	end = sci_get_selection_end(sci);
-
+	
 	/* case if selection covers mixed style */
 	if (highlighting_is_code_style(lexer, sci_get_style_at(sci, start)) !=
 		 highlighting_is_code_style(lexer, sci_get_style_at(sci, end)))
@@ -492,10 +471,9 @@ enclose_selection(
 		in_comment = !highlighting_is_code_style(lexer, style);
 	if (!ac_info->comments_enclose && in_comment)
 		return AC_CONTINUE_ACTION;
-
+	
 	sci_start_undo_action(sci);
-
-
+	
 	/* Insert {} block - special case: make indents, move cursor to beginning */
 	if (char_is_curly_bracket(ch) && lexer_has_braces(sci, lexer) &&
 			ac_info->make_indent_for_cbracket && !in_comment)
@@ -503,7 +481,7 @@ enclose_selection(
 		start_line = sci_get_line_from_position(sci, start);
 		start_pos = SSM(sci, SCI_GETLINEINDENTPOSITION, (uptr_t)start_line, 0);
 		insert_text(sci, start_pos, "{\n");
-
+		
 		end_line = sci_get_line_from_position(sci, end);
 		start_indent = sci_get_line_indentation(sci, start_line);
 		indent_width = editor_get_indent_prefs(editor)->width;
@@ -596,8 +574,7 @@ enclose_selection(
 	return AC_STOP_ACTION;
 }
 
-static gboolean
-check_struct(
+static gboolean check_struct(
 	ScintillaObject *sci,
 	gint             pos,
 	const gchar     *str)
@@ -619,8 +596,7 @@ check_struct(
 	return FALSE;
 }
 
-static void
-struct_semicolon(
+static void struct_semicolon(
 	ScintillaObject *sci,
 	gint             pos,
 	gchar           *chars_right,
@@ -639,8 +615,7 @@ struct_semicolon(
 	}
 }
 
-static gboolean
-check_define(
+static gboolean check_define(
 	ScintillaObject *sci,
 	gint             line)
 {
@@ -651,8 +626,7 @@ check_define(
 	return FALSE;
 }
 
-static gboolean
-auto_close_chars(
+static gboolean auto_close_chars(
 	AutocloseUserData *data,
 	GdkEventKey       *event)
 {
@@ -666,7 +640,7 @@ auto_close_chars(
 	gint             pos, line, lex_offset;
 	gboolean         has_sel;
 	gint             filetype = 0;
-
+	
 	g_return_val_if_fail(data, AC_CONTINUE_ACTION);
 	doc = data->doc;
 	g_return_val_if_fail(DOC_VALID(doc), AC_CONTINUE_ACTION);
@@ -674,18 +648,18 @@ auto_close_chars(
 	g_return_val_if_fail(editor, AC_CONTINUE_ACTION);
 	sci = editor->sci;
 	g_return_val_if_fail(sci, AC_CONTINUE_ACTION);
-
+	
 	if (doc->file_type)
 		filetype = doc->file_type->id;
-
+	
 	pos = sci_get_current_position(sci);
 	line = sci_get_current_line(sci);
 	ch = event->keyval;
-
+	
 	if (ch == GDK_BackSpace)
 	{
 		return handle_backspace(data, sci, ch, chars_left, chars_right,
-		                        event, editor_get_indent_prefs(editor)->width);
+								event, editor_get_indent_prefs(editor)->width);
 	}
 	else if (ch == GDK_Return)
 	{
@@ -700,19 +674,29 @@ auto_close_chars(
 		data->jump_on_tab = 0;
 		return AC_STOP_ACTION;
 	}
-
+	
+	lexer = sci_get_lexer(sci);
+	
 	/* set up completion chars */
 	if (!check_chars(sci, ch, chars_left, chars_right))
+	{
+		// esh: for "<-" or "<=" operator (for example, Erlang) remove ">" symbol
+		if ((ch == '-' || ch == '=') && ac_info->abracket &&
+			!lexer_html_like(lexer) && pos > 0 &&
+			char_at(sci, pos - 1) == '<' && char_at(sci, pos) == '>')
+		{
+			SSM(sci, SCI_DELETERANGE, pos, 1);
+			data->jump_on_tab = 0;
+		}
 		return AC_CONTINUE_ACTION;
-
+	}
+	
 	has_sel = sci_has_selection(sci);
-
+	
 	/* do not suppress/complete in case: '\|' */
 	if (char_is_quote(ch) && char_at(sci, pos - 1) == '\\' && !has_sel)
 		return AC_CONTINUE_ACTION;
-
-	lexer = sci_get_lexer(sci);
-
+	
 	/* in C-like languages - complete functions with ; */
 	lex_offset = -1;
 	ch_buf = char_at(sci, pos + lex_offset);
@@ -721,9 +705,9 @@ auto_close_chars(
 		--lex_offset;
 		ch_buf = char_at(sci, pos + lex_offset);
 	}
-
+	
 	style = sci_get_style_at(sci, pos + lex_offset);
-
+	
 	/* add ; after functions */
 	if (
 		!has_sel &&
@@ -735,9 +719,9 @@ auto_close_chars(
 		!check_define(sci, line)
 	)
 		chars_right[1] = ';';
-
+	
 	style = sci_get_style_at(sci, pos);
-
+	
 	/* suppress double completion symbols */
 	ch_next = char_at(sci, pos);
 	if (ch == ch_next && !has_sel && ac_info->suppress_doubling &&
@@ -747,33 +731,33 @@ auto_close_chars(
 		if (data->jump_on_tab > 0)
 			data->jump_on_tab -= 1;
 		if ((!ac_info->comments_ac_enable && !highlighting_is_code_style(lexer, style)) &&
-		      ch != '"' && ch != '\'')
+			  ch != '"' && ch != '\'')
 			return AC_CONTINUE_ACTION;
-
+		
 		/* suppress ; only at end of line */
 		if (ch == ';' && pos + 1 != get_end_pos(sci, line))
 			return AC_CONTINUE_ACTION;
 		SSM(sci, SCI_DELETERANGE, pos, 1);
 		return AC_CONTINUE_ACTION;
 	}
-
+	
 	if (ch == ';')
 		return AC_CONTINUE_ACTION;
-
+	
 	/* If we have selected text */
 	if (has_sel && ac_info->enclose_selections)
 		return enclose_selection(data, sci, ch, lexer, style, chars_left, chars_right, editor);
-
+	
 	/* disable autocompletion inside comments and strings */
 	if (!ac_info->comments_ac_enable && !highlighting_is_code_style(lexer, style))
 		return AC_CONTINUE_ACTION;
-
+	
 	if (ch == chars_right[0] && chars_left[0] != chars_right[0])
 		return AC_CONTINUE_ACTION;
-
+	
 	/* add ; after struct */
 	struct_semicolon(sci, pos, chars_right, filetype);
-
+	
 	/* just close char */
 	SSM(sci, SCI_INSERTTEXT, pos, (sptr_t)chars_right);
 	sci_set_current_position(sci, pos, TRUE);
@@ -783,23 +767,23 @@ auto_close_chars(
 	return AC_CONTINUE_ACTION;
 }
 
-static gboolean
-on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
+							 gpointer user_data)
 {
 	AutocloseUserData *data = user_data;
 	g_return_val_if_fail(data && DOC_VALID(data->doc), AC_CONTINUE_ACTION);
 	return auto_close_chars(data, event);
 }
 
-static void
-on_sci_notify(ScintillaObject *sci, gint scn, SCNotification *nt, gpointer user_data)
+static void on_sci_notify(ScintillaObject *sci, gint scn, SCNotification *nt,
+						  gpointer user_data)
 {
 	AutocloseUserData *data = user_data;
-
+	
 	if (!ac_info->jump_on_tab)
 		return;
 	g_return_if_fail(data);
-
+	
 	/* reset jump_on_tab state when user clicked away */
 	gboolean updated_sel  = nt->updated & SC_UPDATE_SELECTION;
 	gboolean updated_text = nt->updated & SC_UPDATE_CONTENT;
@@ -818,18 +802,18 @@ on_sci_notify(ScintillaObject *sci, gint scn, SCNotification *nt, gpointer user_
 	data->last_line = new_line;
 }
 
-static void
-on_document_open(GObject *obj, GeanyDocument *doc, gpointer user_data)
+static void on_document_open(GObject *obj, GeanyDocument *doc,
+							 gpointer user_data)
 {
 	AutocloseUserData *data;
 	ScintillaObject   *sci;
 	g_return_if_fail(DOC_VALID(doc));
-
+	
 	sci = doc->editor->sci;
 	data = g_new0(AutocloseUserData, 1);
 	data->doc = doc;
 	plugin_signal_connect(geany_plugin, G_OBJECT(sci), "sci-notify",
-		    FALSE, G_CALLBACK(on_sci_notify), data);
+			FALSE, G_CALLBACK(on_sci_notify), data);
 	plugin_signal_connect(geany_plugin, G_OBJECT(sci), "key-press-event",
 			FALSE, G_CALLBACK(on_key_press), data);
 	/* This will free the data when the sci is destroyed */
@@ -843,22 +827,22 @@ static PluginCallback plugin_autoclose_callbacks[] =
 	{ NULL, NULL, FALSE, NULL }
 };
 
-static void
-configure_response_cb(GtkDialog *dialog, gint response, gpointer user_data)
+static void configure_response_cb(GtkDialog *dialog, gint response,
+								  gpointer user_data)
 {
 	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
 		return;
 	GKeyFile *config = g_key_file_new();
 	gchar    *config_dir = g_path_get_dirname(ac_info->config_file);
-
+	
 	g_key_file_load_from_file(config, ac_info->config_file, G_KEY_FILE_NONE, NULL);
-
+	
 #define SAVE_CONF_BOOL(name) G_STMT_START {                                    \
-    ac_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(            \
-                        g_object_get_data(G_OBJECT(dialog), "check_" #name))); \
-    g_key_file_set_boolean(config, "autoclose", #name, ac_info->name);         \
+	ac_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(            \
+						g_object_get_data(G_OBJECT(dialog), "check_" #name))); \
+	g_key_file_set_boolean(config, "autoclose", #name, ac_info->name);         \
 } G_STMT_END
-
+	
 	SAVE_CONF_BOOL(parenthesis);
 	SAVE_CONF_BOOL(abracket);
 	SAVE_CONF_BOOL(abracket_htmlonly);
@@ -881,10 +865,11 @@ configure_response_cb(GtkDialog *dialog, gint response, gpointer user_data)
 	SAVE_CONF_BOOL(close_functions);
 	SAVE_CONF_BOOL(bcksp_remove_pair);
 	SAVE_CONF_BOOL(jump_on_tab);
-
+	
 #undef SAVE_CONF_BOOL
-
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) && utils_mkdir(config_dir, TRUE) != 0)
+	
+	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
+		utils_mkdir(config_dir, TRUE) != 0)
 	{
 		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
 			_("Plugin configuration directory could not be created."));
@@ -902,29 +887,29 @@ configure_response_cb(GtkDialog *dialog, gint response, gpointer user_data)
 }
 
 /* Called by Geany to initialize the plugin */
-static gboolean
-plugin_autoclose_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static gboolean plugin_autoclose_init(GeanyPlugin *plugin,
+									  G_GNUC_UNUSED gpointer pdata)
 {
 	guint i = 0;
-
+	
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
-
+	
 	foreach_document(i)
 	{
 		on_document_open(NULL, documents[i], NULL);
 	}
 	GKeyFile *config = g_key_file_new();
-
+	
 	ac_info = g_new0(AutocloseInfo, 1);
-
+	
 	ac_info->config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
 		"plugins", G_DIR_SEPARATOR_S, "autoclose", G_DIR_SEPARATOR_S, "autoclose.conf", NULL);
-
+	
 	g_key_file_load_from_file(config, ac_info->config_file, G_KEY_FILE_NONE, NULL);
-
+	
 #define GET_CONF_BOOL(name, def) ac_info->name = utils_get_setting_boolean(config, "autoclose", #name, def)
-
+	
 	GET_CONF_BOOL(parenthesis, TRUE);
 	/* Angular bracket conflicts with conditional statements, enable only for HTML by default */
 	GET_CONF_BOOL(abracket, TRUE);
@@ -948,72 +933,73 @@ plugin_autoclose_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 	GET_CONF_BOOL(close_functions, TRUE);
 	GET_CONF_BOOL(bcksp_remove_pair, FALSE);
 	GET_CONF_BOOL(jump_on_tab, TRUE);
-
+	
 #undef GET_CONF_BOOL
-
+	
 	g_key_file_free(config);
 	return TRUE;
 }
 
 #define GET_CHECKBOX_ACTIVE(name) gboolean sens = gtk_toggle_button_get_active(\
-           GTK_TOGGLE_BUTTON(g_object_get_data(G_OBJECT(data), "check_" #name)))
+		   GTK_TOGGLE_BUTTON(g_object_get_data(G_OBJECT(data), "check_" #name)))
 
 #define SET_SENS(name) gtk_widget_set_sensitive(                               \
-                        g_object_get_data(G_OBJECT(data), "check_" #name), sens)
+						g_object_get_data(G_OBJECT(data), "check_" #name), sens)
 
-static void
-ac_make_indent_for_cbracket_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_make_indent_for_cbracket_cb(GtkToggleButton *togglebutton,
+										   gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(make_indent_for_cbracket);
 	SET_SENS(move_cursor_to_beginning);
 }
 
-static void
-ac_parenthesis_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_parenthesis_cb(GtkToggleButton *togglebutton,
+							  gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(parenthesis);
 	SET_SENS(close_functions);
 }
 
-static void
-ac_cbracket_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_cbracket_cb(GtkToggleButton *togglebutton,
+						   gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(cbracket);
 	SET_SENS(make_indent_for_cbracket);
 	SET_SENS(move_cursor_to_beginning);
 }
 
-static void
-ac_abracket_htmlonly_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_abracket_htmlonly_cb(GtkToggleButton *togglebutton,
+									gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(abracket);
 	SET_SENS(abracket_htmlonly);
 }
 
-static void
-ac_backquote_bashonly_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_backquote_bashonly_cb(GtkToggleButton *togglebutton,
+									 gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(backquote);
 	SET_SENS(backquote_bashonly);
 }
 
-static void
-ac_enclose_selections_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_enclose_selections_cb(GtkToggleButton *togglebutton,
+									 gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(enclose_selections);
 	SET_SENS(keep_selection);
 	SET_SENS(comments_enclose);
 }
 
-static void
-ac_delete_pairing_brace_cb(GtkToggleButton *togglebutton, gpointer data)
+static void ac_delete_pairing_brace_cb(GtkToggleButton *togglebutton,
+									   gpointer data)
 {
 	GET_CHECKBOX_ACTIVE(delete_pairing_brace);
 	SET_SENS(bcksp_remove_pair);
 }
 
-static GtkWidget *
-plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog, G_GNUC_UNUSED gpointer pdata)
+static GtkWidget *plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
+											 GtkDialog *dialog,
+											 G_GNUC_UNUSED gpointer pdata)
 {
 	GtkWidget *widget, *vbox, *frame, *container, *scrollbox;
 	vbox = gtk_vbox_new(FALSE, 0);
@@ -1026,23 +1012,23 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 #endif
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbox),
 		GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-
+	
 #define WIDGET_FRAME(description) G_STMT_START {                               \
-    container = gtk_vbox_new(FALSE, 0);                                        \
-    frame = gtk_frame_new(NULL);                                               \
-    gtk_frame_set_label(GTK_FRAME(frame), description);                        \
-    gtk_container_add(GTK_CONTAINER(frame), container);                        \
-    gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 3);                 \
+	container = gtk_vbox_new(FALSE, 0);                                        \
+	frame = gtk_frame_new(NULL);                                               \
+	gtk_frame_set_label(GTK_FRAME(frame), description);                        \
+	gtk_container_add(GTK_CONTAINER(frame), container);                        \
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 3);                 \
 } G_STMT_END
-
+	
 #define WIDGET_CONF_BOOL(name, description, tooltip) G_STMT_START {            \
-    widget = gtk_check_button_new_with_label(description);                     \
-    if (tooltip) gtk_widget_set_tooltip_text(widget, tooltip);                 \
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), ac_info->name);    \
-    gtk_box_pack_start(GTK_BOX(container), widget, FALSE, FALSE, 3);           \
-    g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);               \
+	widget = gtk_check_button_new_with_label(description);                     \
+	if (tooltip) gtk_widget_set_tooltip_text(widget, tooltip);                 \
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), ac_info->name);    \
+	gtk_box_pack_start(GTK_BOX(container), widget, FALSE, FALSE, 3);           \
+	g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);               \
 } G_STMT_END
-
+	
 	WIDGET_FRAME(_("Auto-close quotes and brackets"));
 	WIDGET_CONF_BOOL(parenthesis, _("Parenthesis ( )"),
 		_("Auto-close parenthesis \"(\" -> \"(|)\""));
@@ -1066,7 +1052,7 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 	g_signal_connect(widget, "toggled", G_CALLBACK(ac_backquote_bashonly_cb), dialog);
 	WIDGET_CONF_BOOL(backquote_bashonly, _("\tOnly for Shell-scripts (Bash)"),
 		_("Auto-close backquote only in Shell-scripts like Bash"));
-
+	
 	WIDGET_FRAME(_("Improve curly brackets completion"));
 	WIDGET_CONF_BOOL(make_indent_for_cbracket, _("Indent when enclosing"),
 		_("If you select some text and press \"{\" or \"}\", plugin "
@@ -1086,7 +1072,7 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 		_("This style puts the brace associated with a control statement on "
 		"the next line, indented. Statements within the braces are indented "
 		"to the same level as the braces."));
-
+	
 	container = vbox;
 	WIDGET_CONF_BOOL(delete_pairing_brace, _("Delete pairing character while backspacing first"),
 		_("Check if you want to delete pairing bracket by pressing BackSpace."));
@@ -1099,13 +1085,13 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 	g_signal_connect(widget, "toggled", G_CALLBACK(ac_enclose_selections_cb), dialog);
 	WIDGET_CONF_BOOL(keep_selection, _("Keep selection when enclosing"),
 		_("Keep your previously selected text after enclosing."));
-
+	
 	WIDGET_FRAME(_("Behaviour inside comments and strings"));
 	WIDGET_CONF_BOOL(comments_ac_enable, _("Allow auto-closing in strings and comments"),
 		_("Check if you want to keep auto-closing inside strings and comments too."));
 	WIDGET_CONF_BOOL(comments_enclose, _("Enclose selections in strings and comments"),
 		_("Check if you want to enclose selections inside strings and comments too."));
-
+	
 	container = vbox;
 	WIDGET_CONF_BOOL(close_functions, _("Auto-complete \";\" for functions"),
 		_("Full function auto-closing (works only for C/C++): type \"sin(\" "
@@ -1116,10 +1102,10 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 		"or last \"}\"."));
 	WIDGET_CONF_BOOL(jump_on_tab, _("Jump on Tab to enclosed char"),
 		_("Jump behind autoclosed items on Tab press."));
-
+	
 #undef WIDGET_CONF_BOOL
 #undef WIDGET_FRAME
-
+	
 	ac_make_indent_for_cbracket_cb(NULL, dialog);
 	ac_cbracket_cb(NULL, dialog);
 	ac_enclose_selections_cb(NULL, dialog);
@@ -1131,16 +1117,15 @@ plugin_autoclose_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 	return scrollbox;
 }
 
-static void
-autoclose_cleanup(void)
+static void autoclose_cleanup(void)
 {
 	guint i = 0;
-
+	
 	foreach_document(i)
 	{
 		gpointer data;
 		ScintillaObject *sci;
-
+		
 		sci = documents[i]->editor->sci;
 		data = g_object_steal_data(G_OBJECT(sci), "autoclose-userdata");
 		g_free(data);
@@ -1148,16 +1133,16 @@ autoclose_cleanup(void)
 }
 
 /* Called by Geany before unloading the plugin. */
-static void
-plugin_autoclose_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static void plugin_autoclose_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
+									 G_GNUC_UNUSED gpointer pdata)
 {
 	autoclose_cleanup();
 	g_free(ac_info->config_file);
 	g_free(ac_info);
 }
 
-static void
-plugin_autoclose_help(G_GNUC_UNUSED GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static void plugin_autoclose_help(G_GNUC_UNUSED GeanyPlugin *plugin,
+								  G_GNUC_UNUSED gpointer pdata)
 {
 	utils_open_browser("http://plugins.geany.org/autoclose.html");
 }
@@ -1169,20 +1154,20 @@ void geany_load_module(GeanyPlugin *plugin)
 {
 	/* Setup translation */
 	main_locale_init(LOCALEDIR, GETTEXT_PACKAGE);
-
+	
 	/* Set metadata */
 	plugin->info->name = _("Auto-close");
 	plugin->info->description = _("Auto-close braces and brackets with lot of features");
 	plugin->info->version = "0.3";
 	plugin->info->author = "Pavel Roschin <rpg89(at)post(dot)ru>";
-
+	
 	/* Set functions */
 	plugin->funcs->init = plugin_autoclose_init;
 	plugin->funcs->cleanup = plugin_autoclose_cleanup;
 	plugin->funcs->help = plugin_autoclose_help;
 	plugin->funcs->callbacks = plugin_autoclose_callbacks;
 	plugin->funcs->configure = plugin_autoclose_configure;
-
+	
 	/* Register! */
 	GEANY_PLUGIN_REGISTER(plugin, 226);
 }
