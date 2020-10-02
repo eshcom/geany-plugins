@@ -40,7 +40,7 @@ static GtkWidget 			*addressbar;
 static gchar 				*addressbar_last_address 	= NULL;
 
 static GtkTreeIter 			bookmarks_iter;
-static gboolean 			bookmarks_expanded = FALSE;
+static gboolean 			bookmarks_expanded 			= FALSE;
 
 static GtkTreeViewColumn 	*treeview_column_text;
 static GtkCellRenderer 		*render_icon, *render_text;
@@ -65,7 +65,7 @@ static gboolean 			flag_on_expand_refresh 		= FALSE;
 
 static gchar 				*CONFIG_FILE 				= NULL;
 static gchar 				*CONFIG_OPEN_EXTERNAL_CMD 	= NULL;
-static gchar 				*CONFIG_OPEN_TERMINAL 	= NULL;
+static gchar 				*CONFIG_OPEN_TERMINAL 		= NULL;
 static gboolean 			CONFIG_REVERSE_FILTER 		= FALSE;
 static gboolean 			CONFIG_ONE_CLICK_CHDOC 		= FALSE;
 static gboolean 			CONFIG_SHOW_HIDDEN_FILES 	= FALSE;
@@ -1951,23 +1951,23 @@ create_sidebar(void)
 
 	if (CONFIG_SHOW_BARS == 2)
 	{
-		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 				scrollwin, 			TRUE,  TRUE,  1);
-		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 				sidebar_vbox_bars, 	FALSE, TRUE,  1);
+		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 			scrollwin, 			TRUE,  TRUE,  1);
+		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 			sidebar_vbox_bars, 	FALSE, TRUE,  1);
 	}
 	else
 	{
-		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 				sidebar_vbox_bars, 	FALSE, TRUE,  1);
-		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 				scrollwin, 			TRUE,  TRUE,  1);
+		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 			sidebar_vbox_bars, 	FALSE, TRUE,  1);
+		gtk_box_pack_start(GTK_BOX(sidebar_vbox), 			scrollwin, 			TRUE,  TRUE,  1);
 	}
 
-	g_signal_connect(selection, 		"changed", 				G_CALLBACK(on_treeview_changed), 				NULL);
-	g_signal_connect(treeview, 			"button-press-event", 	G_CALLBACK(on_treeview_mouseclick), 			selection);
-	g_signal_connect(treeview, 			"row-activated", 		G_CALLBACK(on_treeview_row_activated), 			NULL);
-	g_signal_connect(treeview, 			"row-collapsed", 		G_CALLBACK(on_treeview_row_collapsed), 			NULL);
-	g_signal_connect(treeview, 			"row-expanded", 		G_CALLBACK(on_treeview_row_expanded), 			NULL);
-	g_signal_connect(treeview, 			"key-press-event", 		G_CALLBACK(on_treeview_keypress), 			NULL);
-	g_signal_connect(addressbar, 		"activate", 			G_CALLBACK(on_addressbar_activate), 			NULL);
-	g_signal_connect(filter, 			"activate", 			G_CALLBACK(on_filter_activate), 				NULL);
+	g_signal_connect(selection, 	"changed", 				G_CALLBACK(on_treeview_changed), 		NULL);
+	g_signal_connect(treeview, 		"button-press-event", 	G_CALLBACK(on_treeview_mouseclick), 	selection);
+	g_signal_connect(treeview, 		"row-activated", 		G_CALLBACK(on_treeview_row_activated), 	NULL);
+	g_signal_connect(treeview, 		"row-collapsed", 		G_CALLBACK(on_treeview_row_collapsed), 	NULL);
+	g_signal_connect(treeview, 		"row-expanded", 		G_CALLBACK(on_treeview_row_expanded), 	NULL);
+	g_signal_connect(treeview, 		"key-press-event", 		G_CALLBACK(on_treeview_keypress), 		NULL);
+	g_signal_connect(addressbar, 	"activate", 			G_CALLBACK(on_addressbar_activate), 	NULL);
+	g_signal_connect(filter, 		"activate", 			G_CALLBACK(on_filter_activate), 		NULL);
 
 	gtk_widget_show_all(sidebar_vbox);
 
@@ -2008,21 +2008,21 @@ load_settings(void)
 
 	g_key_file_load_from_file(config, CONFIG_FILE, G_KEY_FILE_NONE, NULL);
 
-	CONFIG_OPEN_EXTERNAL_CMD 		= utils_get_setting_string(config, "treebrowser", "open_external_cmd", 		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
-	CONFIG_OPEN_TERMINAL 			= utils_get_setting_string(config, "treebrowser", "open_terminal", 			CONFIG_OPEN_TERMINAL_DEFAULT);
-	CONFIG_REVERSE_FILTER 			= utils_get_setting_boolean(config, "treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
-	CONFIG_ONE_CLICK_CHDOC 			= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
-	CONFIG_SHOW_HIDDEN_FILES 		= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
-	CONFIG_HIDE_OBJECT_FILES 		= utils_get_setting_boolean(config, "treebrowser", "hide_object_files", 	CONFIG_HIDE_OBJECT_FILES);
-	CONFIG_SHOW_BARS 				= utils_get_setting_integer(config, "treebrowser", "show_bars", 			CONFIG_SHOW_BARS);
-	CONFIG_CHROOT_ON_DCLICK 		= utils_get_setting_boolean(config, "treebrowser", "chroot_on_dclick", 		CONFIG_CHROOT_ON_DCLICK);
-	CONFIG_FOLLOW_CURRENT_DOC 		= utils_get_setting_boolean(config, "treebrowser", "follow_current_doc", 	CONFIG_FOLLOW_CURRENT_DOC);
-	CONFIG_ON_DELETE_CLOSE_FILE 	= utils_get_setting_boolean(config, "treebrowser", "on_delete_close_file", 	CONFIG_ON_DELETE_CLOSE_FILE);
-	CONFIG_ON_OPEN_FOCUS_EDITOR		= utils_get_setting_boolean(config, "treebrowser", "on_open_focus_editor", 	CONFIG_ON_OPEN_FOCUS_EDITOR);
-	CONFIG_SHOW_TREE_LINES 			= utils_get_setting_boolean(config, "treebrowser", "show_tree_lines", 		CONFIG_SHOW_TREE_LINES);
-	CONFIG_SHOW_BOOKMARKS 			= utils_get_setting_boolean(config, "treebrowser", "show_bookmarks", 		CONFIG_SHOW_BOOKMARKS);
-	CONFIG_SHOW_ICONS 				= utils_get_setting_integer(config, "treebrowser", "show_icons", 			CONFIG_SHOW_ICONS);
-	CONFIG_OPEN_NEW_FILES			= utils_get_setting_boolean(config, "treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
+	CONFIG_OPEN_EXTERNAL_CMD 	= utils_get_setting_string(config, "treebrowser", "open_external_cmd", 		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
+	CONFIG_OPEN_TERMINAL 		= utils_get_setting_string(config, "treebrowser", "open_terminal", 			CONFIG_OPEN_TERMINAL_DEFAULT);
+	CONFIG_REVERSE_FILTER 		= utils_get_setting_boolean(config, "treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
+	CONFIG_ONE_CLICK_CHDOC 		= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
+	CONFIG_SHOW_HIDDEN_FILES 	= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
+	CONFIG_HIDE_OBJECT_FILES 	= utils_get_setting_boolean(config, "treebrowser", "hide_object_files", 	CONFIG_HIDE_OBJECT_FILES);
+	CONFIG_SHOW_BARS 			= utils_get_setting_integer(config, "treebrowser", "show_bars", 			CONFIG_SHOW_BARS);
+	CONFIG_CHROOT_ON_DCLICK 	= utils_get_setting_boolean(config, "treebrowser", "chroot_on_dclick", 		CONFIG_CHROOT_ON_DCLICK);
+	CONFIG_FOLLOW_CURRENT_DOC 	= utils_get_setting_boolean(config, "treebrowser", "follow_current_doc", 	CONFIG_FOLLOW_CURRENT_DOC);
+	CONFIG_ON_DELETE_CLOSE_FILE	= utils_get_setting_boolean(config, "treebrowser", "on_delete_close_file", 	CONFIG_ON_DELETE_CLOSE_FILE);
+	CONFIG_ON_OPEN_FOCUS_EDITOR	= utils_get_setting_boolean(config, "treebrowser", "on_open_focus_editor", 	CONFIG_ON_OPEN_FOCUS_EDITOR);
+	CONFIG_SHOW_TREE_LINES 		= utils_get_setting_boolean(config, "treebrowser", "show_tree_lines", 		CONFIG_SHOW_TREE_LINES);
+	CONFIG_SHOW_BOOKMARKS 		= utils_get_setting_boolean(config, "treebrowser", "show_bookmarks", 		CONFIG_SHOW_BOOKMARKS);
+	CONFIG_SHOW_ICONS 			= utils_get_setting_integer(config, "treebrowser", "show_icons", 			CONFIG_SHOW_ICONS);
+	CONFIG_OPEN_NEW_FILES		= utils_get_setting_boolean(config, "treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
 
 	g_key_file_free(config);
 }
@@ -2043,7 +2043,7 @@ save_settings(void)
 	}
 
 	g_key_file_set_string(config, 	"treebrowser", "open_external_cmd", 	CONFIG_OPEN_EXTERNAL_CMD);
-	g_key_file_set_string(config, 	"treebrowser", "open_terminal", 	CONFIG_OPEN_TERMINAL);
+	g_key_file_set_string(config, 	"treebrowser", "open_terminal", 		CONFIG_OPEN_TERMINAL);
 	g_key_file_set_boolean(config, 	"treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
 	g_key_file_set_boolean(config, 	"treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
 	g_key_file_set_boolean(config, 	"treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
@@ -2056,7 +2056,7 @@ save_settings(void)
 	g_key_file_set_boolean(config, 	"treebrowser", "show_tree_lines", 		CONFIG_SHOW_TREE_LINES);
 	g_key_file_set_boolean(config, 	"treebrowser", "show_bookmarks", 		CONFIG_SHOW_BOOKMARKS);
 	g_key_file_set_integer(config, 	"treebrowser", "show_icons", 			CONFIG_SHOW_ICONS);
-	g_key_file_set_boolean(config,	"treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
+	g_key_file_set_boolean(config, 	"treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
 
 	data = g_key_file_to_data(config, NULL, NULL);
 	utils_write_file(CONFIG_FILE, data);
@@ -2076,7 +2076,7 @@ on_configure_response(GtkDialog *dialog, gint response, gpointer user_data)
 		return;
 
 	CONFIG_OPEN_EXTERNAL_CMD 	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_EXTERNAL_CMD), 0, -1);
-	CONFIG_OPEN_TERMINAL     	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_TERMINAL), 0, -1);
+	CONFIG_OPEN_TERMINAL 		= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_TERMINAL), 0, -1);
 	CONFIG_REVERSE_FILTER 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.REVERSE_FILTER));
 	CONFIG_ONE_CLICK_CHDOC 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ONE_CLICK_CHDOC));
 	CONFIG_SHOW_HIDDEN_FILES 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_HIDDEN_FILES));
@@ -2084,12 +2084,12 @@ on_configure_response(GtkDialog *dialog, gint response, gpointer user_data)
 	CONFIG_SHOW_BARS 			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_BARS));
 	CONFIG_CHROOT_ON_DCLICK 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.CHROOT_ON_DCLICK));
 	CONFIG_FOLLOW_CURRENT_DOC 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.FOLLOW_CURRENT_DOC));
-	CONFIG_ON_DELETE_CLOSE_FILE = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ON_DELETE_CLOSE_FILE));
+	CONFIG_ON_DELETE_CLOSE_FILE	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ON_DELETE_CLOSE_FILE));
 	CONFIG_ON_OPEN_FOCUS_EDITOR	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ON_OPEN_FOCUS_EDITOR));
 	CONFIG_SHOW_TREE_LINES 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_TREE_LINES));
 	CONFIG_SHOW_BOOKMARKS 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_BOOKMARKS));
 	CONFIG_SHOW_ICONS 			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_ICONS));
-	CONFIG_OPEN_NEW_FILES		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.OPEN_NEW_FILES));
+	CONFIG_OPEN_NEW_FILES 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.OPEN_NEW_FILES));
 
 	if (save_settings() == TRUE)
 	{
