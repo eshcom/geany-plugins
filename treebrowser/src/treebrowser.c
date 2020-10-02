@@ -2008,8 +2008,8 @@ load_settings(void)
 
 	g_key_file_load_from_file(config, CONFIG_FILE, G_KEY_FILE_NONE, NULL);
 
-	CONFIG_OPEN_EXTERNAL_CMD 		=  utils_get_setting_string(config, "treebrowser", "open_external_cmd", 	CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
-	CONFIG_OPEN_TERMINAL 				= utils_get_setting_string(config, "treebrowser", "open_terminal", CONFIG_OPEN_TERMINAL_DEFAULT);
+	CONFIG_OPEN_EXTERNAL_CMD 		= utils_get_setting_string(config, "treebrowser", "open_external_cmd", 		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
+	CONFIG_OPEN_TERMINAL 			= utils_get_setting_string(config, "treebrowser", "open_terminal", 			CONFIG_OPEN_TERMINAL_DEFAULT);
 	CONFIG_REVERSE_FILTER 			= utils_get_setting_boolean(config, "treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
 	CONFIG_ONE_CLICK_CHDOC 			= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
 	CONFIG_SHOW_HIDDEN_FILES 		= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
