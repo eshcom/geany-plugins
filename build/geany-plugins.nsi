@@ -198,6 +198,7 @@ Section Uninstall
 	Delete "$INSTDIR\lib\geany\projectorganizer.dll"
 	Delete "$INSTDIR\lib\geany\scope.dll"
 	Delete "$INSTDIR\lib\geany\sendmail.dll"
+	Delete "$INSTDIR\lib\geany\setfiletype.dll"
 	Delete "$INSTDIR\lib\geany\shiftcolumn.dll"
 	Delete "$INSTDIR\lib\geany\spellcheck.dll"
 	Delete "$INSTDIR\lib\geany\tableconvert.dll"

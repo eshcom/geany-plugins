@@ -1,0 +1,26 @@
+Set File Type by HotKey
+===================
+
+About
+-----
+
+This plugin sets file type by hotkey.
+
+Features
+--------
+
+Usage
+-----
+
+After installed successfully, load the plugin in Geany's plugin manager. You may
+change module preferences.
+
+Requirements
+------------
+
+* GTK >= 2.8.0
+
+Contact developers
+------------------
+
+Egor Shinkarev <esh.eburg@gmail.com>

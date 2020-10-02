@@ -264,6 +264,13 @@ M:
 W: http://plugins.geany.org/scope.html
 S: Maintained
 
+setfiletype
+P: Egor Shinkarev <esh.eburg@gmail.com>
+g: @eshcom
+M: Egor Shinkarev <esh.eburg@gmail.com>
+W:
+S: Maintained
+
 shiftcolumn
 P:
 g:

@@ -289,6 +289,9 @@ scope/src/store/scptreestore.c
 # sendmail
 sendmail/src/sendmail.c
 
+# setfiletype
+setfiletype/src/setfiletype.c
+
 # Spell Check
 spellcheck/src/speller.c
 spellcheck/src/scplugin.c

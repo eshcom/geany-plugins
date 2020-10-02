@@ -152,6 +152,10 @@ if ENABLE_SENDMAIL
 SUBDIRS += sendmail
 endif
 
+if ENABLE_SETFILETYPE
+SUBDIRS += setfiletype
+endif
+
 if ENABLE_SHIFTCOLUMN
 SUBDIRS += shiftcolumn
 endif
