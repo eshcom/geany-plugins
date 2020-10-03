@@ -122,13 +122,12 @@ static void kb_activate(guint key_id)
 	GeanyDocument *doc = document_get_current();
 	if (!doc)
 		return;
-	
 	switch (key_id)
 	{
 #define CASE_KEY_ID(name) G_STMT_START {											\
 		case KB_##name:																\
 			document_set_filetype(doc, filetypes_lookup_by_name(sft_info->name));	\
-			break;																	\
+			return;																	\
 } G_STMT_END
 	CASE_KEY_ID(filetype_1);
 	CASE_KEY_ID(filetype_2);
@@ -248,8 +247,8 @@ void geany_load_module(GeanyPlugin *plugin)
 	main_locale_init(LOCALEDIR, GETTEXT_PACKAGE);
 	
 	/* Set metadata */
-	plugin->info->name = _("SetFileType");
-	plugin->info->description = _("Set file type by hotkey");
+	plugin->info->name = _("Set FileType");
+	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) by hotkey");
 	plugin->info->version = "0.1";
 	plugin->info->author = "Egor Shinkarev <esh.eburg@gmail.com>";
 	
