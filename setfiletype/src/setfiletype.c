@@ -205,15 +205,15 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
 } G_STMT_END
 	
-	WIDGET_CONF_TEXT(filetype_1, _("File Type 1"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_2, _("File Type 2"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_3, _("File Type 3"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_4, _("File Type 4"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_5, _("File Type 5"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_6, _("File Type 6"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, etc"));
-	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_1, _("File Type 1"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_2, _("File Type 2"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_3, _("File Type 3"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_4, _("File Type 4"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_5, _("File Type 5"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_6, _("File Type 6"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, ..."));
 #undef WIDGET_CONF_TEXT
 	
 	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
