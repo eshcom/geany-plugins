@@ -125,9 +125,21 @@ static void kb_activate(guint key_id)
 	
 	switch (key_id)
 	{
-		case KB_filetype_1:
-			document_set_filetype(doc, filetypes_lookup_by_name(sft_info->filetype_1));
-			break;
+#define CASE_KEY_ID(name) G_STMT_START {											\
+		case KB_##name:																\
+			document_set_filetype(doc, filetypes_lookup_by_name(sft_info->name));	\
+			break;																	\
+} G_STMT_END
+	CASE_KEY_ID(filetype_1);
+	CASE_KEY_ID(filetype_2);
+	CASE_KEY_ID(filetype_3);
+	CASE_KEY_ID(filetype_4);
+	CASE_KEY_ID(filetype_5);
+	CASE_KEY_ID(filetype_6);
+	CASE_KEY_ID(filetype_7);
+	CASE_KEY_ID(filetype_8);
+	CASE_KEY_ID(filetype_9);
+#undef CASE_KEY_ID
 	}
 }
 
@@ -237,7 +249,7 @@ void geany_load_module(GeanyPlugin *plugin)
 	
 	/* Set metadata */
 	plugin->info->name = _("SetFileType");
-	plugin->info->description = _("SetFileType plugin sets file type by hotkey");
+	plugin->info->description = _("Set file type by hotkey");
 	plugin->info->version = "0.1";
 	plugin->info->author = "Egor Shinkarev <esh.eburg@gmail.com>";
 	
