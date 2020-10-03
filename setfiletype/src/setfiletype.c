@@ -135,6 +135,9 @@ static void kb_activate(guint key_id)
 static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 										G_GNUC_UNUSED gpointer pdata)
 {
+	geany_plugin = plugin;
+	geany_data = plugin->geany_data;
+	
 	GKeyFile *config = g_key_file_new();
 	GeanyKeyGroup *key_group;
 	
