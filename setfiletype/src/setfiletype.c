@@ -34,24 +34,41 @@
 
 #include "Scintilla.h"
 #include "SciLexer.h"
-#include "filetypes.h"
-
 
 GeanyPlugin	*geany_plugin;
 GeanyData	*geany_data;
 
+typedef struct {
+	/* settings */
+	gchar *filetype_1;
+	gchar *filetype_2;
+	gchar *filetype_3;
+	gchar *filetype_4;
+	gchar *filetype_5;
+	gchar *filetype_6;
+	gchar *filetype_7;
+	gchar *filetype_8;
+	gchar *filetype_9;
+	/* others */
+	gchar *config_file;
+} SetfiletypeInfo;
 
-/* settings */
-static gchar	*CONFIG_FILE	= NULL;
-static gint		FILETYPE_1		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_2		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_3		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_4		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_5		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_6		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_7		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_8		= GEANY_FILETYPES_NONE;
-static gint		FILETYPE_9		= GEANY_FILETYPES_NONE;
+static SetfiletypeInfo *sft_info = NULL;
+
+/* keybindings */
+enum
+{
+	KB_filetype_1,
+	KB_filetype_2,
+	KB_filetype_3,
+	KB_filetype_4,
+	KB_filetype_5,
+	KB_filetype_6,
+	KB_filetype_7,
+	KB_filetype_8,
+	KB_filetype_9,
+	KB_COUNT
+};
 
 
 static void configure_response_cb(GtkDialog *dialog, gint response,
@@ -64,36 +81,22 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	
 	g_key_file_load_from_file(config, sft_info->config_file, G_KEY_FILE_NONE, NULL);
 	
-#define SAVE_CONF_BOOL(name) G_STMT_START {                                    \
-	sft_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(            \
-						g_object_get_data(G_OBJECT(dialog), "check_" #name))); \
-	g_key_file_set_boolean(config, "setfiletype", #name, sft_info->name);         \
+#define SAVE_CONF_TEXT(name) G_STMT_START {												\
+	sft_info->name = gtk_editable_get_chars(GTK_EDITABLE(								\
+						g_object_get_data(G_OBJECT(dialog), "entry_" #name)), 0, -1);	\
+	g_key_file_set_string(config, "setfiletype", #name, sft_info->name);				\
 } G_STMT_END
 	
-	SAVE_CONF_BOOL(parenthesis);
-	SAVE_CONF_BOOL(abracket);
-	SAVE_CONF_BOOL(abracket_htmlonly);
-	SAVE_CONF_BOOL(cbracket);
-	SAVE_CONF_BOOL(sbracket);
-	SAVE_CONF_BOOL(dquote);
-	SAVE_CONF_BOOL(squote);
-	SAVE_CONF_BOOL(backquote);
-	SAVE_CONF_BOOL(backquote_bashonly);
-	SAVE_CONF_BOOL(comments_ac_enable);
-	SAVE_CONF_BOOL(delete_pairing_brace);
-	SAVE_CONF_BOOL(suppress_doubling);
-	SAVE_CONF_BOOL(enclose_selections);
-	SAVE_CONF_BOOL(comments_enclose);
-	SAVE_CONF_BOOL(keep_selection);
-	SAVE_CONF_BOOL(make_indent_for_cbracket);
-	SAVE_CONF_BOOL(move_cursor_to_beginning);
-	SAVE_CONF_BOOL(improved_cbracket_indent);
-	SAVE_CONF_BOOL(whitesmiths_style);
-	SAVE_CONF_BOOL(close_functions);
-	SAVE_CONF_BOOL(bcksp_remove_pair);
-	SAVE_CONF_BOOL(jump_on_tab);
-	
-#undef SAVE_CONF_BOOL
+	SAVE_CONF_TEXT(filetype_1);
+	SAVE_CONF_TEXT(filetype_2);
+	SAVE_CONF_TEXT(filetype_3);
+	SAVE_CONF_TEXT(filetype_4);
+	SAVE_CONF_TEXT(filetype_5);
+	SAVE_CONF_TEXT(filetype_6);
+	SAVE_CONF_TEXT(filetype_7);
+	SAVE_CONF_TEXT(filetype_8);
+	SAVE_CONF_TEXT(filetype_9);
+#undef SAVE_CONF_TEXT
 	
 	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
 		utils_mkdir(config_dir, TRUE) != 0)
@@ -113,20 +116,27 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	g_key_file_free(config);
 }
 
+/* Called when a keybinding is activated */
+static void kb_activate(guint key_id)
+{
+	GeanyDocument *doc = document_get_current();
+	if (!doc)
+		return;
+	
+	switch (key_id)
+	{
+		case KB_filetype_1:
+			document_set_filetype(doc, filetypes_lookup_by_name(sft_info->filetype_1));
+			break;
+	}
+}
+
 /* Called by Geany to initialize the plugin */
 static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 										G_GNUC_UNUSED gpointer pdata)
 {
-	guint i = 0;
-	
-	geany_plugin = plugin;
-	geany_data = plugin->geany_data;
-	
-	foreach_document(i)
-	{
-		on_document_open(NULL, documents[i], NULL);
-	}
 	GKeyFile *config = g_key_file_new();
+	GeanyKeyGroup *key_group;
 	
 	sft_info = g_new0(SetfiletypeInfo, 1);
 	
@@ -137,33 +147,24 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	
 	g_key_file_load_from_file(config, sft_info->config_file, G_KEY_FILE_NONE, NULL);
 	
-#define GET_CONF_BOOL(name, def) sft_info->name = utils_get_setting_boolean(config, "setfiletype", #name, def)
+	key_group = plugin_set_key_group(geany_plugin, "setfiletype", KB_COUNT, NULL);
 	
-	GET_CONF_BOOL(parenthesis, TRUE);
-	/* Angular bracket conflicts with conditional statements, enable only for HTML by default */
-	GET_CONF_BOOL(abracket, TRUE);
-	GET_CONF_BOOL(abracket_htmlonly, TRUE);
-	GET_CONF_BOOL(cbracket, TRUE);
-	GET_CONF_BOOL(sbracket, TRUE);
-	GET_CONF_BOOL(dquote, TRUE);
-	GET_CONF_BOOL(squote, TRUE);
-	GET_CONF_BOOL(backquote, TRUE);
-	GET_CONF_BOOL(backquote_bashonly, TRUE);
-	GET_CONF_BOOL(comments_ac_enable, FALSE);
-	GET_CONF_BOOL(delete_pairing_brace, TRUE);
-	GET_CONF_BOOL(suppress_doubling, TRUE);
-	GET_CONF_BOOL(enclose_selections, TRUE);
-	GET_CONF_BOOL(comments_enclose, FALSE);
-	GET_CONF_BOOL(keep_selection, TRUE);
-	GET_CONF_BOOL(make_indent_for_cbracket, TRUE);
-	GET_CONF_BOOL(move_cursor_to_beginning, TRUE);
-	GET_CONF_BOOL(improved_cbracket_indent, TRUE);
-	GET_CONF_BOOL(whitesmiths_style, FALSE);
-	GET_CONF_BOOL(close_functions, TRUE);
-	GET_CONF_BOOL(bcksp_remove_pair, FALSE);
-	GET_CONF_BOOL(jump_on_tab, TRUE);
+#define GET_CONF_TEXT(name, hotkey_text) G_STMT_START {								\
+	sft_info->name = utils_get_setting_string(config, "setfiletype", #name, NULL);	\
+	keybindings_set_item(key_group, KB_##name, kb_activate,							\
+						 0, 0, #name, hotkey_text, NULL);							\
+} G_STMT_END
 	
-#undef GET_CONF_BOOL
+	GET_CONF_TEXT(filetype_1, _("File Type 1"));
+	GET_CONF_TEXT(filetype_2, _("File Type 2"));
+	GET_CONF_TEXT(filetype_3, _("File Type 3"));
+	GET_CONF_TEXT(filetype_4, _("File Type 4"));
+	GET_CONF_TEXT(filetype_5, _("File Type 5"));
+	GET_CONF_TEXT(filetype_6, _("File Type 6"));
+	GET_CONF_TEXT(filetype_7, _("File Type 7"));
+	GET_CONF_TEXT(filetype_8, _("File Type 8"));
+	GET_CONF_TEXT(filetype_9, _("File Type 9"));
+#undef GET_CONF_TEXT
 	
 	g_key_file_free(config);
 	return TRUE;
@@ -173,39 +174,53 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 											   GtkDialog *dialog,
 											   G_GNUC_UNUSED gpointer pdata)
 {
-	GtkWidget *widget, *vbox, *frame, *container, *scrollbox;
-	vbox = gtk_vbox_new(FALSE, 0);
-	scrollbox = gtk_scrolled_window_new(NULL, NULL);
-	gtk_widget_set_size_request(GTK_WIDGET(scrollbox), -1, 400);
-#if GTK_CHECK_VERSION(3, 8, 0)
-	gtk_container_add(GTK_CONTAINER(scrollbox), vbox);
-#else
-	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrollbox), vbox);
-#endif
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbox),
-		GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+	GtkWidget *vbox, *hbox, *label, *entry;
 	
-#define WIDGET_CONF_TEXT(name, description, tooltip) G_STMT_START {            \
-	widget = gtk_check_button_new_with_label(description);                     \
-	if (tooltip) gtk_widget_set_tooltip_text(widget, tooltip);                 \
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), sft_info->name);    \
-	gtk_box_pack_start(GTK_BOX(vbox), widget, FALSE, FALSE, 3);           \
-	g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);               \
+	vbox = gtk_vbox_new(FALSE, 0);
+	
+#define WIDGET_CONF_TEXT(name, description, tooltip) G_STMT_START {		\
+	label = gtk_label_new(description);									\
+	entry = gtk_entry_new();											\
+	gtk_entry_set_text(GTK_ENTRY(entry), sft_info->name);				\
+	if (tooltip) gtk_widget_set_tooltip_text(entry, tooltip);			\
+	hbox = gtk_hbox_new(FALSE, 0);										\
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 6);			\
+	gtk_box_pack_start(GTK_BOX(hbox), entry, FALSE, FALSE, 0);			\
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);			\
+	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
 } G_STMT_END
 	
-	WIDGET_CONF_TEXT(jump_on_tab, _("File Type 1"), _("XML, JSON, Erlang, etc"));
-	
+	WIDGET_CONF_TEXT(filetype_1, _("File Type 1"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_2, _("File Type 2"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_3, _("File Type 3"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_4, _("File Type 4"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_5, _("File Type 5"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_6, _("File Type 6"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, etc"));
+	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, etc"));
 #undef WIDGET_CONF_TEXT
 	
-	gtk_widget_show_all(scrollbox);
-	return scrollbox;
+	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
+	gtk_widget_show_all(vbox);
+	return vbox;
 }
 
 /* Called by Geany before unloading the plugin. */
 static void plugin_setfiletype_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
 									   G_GNUC_UNUSED gpointer pdata)
 {
-	g_free(CONFIG_FILE);
+	g_free(sft_info->config_file);
+	g_free(sft_info->filetype_1);
+	g_free(sft_info->filetype_2);
+	g_free(sft_info->filetype_3);
+	g_free(sft_info->filetype_4);
+	g_free(sft_info->filetype_5);
+	g_free(sft_info->filetype_6);
+	g_free(sft_info->filetype_7);
+	g_free(sft_info->filetype_8);
+	g_free(sft_info->filetype_9);
+	g_free(sft_info);
 }
 
 
