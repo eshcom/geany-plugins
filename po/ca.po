@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-28 19:11+0300\n"
+"POT-Creation-Date: 2020-10-04 11:01+0300\n"
 "PO-Revision-Date: 2013-03-07 23:48+0100\n"
 "Last-Translator: Toni Garcia-Navarro <topi@elpiset.net>\n"
 "Language-Team: ca <topi@elpiset.net>\n"
@@ -36,7 +36,7 @@ msgstr "No."
 msgid "Contents"
 msgstr "Continguts"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:667
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:636
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "Marcadors"
@@ -160,13 +160,13 @@ msgstr ""
 msgid "Copy the file path of the current document to the clipboard"
 msgstr "Comprova l'ortografia del document actual."
 
-#: ../addons/src/addons.c:364 ../autoclose/src/autoclose.c:876
+#: ../addons/src/addons.c:364 ../autoclose/src/autoclose.c:877
 #: ../codenav/src/codenavigation.c:281 ../latex/src/latex.c:208
 #: ../latex/src/latex.c:293 ../geanyprj/src/geanyprj.c:176
 #: ../geanyvc/src/geanyvc.c:1973 ../geniuspaste/src/geniuspaste.c:336
 #: ../lineoperations/src/lo_prefs.c:58 ../sendmail/src/sendmail.c:128
-#: ../sendmail/src/sendmail.c:293 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2104
+#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:105
+#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2001
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "No s'ha pogut crear el directori de configuració de connectors."
@@ -294,91 +294,91 @@ msgstr "Afegits"
 msgid "Various small addons for Geany."
 msgstr "Diversos connectors per a Geany"
 
-#: ../autoclose/src/autoclose.c:1032
+#: ../autoclose/src/autoclose.c:1036
 msgid "Auto-close quotes and brackets"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1033
+#: ../autoclose/src/autoclose.c:1037
 msgid "Parenthesis ( )"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1034
+#: ../autoclose/src/autoclose.c:1038
 msgid "Auto-close parenthesis \"(\" -> \"(|)\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1036
+#: ../autoclose/src/autoclose.c:1040
 msgid "Curly brackets { }"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1037
+#: ../autoclose/src/autoclose.c:1041
 msgid "Auto-close curly brackets \"{\" -> \"{|}\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1039
+#: ../autoclose/src/autoclose.c:1043
 msgid "Square brackets [ ]"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1040
+#: ../autoclose/src/autoclose.c:1044
 msgid "Auto-close square brackets \"[\" -> \"[|]\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1041
+#: ../autoclose/src/autoclose.c:1045
 msgid "Angular brackets < >"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1042
+#: ../autoclose/src/autoclose.c:1046
 msgid "Auto-close angular brackets \"<\" -> \"<|>\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1044
+#: ../autoclose/src/autoclose.c:1048
 msgid "\tOnly for HTML"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1045
+#: ../autoclose/src/autoclose.c:1049
 msgid "Auto-close angular brackets only in HTML documents"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1046
+#: ../autoclose/src/autoclose.c:1050
 msgid "Double quotes \" \""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1047
+#: ../autoclose/src/autoclose.c:1051
 msgid "Auto-close double quotes \" -> \"|\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1048
+#: ../autoclose/src/autoclose.c:1052
 msgid "Single quotes ' '"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1049
+#: ../autoclose/src/autoclose.c:1053
 msgid "Auto-close single quotes ' -> '|'"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1050
+#: ../autoclose/src/autoclose.c:1054
 msgid "Backquote ` `"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1051
+#: ../autoclose/src/autoclose.c:1055
 msgid "Auto-close backquote ` -> `|`"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1053
+#: ../autoclose/src/autoclose.c:1057
 msgid "\tOnly for Shell-scripts (Bash)"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1054
+#: ../autoclose/src/autoclose.c:1058
 msgid "Auto-close backquote only in Shell-scripts like Bash"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1056
+#: ../autoclose/src/autoclose.c:1060
 msgid "Improve curly brackets completion"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1057
+#: ../autoclose/src/autoclose.c:1061
 msgid "Indent when enclosing"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1058
+#: ../autoclose/src/autoclose.c:1062
 msgid ""
 "If you select some text and press \"{\" or \"}\", plugin will auto-close "
 "selected lines and make new block with indent.\n"
@@ -386,132 +386,132 @@ msgid ""
 "account only lines."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1063
+#: ../autoclose/src/autoclose.c:1067
 #, fuzzy
 msgid "Move cursor to beginning"
 msgstr "Mou el Cursor al final de la línia"
 
-#: ../autoclose/src/autoclose.c:1064
+#: ../autoclose/src/autoclose.c:1068
 msgid ""
 "If you checked \"Indent when enclosing\", moving cursor to beginning may be "
 "useful: usually you make new block and need to create new statement before "
 "this block."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1067
+#: ../autoclose/src/autoclose.c:1071
 #, fuzzy
 msgid "Improved auto-indentation"
 msgstr "Orientació del navegador"
 
-#: ../autoclose/src/autoclose.c:1068
+#: ../autoclose/src/autoclose.c:1072
 msgid ""
 "Improved auto-indent for curly brackets: type \"{\" and then press Enter - "
 "plugin will create full indented block. Works without \"auto-close { }\" "
 "checkbox."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1071
+#: ../autoclose/src/autoclose.c:1075
 msgid "\tWhitesmith's style"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1072
+#: ../autoclose/src/autoclose.c:1076
 msgid ""
 "This style puts the brace associated with a control statement on the next "
 "line, indented. Statements within the braces are indented to the same level "
 "as the braces."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1077
+#: ../autoclose/src/autoclose.c:1081
 msgid "Delete pairing character while backspacing first"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1078
+#: ../autoclose/src/autoclose.c:1082
 msgid "Check if you want to delete pairing bracket by pressing BackSpace."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1080
+#: ../autoclose/src/autoclose.c:1084
 msgid "Suppress double-completion"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1081
+#: ../autoclose/src/autoclose.c:1085
 msgid ""
 "Check if you want to allow editor automatically fix mistypes with brackets: "
 "if you type \"{}\" you will get \"{}\", not \"{}}\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1083
+#: ../autoclose/src/autoclose.c:1087
 #, fuzzy
 msgid "Enclose selections"
 msgstr "Cancel·la la la Selecció"
 
-#: ../autoclose/src/autoclose.c:1084
+#: ../autoclose/src/autoclose.c:1088
 msgid "Automatically enclose selected text by pressing just one bracket key."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1086
+#: ../autoclose/src/autoclose.c:1090
 msgid "Keep selection when enclosing"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1087
+#: ../autoclose/src/autoclose.c:1091
 msgid "Keep your previously selected text after enclosing."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1089
+#: ../autoclose/src/autoclose.c:1093
 msgid "Behaviour inside comments and strings"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1090
+#: ../autoclose/src/autoclose.c:1094
 msgid "Allow auto-closing in strings and comments"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1091
+#: ../autoclose/src/autoclose.c:1095
 msgid "Check if you want to keep auto-closing inside strings and comments too."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1092
+#: ../autoclose/src/autoclose.c:1096
 msgid "Enclose selections in strings and comments"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1093
+#: ../autoclose/src/autoclose.c:1097
 msgid ""
 "Check if you want to enclose selections inside strings and comments too."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1096
+#: ../autoclose/src/autoclose.c:1100
 msgid "Auto-complete \";\" for functions"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1097
+#: ../autoclose/src/autoclose.c:1101
 msgid ""
 "Full function auto-closing (works only for C/C++): type \"sin(\" and you "
 "will get \"sin(|);\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1099
+#: ../autoclose/src/autoclose.c:1103
 msgid "Shift+BackSpace removes pairing brace too"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1100
+#: ../autoclose/src/autoclose.c:1104
 msgid ""
 "Remove left and right brace while pressing Shift+BackSpace.\n"
 "Tip: to completely remove indented block just Shift+BackSpace first \"{\" or "
 "last \"}\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1103
+#: ../autoclose/src/autoclose.c:1107
 msgid "Jump on Tab to enclosed char"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1104
+#: ../autoclose/src/autoclose.c:1108
 msgid "Jump behind autoclosed items on Tab press."
 msgstr ""
 
 #. Set metadata
-#: ../autoclose/src/autoclose.c:1160
+#: ../autoclose/src/autoclose.c:1163
 msgid "Auto-close"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1161
+#: ../autoclose/src/autoclose.c:1164
 msgid "Auto-close braces and brackets with lot of features"
 msgstr ""
 
@@ -1292,30 +1292,30 @@ msgstr "Sensible a m_ajúscules"
 msgid "_Declaration"
 msgstr "Relacional"
 
-#: ../geanyctags/src/geanyctags.c:656
+#: ../geanyctags/src/geanyctags.c:658
 msgid "Find Tag Declaration (geanyctags)"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:661
+#: ../geanyctags/src/geanyctags.c:663
 msgid "Find Tag Definition (geanyctags)"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:670 ../geanyctags/src/geanyctags.c:675
-#, fuzzy
-msgid "Generate tags"
-msgstr "General"
-
-#: ../geanyctags/src/geanyctags.c:677
-#, fuzzy
-msgid "Find tag..."
-msgstr "Cerca:"
-
-#: ../geanyctags/src/geanyctags.c:682
+#: ../geanyctags/src/geanyctags.c:669
 #, fuzzy
 msgid "Find tag"
 msgstr "Cerca el Següent"
 
-#: ../geanyctags/src/geanyctags.c:714
+#: ../geanyctags/src/geanyctags.c:675 ../geanyctags/src/geanyctags.c:680
+#, fuzzy
+msgid "Generate tags"
+msgstr "General"
+
+#: ../geanyctags/src/geanyctags.c:682
+#, fuzzy
+msgid "Find tag..."
+msgstr "Cerca:"
+
+#: ../geanyctags/src/geanyctags.c:720
 msgid "Ctags generation and search plugin for geany projects"
 msgstr ""
 
@@ -3721,7 +3721,7 @@ msgid "New _Below"
 msgstr ""
 
 #: ../geanymacro/src/geanymacro.c:1824 ../geanymacro/src/geanymacro.c:2120
-#: ../treebrowser/src/treebrowser.c:1339 ../treebrowser/src/treebrowser.c:1341
+#: ../treebrowser/src/treebrowser.c:1265 ../treebrowser/src/treebrowser.c:1267
 msgid "_Delete"
 msgstr "_Elimina"
 
@@ -5243,7 +5243,7 @@ msgstr "No s'ha pogut escriure la configuració per defecte: %s"
 msgid "Unable to read value for '%s' key: %s"
 msgstr "No s'ha pogut crear el directori de configuració '%s'"
 
-#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2134
+#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2030
 #, fuzzy
 msgid "Terminal"
 msgstr "Finalitza"
@@ -5834,7 +5834,7 @@ msgid "Add"
 msgstr "Afegits"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2358
+#: ../treebrowser/src/treebrowser.c:2250
 #, fuzzy
 msgid "New File"
 msgstr "NouFitxer"
@@ -6990,6 +6990,60 @@ msgid ""
 "Sends the opened file as unzipped attachment by any mailer from your $PATH"
 msgstr ""
 
+#: ../setfiletype/src/setfiletype.c:172 ../setfiletype/src/setfiletype.c:208
+msgid "File Type 1"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:173 ../setfiletype/src/setfiletype.c:209
+msgid "File Type 2"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:174 ../setfiletype/src/setfiletype.c:210
+msgid "File Type 3"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:175 ../setfiletype/src/setfiletype.c:211
+msgid "File Type 4"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:176 ../setfiletype/src/setfiletype.c:212
+msgid "File Type 5"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:177 ../setfiletype/src/setfiletype.c:213
+msgid "File Type 6"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:178 ../setfiletype/src/setfiletype.c:214
+msgid "File Type 7"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:179 ../setfiletype/src/setfiletype.c:215
+msgid "File Type 8"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:180 ../setfiletype/src/setfiletype.c:216
+msgid "File Type 9"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:208 ../setfiletype/src/setfiletype.c:209
+#: ../setfiletype/src/setfiletype.c:210 ../setfiletype/src/setfiletype.c:211
+#: ../setfiletype/src/setfiletype.c:212 ../setfiletype/src/setfiletype.c:213
+#: ../setfiletype/src/setfiletype.c:214 ../setfiletype/src/setfiletype.c:215
+#: ../setfiletype/src/setfiletype.c:216
+msgid "XML, JSON, Erlang, ..."
+msgstr ""
+
+#. Set metadata
+#: ../setfiletype/src/setfiletype.c:250
+#, fuzzy
+msgid "Set FileType"
+msgstr "Selecciona Fitxer"
+
+#: ../setfiletype/src/setfiletype.c:251
+msgid "Set file type (XML, JSON, Erlang, ...) by hotkey"
+msgstr ""
+
 #: ../spellcheck/src/speller.c:179
 msgid "Try: "
 msgstr "Prova:"
@@ -7223,179 +7277,179 @@ msgid ""
 "using a tree view of the directory being browsed."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:463
+#: ../treebrowser/src/treebrowser.c:445
 #, c-format
 msgid "%s: no such directory."
 msgstr "%s: no existeix el directori."
 
-#: ../treebrowser/src/treebrowser.c:571 ../treebrowser/src/treebrowser.c:610
-#: ../treebrowser/src/treebrowser.c:716
+#: ../treebrowser/src/treebrowser.c:545 ../treebrowser/src/treebrowser.c:583
+#: ../treebrowser/src/treebrowser.c:685
 msgid "(Empty)"
 msgstr "(Buit)"
 
-#: ../treebrowser/src/treebrowser.c:1019
+#: ../treebrowser/src/treebrowser.c:962
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "No s'ha pogut executar l'ordre externa '%s' (%s)."
 
-#: ../treebrowser/src/treebrowser.c:1090
+#: ../treebrowser/src/treebrowser.c:1029
 msgid "NewDirectory"
 msgstr "NouDirectori"
 
-#: ../treebrowser/src/treebrowser.c:1092
+#: ../treebrowser/src/treebrowser.c:1031
 msgid "NewFile"
 msgstr "NouFitxer"
 
-#: ../treebrowser/src/treebrowser.c:1097
+#: ../treebrowser/src/treebrowser.c:1036
 #, fuzzy, c-format
 msgid ""
 "Target file '%s' exists.\n"
 "Do you really want to replace it with an empty file?"
 msgstr "Ja existeix un fitxer anomenat \"%s\", voleu reemplaçar-lo?"
 
-#: ../treebrowser/src/treebrowser.c:1143
+#: ../treebrowser/src/treebrowser.c:1079
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "Esteu segurs de voler eliminar '%s'?"
 
-#: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
+#: ../treebrowser/src/treebrowser.c:1182 ../treebrowser/src/treebrowser.c:1184
 #, fuzzy
 msgid "Go _Up"
 msgstr "Mou Am_unt"
 
-#: ../treebrowser/src/treebrowser.c:1264 ../treebrowser/src/treebrowser.c:1266
+#: ../treebrowser/src/treebrowser.c:1190 ../treebrowser/src/treebrowser.c:1192
 #, fuzzy
 msgid "Set _Path From Document"
 msgstr "Especifica el directori pel document"
 
-#: ../treebrowser/src/treebrowser.c:1272 ../treebrowser/src/treebrowser.c:1274
+#: ../treebrowser/src/treebrowser.c:1198 ../treebrowser/src/treebrowser.c:1200
 #, fuzzy
 msgid "_Open Externally"
 msgstr "Obre externament"
 
-#: ../treebrowser/src/treebrowser.c:1280
+#: ../treebrowser/src/treebrowser.c:1206
 #, fuzzy
 msgid "Open _Terminal"
 msgstr "Obre el terminal"
 
-#: ../treebrowser/src/treebrowser.c:1285 ../treebrowser/src/treebrowser.c:1287
+#: ../treebrowser/src/treebrowser.c:1211 ../treebrowser/src/treebrowser.c:1213
 #, fuzzy
 msgid "Set as _Root"
 msgstr "Instal·la com a superusuari"
 
-#: ../treebrowser/src/treebrowser.c:1294 ../treebrowser/src/treebrowser.c:1296
+#: ../treebrowser/src/treebrowser.c:1220 ../treebrowser/src/treebrowser.c:1222
 #, fuzzy
 msgid "Refres_h"
 msgstr "Actualitza"
 
-#: ../treebrowser/src/treebrowser.c:1302 ../treebrowser/src/treebrowser.c:1304
+#: ../treebrowser/src/treebrowser.c:1228 ../treebrowser/src/treebrowser.c:1230
 #, fuzzy
 msgid "_Find in Files"
 msgstr "Cerca en els Fitxers"
 
-#: ../treebrowser/src/treebrowser.c:1314 ../treebrowser/src/treebrowser.c:1316
+#: ../treebrowser/src/treebrowser.c:1240 ../treebrowser/src/treebrowser.c:1242
 #, fuzzy
 msgid "N_ew Folder"
 msgstr "Selecciona Directory"
 
-#: ../treebrowser/src/treebrowser.c:1322 ../treebrowser/src/treebrowser.c:1324
+#: ../treebrowser/src/treebrowser.c:1248 ../treebrowser/src/treebrowser.c:1250
 #, fuzzy
 msgid "_New File"
 msgstr "NouFitxer"
 
-#: ../treebrowser/src/treebrowser.c:1330 ../treebrowser/src/treebrowser.c:1332
+#: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
 #, fuzzy
 msgid "Rena_me"
 msgstr "Reanomena"
 
-#: ../treebrowser/src/treebrowser.c:1351 ../treebrowser/src/treebrowser.c:1353
+#: ../treebrowser/src/treebrowser.c:1277 ../treebrowser/src/treebrowser.c:1279
 #, c-format
 msgid "Close: %s"
 msgstr "Tanca: %s"
 
-#: ../treebrowser/src/treebrowser.c:1360 ../treebrowser/src/treebrowser.c:1362
+#: ../treebrowser/src/treebrowser.c:1286 ../treebrowser/src/treebrowser.c:1288
 #, fuzzy, c-format
 msgid "Clo_se Child Documents "
 msgstr "Tanca els Documents Fills"
 
-#: ../treebrowser/src/treebrowser.c:1369 ../treebrowser/src/treebrowser.c:1371
+#: ../treebrowser/src/treebrowser.c:1295 ../treebrowser/src/treebrowser.c:1297
 #, fuzzy
 msgid "_Copy Full Path to Clipboard"
 msgstr "Copia la ruta completa al porta-retalls"
 
-#: ../treebrowser/src/treebrowser.c:1382 ../treebrowser/src/treebrowser.c:1384
+#: ../treebrowser/src/treebrowser.c:1308 ../treebrowser/src/treebrowser.c:1310
 #, fuzzy
 msgid "E_xpand All"
 msgstr "Expandeix-ho Tot"
 
-#: ../treebrowser/src/treebrowser.c:1390 ../treebrowser/src/treebrowser.c:1392
+#: ../treebrowser/src/treebrowser.c:1316 ../treebrowser/src/treebrowser.c:1318
 #, fuzzy
 msgid "Coll_apse All"
 msgstr "Tanca-ho Tot"
 
-#: ../treebrowser/src/treebrowser.c:1400
+#: ../treebrowser/src/treebrowser.c:1326
 #, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "Mostra les adreces d'interès"
 
-#: ../treebrowser/src/treebrowser.c:1405
+#: ../treebrowser/src/treebrowser.c:1331
 #, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "Mostra els fitxers ocults"
 
-#: ../treebrowser/src/treebrowser.c:1410
+#: ../treebrowser/src/treebrowser.c:1336
 #, fuzzy
 msgid "Show Tool_bars"
 msgstr "Mostra les barres d'eines"
 
-#: ../treebrowser/src/treebrowser.c:1749
+#: ../treebrowser/src/treebrowser.c:1652
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr "Ja existeix un fitxer anomenat \"%s\", voleu reemplaçar-lo?"
 
-#: ../treebrowser/src/treebrowser.c:1885
+#: ../treebrowser/src/treebrowser.c:1785
 msgid "Go up"
 msgstr "Vés cap a dalt"
 
-#: ../treebrowser/src/treebrowser.c:1895 ../treebrowser/src/treebrowser.c:2362
+#: ../treebrowser/src/treebrowser.c:1795 ../treebrowser/src/treebrowser.c:2254
 msgid "Refresh"
 msgstr "Actualitza"
 
-#: ../treebrowser/src/treebrowser.c:1905
+#: ../treebrowser/src/treebrowser.c:1805
 msgid "Home"
 msgstr "Inici"
 
-#: ../treebrowser/src/treebrowser.c:1915
+#: ../treebrowser/src/treebrowser.c:1815
 msgid "Set path from document"
 msgstr "Especifica el directori pel document"
 
-#: ../treebrowser/src/treebrowser.c:1925
+#: ../treebrowser/src/treebrowser.c:1825
 msgid "Track path"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1935
+#: ../treebrowser/src/treebrowser.c:1835
 msgid "Hide bars"
 msgstr "Amaga les barres"
 
-#: ../treebrowser/src/treebrowser.c:1945
+#: ../treebrowser/src/treebrowser.c:1845
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1950
+#: ../treebrowser/src/treebrowser.c:1850
 msgid "Addressbar for example '/projects/my-project'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1975
+#: ../treebrowser/src/treebrowser.c:1875
 msgid "Tree Browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2116
+#: ../treebrowser/src/treebrowser.c:2012
 msgid "External open command"
 msgstr "Ordre externa per obrir"
 
-#: ../treebrowser/src/treebrowser.c:2126
+#: ../treebrowser/src/treebrowser.c:2022
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7409,119 +7463,119 @@ msgstr ""
 "%f serà substituit amb el nom del fitxer, incloent la ruta completa\n"
 "%d serà substituit amb la ruta completa, sense el nom del fitxer"
 
-#: ../treebrowser/src/treebrowser.c:2145
+#: ../treebrowser/src/treebrowser.c:2041
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2151
+#: ../treebrowser/src/treebrowser.c:2047
 msgid "Toolbar"
 msgstr "Barra d'Eines"
 
-#: ../treebrowser/src/treebrowser.c:2153
+#: ../treebrowser/src/treebrowser.c:2049
 msgid "Hidden"
 msgstr "Ocult"
 
-#: ../treebrowser/src/treebrowser.c:2154
+#: ../treebrowser/src/treebrowser.c:2050
 msgid "Top"
 msgstr "Part superior"
 
-#: ../treebrowser/src/treebrowser.c:2155
+#: ../treebrowser/src/treebrowser.c:2051
 msgid "Bottom"
 msgstr "Part inferior"
 
-#: ../treebrowser/src/treebrowser.c:2160
+#: ../treebrowser/src/treebrowser.c:2056
 msgid "If position is changed, the option require plugin restart."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2164
+#: ../treebrowser/src/treebrowser.c:2060
 msgid "Show icons"
 msgstr "Mostra les icones"
 
-#: ../treebrowser/src/treebrowser.c:2166
+#: ../treebrowser/src/treebrowser.c:2062
 msgid "None"
 msgstr "Cap"
 
-#: ../treebrowser/src/treebrowser.c:2167
+#: ../treebrowser/src/treebrowser.c:2063
 msgid "Base"
 msgstr "Base"
 
-#: ../treebrowser/src/treebrowser.c:2168
+#: ../treebrowser/src/treebrowser.c:2064
 msgid "Content-type"
 msgstr "Tipus de continguts"
 
-#: ../treebrowser/src/treebrowser.c:2174
+#: ../treebrowser/src/treebrowser.c:2070
 msgid "Show hidden files"
 msgstr "Mostra els fitxers ocults"
 
-#: ../treebrowser/src/treebrowser.c:2183
+#: ../treebrowser/src/treebrowser.c:2079
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2185
+#: ../treebrowser/src/treebrowser.c:2081
 msgid "Hide object files"
 msgstr "Amaga els fitxers objecte"
 
-#: ../treebrowser/src/treebrowser.c:2194
+#: ../treebrowser/src/treebrowser.c:2090
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2092
 msgid "Reverse filter"
 msgstr "Inverteix el filtre"
 
-#: ../treebrowser/src/treebrowser.c:2205
+#: ../treebrowser/src/treebrowser.c:2101
 msgid "Follow current document"
 msgstr "Segueix el document actual"
 
-#: ../treebrowser/src/treebrowser.c:2214
+#: ../treebrowser/src/treebrowser.c:2110
 msgid "Single click, open document and focus it"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2223
+#: ../treebrowser/src/treebrowser.c:2119
 msgid "Double click open directory"
 msgstr "Doble clic obre els directoris"
 
-#: ../treebrowser/src/treebrowser.c:2232
+#: ../treebrowser/src/treebrowser.c:2128
 msgid "On delete file, close it if is opened"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2241
+#: ../treebrowser/src/treebrowser.c:2137
 msgid "Focus editor on file open"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2250
+#: ../treebrowser/src/treebrowser.c:2146
 msgid "Show tree lines"
 msgstr "Mostra les línies de l'arbre"
 
-#: ../treebrowser/src/treebrowser.c:2259
+#: ../treebrowser/src/treebrowser.c:2155
 msgid "Show bookmarks"
 msgstr "Mostra les adreces d'interès"
 
-#: ../treebrowser/src/treebrowser.c:2268
+#: ../treebrowser/src/treebrowser.c:2164
 #, fuzzy
 msgid "Open new files"
 msgstr "Obre un Fitxer"
 
-#: ../treebrowser/src/treebrowser.c:2352
+#: ../treebrowser/src/treebrowser.c:2244
 msgid "Focus File List"
 msgstr "Enfoca la Llista de Fitxers"
 
-#: ../treebrowser/src/treebrowser.c:2354
+#: ../treebrowser/src/treebrowser.c:2246
 msgid "Focus Path Entry"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2356
+#: ../treebrowser/src/treebrowser.c:2248
 msgid "Rename Object"
 msgstr "Reanomena Objecte"
 
-#: ../treebrowser/src/treebrowser.c:2360
+#: ../treebrowser/src/treebrowser.c:2252
 #, fuzzy
 msgid "New Folder"
 msgstr "Selecciona Directory"
 
-#: ../treebrowser/src/treebrowser.c:2364
+#: ../treebrowser/src/treebrowser.c:2256
 msgid "Track Current"
 msgstr ""
 

@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.35\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-28 19:11+0300\n"
+"POT-Creation-Date: 2020-10-04 11:01+0300\n"
 "PO-Revision-Date: 2016-08-08 22:38+0200\n"
 "Last-Translator: Dominic Hopf <dmaphy@googlemail.com>\n"
 "Language-Team: German <geany-i18n@uvena.de>\n"
@@ -46,7 +46,7 @@ msgstr "Nr."
 msgid "Contents"
 msgstr "Inhalte"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:667
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:636
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "Lesezeichen"
@@ -171,13 +171,13 @@ msgstr "Dateipfad kopieren"
 msgid "Copy the file path of the current document to the clipboard"
 msgstr "Kopiert den Pfad des aktuellen Dokumentes in die Zwischenablage."
 
-#: ../addons/src/addons.c:364 ../autoclose/src/autoclose.c:876
+#: ../addons/src/addons.c:364 ../autoclose/src/autoclose.c:877
 #: ../codenav/src/codenavigation.c:281 ../latex/src/latex.c:208
 #: ../latex/src/latex.c:293 ../geanyprj/src/geanyprj.c:176
 #: ../geanyvc/src/geanyvc.c:1973 ../geniuspaste/src/geniuspaste.c:336
 #: ../lineoperations/src/lo_prefs.c:58 ../sendmail/src/sendmail.c:128
-#: ../sendmail/src/sendmail.c:293 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2104
+#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:105
+#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2001
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr ""
@@ -314,95 +314,95 @@ msgstr "Erweiterungen"
 msgid "Various small addons for Geany."
 msgstr "Verschiedene kleine Erweiterungen für Geany."
 
-#: ../autoclose/src/autoclose.c:1032
+#: ../autoclose/src/autoclose.c:1036
 msgid "Auto-close quotes and brackets"
 msgstr "Automatisches Schließen von Klammern und Anführungszeichen."
 
-#: ../autoclose/src/autoclose.c:1033
+#: ../autoclose/src/autoclose.c:1037
 msgid "Parenthesis ( )"
 msgstr "Klammern ( )"
 
-#: ../autoclose/src/autoclose.c:1034
+#: ../autoclose/src/autoclose.c:1038
 msgid "Auto-close parenthesis \"(\" -> \"(|)\""
 msgstr "Automatisches Schließen »(« -> »(|)«"
 
-#: ../autoclose/src/autoclose.c:1036
+#: ../autoclose/src/autoclose.c:1040
 msgid "Curly brackets { }"
 msgstr "Geschweifte Klammern { }"
 
-#: ../autoclose/src/autoclose.c:1037
+#: ../autoclose/src/autoclose.c:1041
 msgid "Auto-close curly brackets \"{\" -> \"{|}\""
 msgstr "Automatisches Schließen von geschweiften Klammern »{« -> »{|}«"
 
-#: ../autoclose/src/autoclose.c:1039
+#: ../autoclose/src/autoclose.c:1043
 msgid "Square brackets [ ]"
 msgstr "Eckige Klammern [ ]"
 
-#: ../autoclose/src/autoclose.c:1040
+#: ../autoclose/src/autoclose.c:1044
 msgid "Auto-close square brackets \"[\" -> \"[|]\""
 msgstr "Automatisches Schließen von eckigen Klammern »[« -> »[|]«"
 
-#: ../autoclose/src/autoclose.c:1041
+#: ../autoclose/src/autoclose.c:1045
 msgid "Angular brackets < >"
 msgstr "Spitze Klammern < >"
 
-#: ../autoclose/src/autoclose.c:1042
+#: ../autoclose/src/autoclose.c:1046
 msgid "Auto-close angular brackets \"<\" -> \"<|>\""
 msgstr "Automatisches Schließen von spitzen Klammern »<« -> »<|>«"
 
-#: ../autoclose/src/autoclose.c:1044
+#: ../autoclose/src/autoclose.c:1048
 msgid "\tOnly for HTML"
 msgstr "\tnur für HTML"
 
-#: ../autoclose/src/autoclose.c:1045
+#: ../autoclose/src/autoclose.c:1049
 msgid "Auto-close angular brackets only in HTML documents"
 msgstr "Automatisches Schließen von spitzen Klammern nur in HTML-Dokumenten"
 
-#: ../autoclose/src/autoclose.c:1046
+#: ../autoclose/src/autoclose.c:1050
 msgid "Double quotes \" \""
 msgstr "Anführungszeichen »\" \"«"
 
-#: ../autoclose/src/autoclose.c:1047
+#: ../autoclose/src/autoclose.c:1051
 msgid "Auto-close double quotes \" -> \"|\""
 msgstr "Automatisches Schließen von Anführungszeichen »\"« -> »\"|\"«"
 
-#: ../autoclose/src/autoclose.c:1048
+#: ../autoclose/src/autoclose.c:1052
 msgid "Single quotes ' '"
 msgstr "Einfache Anführungszeichen (Hochkomma) ' '"
 
-#: ../autoclose/src/autoclose.c:1049
+#: ../autoclose/src/autoclose.c:1053
 msgid "Auto-close single quotes ' -> '|'"
 msgstr ""
 "Automatisches Schließen von einfachen Anführungszeichen (Hochkomma) »'« -> "
 "»'|'«"
 
-#: ../autoclose/src/autoclose.c:1050
+#: ../autoclose/src/autoclose.c:1054
 msgid "Backquote ` `"
 msgstr "Rückwärtsanführungszeichen »` `«"
 
-#: ../autoclose/src/autoclose.c:1051
+#: ../autoclose/src/autoclose.c:1055
 msgid "Auto-close backquote ` -> `|`"
 msgstr "Automatisches Schließen von Rückwärtsanführungszeichen »`« -> »`|`«"
 
-#: ../autoclose/src/autoclose.c:1053
+#: ../autoclose/src/autoclose.c:1057
 msgid "\tOnly for Shell-scripts (Bash)"
 msgstr "\tNur für Shell-Skripte (z. B. Bash)"
 
-#: ../autoclose/src/autoclose.c:1054
+#: ../autoclose/src/autoclose.c:1058
 msgid "Auto-close backquote only in Shell-scripts like Bash"
 msgstr ""
 "Automatisches Schließen von Rückwärtsanführungszeichen in Shell-Skripten wie "
 "Bash"
 
-#: ../autoclose/src/autoclose.c:1056
+#: ../autoclose/src/autoclose.c:1060
 msgid "Improve curly brackets completion"
 msgstr "Verbesserung der Schließung von geschweiften Klammern"
 
-#: ../autoclose/src/autoclose.c:1057
+#: ../autoclose/src/autoclose.c:1061
 msgid "Indent when enclosing"
 msgstr "Automatisch Einrücken beim automatischen Schließen"
 
-#: ../autoclose/src/autoclose.c:1058
+#: ../autoclose/src/autoclose.c:1062
 msgid ""
 "If you select some text and press \"{\" or \"}\", plugin will auto-close "
 "selected lines and make new block with indent.\n"
@@ -415,11 +415,11 @@ msgstr ""
 "Dabei ist es nicht notwendig, den Block präzise zu wählen -- für die Auswahl "
 "des Blockes werden jeweils immer die vollständigen Zeilen einbezogen."
 
-#: ../autoclose/src/autoclose.c:1063
+#: ../autoclose/src/autoclose.c:1067
 msgid "Move cursor to beginning"
 msgstr "Cursor zum Beginn bewegen"
 
-#: ../autoclose/src/autoclose.c:1064
+#: ../autoclose/src/autoclose.c:1068
 msgid ""
 "If you checked \"Indent when enclosing\", moving cursor to beginning may be "
 "useful: usually you make new block and need to create new statement before "
@@ -430,11 +430,11 @@ msgstr ""
 "sinnvoll sein: Wenn ein neuer Block begonnen wird, kommt es oft vor, dass am "
 "Anfang des Blocks Quellcode hinzugefügt werden muss."
 
-#: ../autoclose/src/autoclose.c:1067
+#: ../autoclose/src/autoclose.c:1071
 msgid "Improved auto-indentation"
 msgstr "Verbesserte automatische Einrückung"
 
-#: ../autoclose/src/autoclose.c:1068
+#: ../autoclose/src/autoclose.c:1072
 msgid ""
 "Improved auto-indent for curly brackets: type \"{\" and then press Enter - "
 "plugin will create full indented block. Works without \"auto-close { }\" "
@@ -445,11 +445,11 @@ msgstr ""
 "Codeblock erstellen. Diese Funktion ist unabhängig von der Optionen zum "
 "automatischen Schlüssel von geschweiften Klammern »{ }«."
 
-#: ../autoclose/src/autoclose.c:1071
+#: ../autoclose/src/autoclose.c:1075
 msgid "\tWhitesmith's style"
 msgstr "\tWhitesmithscher Stil"
 
-#: ../autoclose/src/autoclose.c:1072
+#: ../autoclose/src/autoclose.c:1076
 msgid ""
 "This style puts the brace associated with a control statement on the next "
 "line, indented. Statements within the braces are indented to the same level "
@@ -460,21 +460,21 @@ msgstr ""
 "Klammerpaares werden dabei mit dem gleichen Einzug wie die Klammern "
 "behandelt."
 
-#: ../autoclose/src/autoclose.c:1077
+#: ../autoclose/src/autoclose.c:1081
 msgid "Delete pairing character while backspacing first"
 msgstr "Schließende Klammern beim Löschen der öffnenden entfernen"
 
-#: ../autoclose/src/autoclose.c:1078
+#: ../autoclose/src/autoclose.c:1082
 msgid "Check if you want to delete pairing bracket by pressing BackSpace."
 msgstr ""
 "Durch Auswählen dieser Option werden schließende Klammern gelöscht, wenn die "
 "öffnenden Klammern mittels der Rücktaste entfernt werden."
 
-#: ../autoclose/src/autoclose.c:1080
+#: ../autoclose/src/autoclose.c:1084
 msgid "Suppress double-completion"
 msgstr "Doppeltes automatisches Schließen unterdrücken"
 
-#: ../autoclose/src/autoclose.c:1081
+#: ../autoclose/src/autoclose.c:1085
 msgid ""
 "Check if you want to allow editor automatically fix mistypes with brackets: "
 "if you type \"{}\" you will get \"{}\", not \"{}}\"."
@@ -484,56 +484,56 @@ msgstr ""
 "Durch die Eingabe von »{« gefolgt von einem »}« korrigiert der Editor damit "
 "automatisch zu »{}« anstatt »{}}« zu behalten."
 
-#: ../autoclose/src/autoclose.c:1083
+#: ../autoclose/src/autoclose.c:1087
 msgid "Enclose selections"
 msgstr "Auswahl einschließen"
 
-#: ../autoclose/src/autoclose.c:1084
+#: ../autoclose/src/autoclose.c:1088
 msgid "Automatically enclose selected text by pressing just one bracket key."
 msgstr ""
 "Umschließt automatisch eine Auswahl allein durch Drücken der entsprechenden "
 "Klammer."
 
-#: ../autoclose/src/autoclose.c:1086
+#: ../autoclose/src/autoclose.c:1090
 msgid "Keep selection when enclosing"
 msgstr "Auswahl beim Umschließen beibehalten"
 
-#: ../autoclose/src/autoclose.c:1087
+#: ../autoclose/src/autoclose.c:1091
 msgid "Keep your previously selected text after enclosing."
 msgstr ""
 "Behält die Auswahl nach dem Umschließen bei, so dass damit weitergearbeitet "
 "werden kann."
 
-#: ../autoclose/src/autoclose.c:1089
+#: ../autoclose/src/autoclose.c:1093
 msgid "Behaviour inside comments and strings"
 msgstr "Verhalten innerhalb von Kommentaren und Strings"
 
-#: ../autoclose/src/autoclose.c:1090
+#: ../autoclose/src/autoclose.c:1094
 msgid "Allow auto-closing in strings and comments"
 msgstr "Automatisches Schließen in Kommentaren und Strings aktivieren"
 
-#: ../autoclose/src/autoclose.c:1091
+#: ../autoclose/src/autoclose.c:1095
 msgid "Check if you want to keep auto-closing inside strings and comments too."
 msgstr ""
 "Wenn diese Option gesetzt ist, werden Klammern in Kommentaren und Strings "
 "ebenfalls automatisch geschlossen."
 
-#: ../autoclose/src/autoclose.c:1092
+#: ../autoclose/src/autoclose.c:1096
 msgid "Enclose selections in strings and comments"
 msgstr "Auswahl in Kommentaren und Strings umschließen"
 
-#: ../autoclose/src/autoclose.c:1093
+#: ../autoclose/src/autoclose.c:1097
 msgid ""
 "Check if you want to enclose selections inside strings and comments too."
 msgstr ""
 "Legt fest, ob auch innerhalb von Kommentaren und Strings eine Auswahl "
 "automatisch mit einem Klammerpaar umschlossen werden soll."
 
-#: ../autoclose/src/autoclose.c:1096
+#: ../autoclose/src/autoclose.c:1100
 msgid "Auto-complete \";\" for functions"
 msgstr "Autovervollständigung von »;« für Funktionsaufrufe"
 
-#: ../autoclose/src/autoclose.c:1097
+#: ../autoclose/src/autoclose.c:1101
 msgid ""
 "Full function auto-closing (works only for C/C++): type \"sin(\" and you "
 "will get \"sin(|);\"."
@@ -542,11 +542,11 @@ msgstr ""
 "funktioniert nur für C- bzw. C++-Funktionen. \n"
 " Ist diese Option aktiv, wird aus »sin(« automatisch »sin();«-"
 
-#: ../autoclose/src/autoclose.c:1099
+#: ../autoclose/src/autoclose.c:1103
 msgid "Shift+BackSpace removes pairing brace too"
 msgstr "Umschalt+Rücktaste entfernt das vollständige Klammerpaar."
 
-#: ../autoclose/src/autoclose.c:1100
+#: ../autoclose/src/autoclose.c:1104
 msgid ""
 "Remove left and right brace while pressing Shift+BackSpace.\n"
 "Tip: to completely remove indented block just Shift+BackSpace first \"{\" or "
@@ -557,21 +557,21 @@ msgstr ""
 "Tipp: Um den kompletten Block zu entfernen, einfach die erste oder letzte "
 "geschweifte Klammer mittels Umschalt+Rücktaste löschen."
 
-#: ../autoclose/src/autoclose.c:1103
+#: ../autoclose/src/autoclose.c:1107
 msgid "Jump on Tab to enclosed char"
 msgstr "Springt zur schließenden Klammer durch Tabulator"
 
-#: ../autoclose/src/autoclose.c:1104
+#: ../autoclose/src/autoclose.c:1108
 msgid "Jump behind autoclosed items on Tab press."
 msgstr ""
 "Springt hinter den umschlossenen Abschnitt beim Drücken der Tabulator-Taste"
 
 #. Set metadata
-#: ../autoclose/src/autoclose.c:1160
+#: ../autoclose/src/autoclose.c:1163
 msgid "Auto-close"
 msgstr "Automatisch Schließen"
 
-#: ../autoclose/src/autoclose.c:1161
+#: ../autoclose/src/autoclose.c:1164
 msgid "Auto-close braces and brackets with lot of features"
 msgstr ""
 "Automatisches Schließen von Klammern mit einer Großzahl von Funktionen."
@@ -1379,27 +1379,27 @@ msgstr "_Groß-/Kleinschreibung beachten"
 msgid "_Declaration"
 msgstr "_Deklaration"
 
-#: ../geanyctags/src/geanyctags.c:656
+#: ../geanyctags/src/geanyctags.c:658
 msgid "Find Tag Declaration (geanyctags)"
 msgstr "Tag-Deklaration finden (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:661
+#: ../geanyctags/src/geanyctags.c:663
 msgid "Find Tag Definition (geanyctags)"
 msgstr "Tag-Definition finden (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:670 ../geanyctags/src/geanyctags.c:675
-msgid "Generate tags"
-msgstr "Tags erstellen"
-
-#: ../geanyctags/src/geanyctags.c:677
-msgid "Find tag..."
-msgstr "Tag finden..."
-
-#: ../geanyctags/src/geanyctags.c:682
+#: ../geanyctags/src/geanyctags.c:669
 msgid "Find tag"
 msgstr "Tag suchen"
 
-#: ../geanyctags/src/geanyctags.c:714
+#: ../geanyctags/src/geanyctags.c:675 ../geanyctags/src/geanyctags.c:680
+msgid "Generate tags"
+msgstr "Tags erstellen"
+
+#: ../geanyctags/src/geanyctags.c:682
+msgid "Find tag..."
+msgstr "Tag finden..."
+
+#: ../geanyctags/src/geanyctags.c:720
 msgid "Ctags generation and search plugin for geany projects"
 msgstr ""
 "Unterstützung beim Erstellen von und Suchen in CTag-Dateien für Geany-"
@@ -3956,7 +3956,7 @@ msgid "New _Below"
 msgstr "Neu d_arunter"
 
 #: ../geanymacro/src/geanymacro.c:1824 ../geanymacro/src/geanymacro.c:2120
-#: ../treebrowser/src/treebrowser.c:1339 ../treebrowser/src/treebrowser.c:1341
+#: ../treebrowser/src/treebrowser.c:1265 ../treebrowser/src/treebrowser.c:1267
 msgid "_Delete"
 msgstr "_Löschen"
 
@@ -5589,7 +5589,7 @@ msgstr "Konnte Standardkonfiguration nicht schreiben: %s"
 msgid "Unable to read value for '%s' key: %s"
 msgstr "Konnte Wert für »%s«, Schlüssel »%s« nicht lesen"
 
-#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2134
+#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2030
 msgid "Terminal"
 msgstr "Terminal"
 
@@ -6210,7 +6210,7 @@ msgid "Add"
 msgstr "Hinzufügen"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2358
+#: ../treebrowser/src/treebrowser.c:2250
 msgid "New File"
 msgstr "Neue Datei"
 
@@ -7401,6 +7401,60 @@ msgstr ""
 "Sendet ein geöffnetes Dokument als unkomprimierten Anhang unter Verwendung "
 "eines E-Mail-Programms."
 
+#: ../setfiletype/src/setfiletype.c:172 ../setfiletype/src/setfiletype.c:208
+msgid "File Type 1"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:173 ../setfiletype/src/setfiletype.c:209
+msgid "File Type 2"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:174 ../setfiletype/src/setfiletype.c:210
+msgid "File Type 3"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:175 ../setfiletype/src/setfiletype.c:211
+msgid "File Type 4"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:176 ../setfiletype/src/setfiletype.c:212
+msgid "File Type 5"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:177 ../setfiletype/src/setfiletype.c:213
+msgid "File Type 6"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:178 ../setfiletype/src/setfiletype.c:214
+msgid "File Type 7"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:179 ../setfiletype/src/setfiletype.c:215
+msgid "File Type 8"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:180 ../setfiletype/src/setfiletype.c:216
+msgid "File Type 9"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:208 ../setfiletype/src/setfiletype.c:209
+#: ../setfiletype/src/setfiletype.c:210 ../setfiletype/src/setfiletype.c:211
+#: ../setfiletype/src/setfiletype.c:212 ../setfiletype/src/setfiletype.c:213
+#: ../setfiletype/src/setfiletype.c:214 ../setfiletype/src/setfiletype.c:215
+#: ../setfiletype/src/setfiletype.c:216
+msgid "XML, JSON, Erlang, ..."
+msgstr ""
+
+#. Set metadata
+#: ../setfiletype/src/setfiletype.c:250
+#, fuzzy
+msgid "Set FileType"
+msgstr "Datei auswählen"
+
+#: ../setfiletype/src/setfiletype.c:251
+msgid "Set file type (XML, JSON, Erlang, ...) by hotkey"
+msgstr ""
+
 #: ../spellcheck/src/speller.c:179
 msgid "Try: "
 msgstr "Vorschlag: "
@@ -7647,30 +7701,30 @@ msgid ""
 msgstr ""
 "Ein Plugin zum Navigieren durch den Verzeichnisbaum auf dem Dateisystem."
 
-#: ../treebrowser/src/treebrowser.c:463
+#: ../treebrowser/src/treebrowser.c:445
 #, c-format
 msgid "%s: no such directory."
 msgstr "Das Verzeichnis »%s« existiert nicht"
 
-#: ../treebrowser/src/treebrowser.c:571 ../treebrowser/src/treebrowser.c:610
-#: ../treebrowser/src/treebrowser.c:716
+#: ../treebrowser/src/treebrowser.c:545 ../treebrowser/src/treebrowser.c:583
+#: ../treebrowser/src/treebrowser.c:685
 msgid "(Empty)"
 msgstr "(leer)"
 
-#: ../treebrowser/src/treebrowser.c:1019
+#: ../treebrowser/src/treebrowser.c:962
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "Konnte das eingestellte externe Werkzeug »%s« nicht ausführen (%s)."
 
-#: ../treebrowser/src/treebrowser.c:1090
+#: ../treebrowser/src/treebrowser.c:1029
 msgid "NewDirectory"
 msgstr "Neues Verzeichnis"
 
-#: ../treebrowser/src/treebrowser.c:1092
+#: ../treebrowser/src/treebrowser.c:1031
 msgid "NewFile"
 msgstr "Neue Datei"
 
-#: ../treebrowser/src/treebrowser.c:1097
+#: ../treebrowser/src/treebrowser.c:1036
 #, c-format
 msgid ""
 "Target file '%s' exists.\n"
@@ -7679,133 +7733,133 @@ msgstr ""
 "Zieldatei »%s« existiert bereits.\n"
 "Möchten Sie diese wirklich mit einer leeren Datei ersetzen?"
 
-#: ../treebrowser/src/treebrowser.c:1143
+#: ../treebrowser/src/treebrowser.c:1079
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "Soll »%s« wirklich gelöscht werden?"
 
-#: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
+#: ../treebrowser/src/treebrowser.c:1182 ../treebrowser/src/treebrowser.c:1184
 msgid "Go _Up"
 msgstr "_Aufwährts"
 
-#: ../treebrowser/src/treebrowser.c:1264 ../treebrowser/src/treebrowser.c:1266
+#: ../treebrowser/src/treebrowser.c:1190 ../treebrowser/src/treebrowser.c:1192
 msgid "Set _Path From Document"
 msgstr "_Pfad des Dokumentes übernehmen"
 
-#: ../treebrowser/src/treebrowser.c:1272 ../treebrowser/src/treebrowser.c:1274
+#: ../treebrowser/src/treebrowser.c:1198 ../treebrowser/src/treebrowser.c:1200
 msgid "_Open Externally"
 msgstr "_Extern öffnen"
 
-#: ../treebrowser/src/treebrowser.c:1280
+#: ../treebrowser/src/treebrowser.c:1206
 msgid "Open _Terminal"
 msgstr "In _Terminal öffnen"
 
-#: ../treebrowser/src/treebrowser.c:1285 ../treebrowser/src/treebrowser.c:1287
+#: ../treebrowser/src/treebrowser.c:1211 ../treebrowser/src/treebrowser.c:1213
 msgid "Set as _Root"
 msgstr "Als _Wurzelverzeichnis festlegen"
 
-#: ../treebrowser/src/treebrowser.c:1294 ../treebrowser/src/treebrowser.c:1296
+#: ../treebrowser/src/treebrowser.c:1220 ../treebrowser/src/treebrowser.c:1222
 msgid "Refres_h"
 msgstr "Auffrisc_hen"
 
-#: ../treebrowser/src/treebrowser.c:1302 ../treebrowser/src/treebrowser.c:1304
+#: ../treebrowser/src/treebrowser.c:1228 ../treebrowser/src/treebrowser.c:1230
 msgid "_Find in Files"
 msgstr "In Dateien _finden"
 
-#: ../treebrowser/src/treebrowser.c:1314 ../treebrowser/src/treebrowser.c:1316
+#: ../treebrowser/src/treebrowser.c:1240 ../treebrowser/src/treebrowser.c:1242
 msgid "N_ew Folder"
 msgstr "N_euer Ordner"
 
-#: ../treebrowser/src/treebrowser.c:1322 ../treebrowser/src/treebrowser.c:1324
+#: ../treebrowser/src/treebrowser.c:1248 ../treebrowser/src/treebrowser.c:1250
 msgid "_New File"
 msgstr "Neue Datei"
 
-#: ../treebrowser/src/treebrowser.c:1330 ../treebrowser/src/treebrowser.c:1332
+#: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
 msgid "Rena_me"
 msgstr "_Umbenennen"
 
-#: ../treebrowser/src/treebrowser.c:1351 ../treebrowser/src/treebrowser.c:1353
+#: ../treebrowser/src/treebrowser.c:1277 ../treebrowser/src/treebrowser.c:1279
 #, c-format
 msgid "Close: %s"
 msgstr "»%s« schließen"
 
-#: ../treebrowser/src/treebrowser.c:1360 ../treebrowser/src/treebrowser.c:1362
+#: ../treebrowser/src/treebrowser.c:1286 ../treebrowser/src/treebrowser.c:1288
 #, c-format
 msgid "Clo_se Child Documents "
 msgstr "Kinderdokumente _schließen"
 
-#: ../treebrowser/src/treebrowser.c:1369 ../treebrowser/src/treebrowser.c:1371
+#: ../treebrowser/src/treebrowser.c:1295 ../treebrowser/src/treebrowser.c:1297
 msgid "_Copy Full Path to Clipboard"
 msgstr "_Vollständigen Pfad in die Zwischenablage kopieren"
 
-#: ../treebrowser/src/treebrowser.c:1382 ../treebrowser/src/treebrowser.c:1384
+#: ../treebrowser/src/treebrowser.c:1308 ../treebrowser/src/treebrowser.c:1310
 msgid "E_xpand All"
 msgstr "Alle _ausklappen"
 
-#: ../treebrowser/src/treebrowser.c:1390 ../treebrowser/src/treebrowser.c:1392
+#: ../treebrowser/src/treebrowser.c:1316 ../treebrowser/src/treebrowser.c:1318
 msgid "Coll_apse All"
 msgstr "Alle e_inklappen"
 
-#: ../treebrowser/src/treebrowser.c:1400
+#: ../treebrowser/src/treebrowser.c:1326
 msgid "Show Boo_kmarks"
 msgstr "L_esezeichen anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:1405
+#: ../treebrowser/src/treebrowser.c:1331
 msgid "Sho_w Hidden Files"
 msgstr "_Versteckte Dateien anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:1410
+#: ../treebrowser/src/treebrowser.c:1336
 msgid "Show Tool_bars"
 msgstr "_Werkzeugleisten anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:1749
+#: ../treebrowser/src/treebrowser.c:1652
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr "Zieldatei »%s« existiert bereits. Möchten Sie diese wirklich ersetzen?"
 
-#: ../treebrowser/src/treebrowser.c:1885
+#: ../treebrowser/src/treebrowser.c:1785
 msgid "Go up"
 msgstr "Aufwärts"
 
-#: ../treebrowser/src/treebrowser.c:1895 ../treebrowser/src/treebrowser.c:2362
+#: ../treebrowser/src/treebrowser.c:1795 ../treebrowser/src/treebrowser.c:2254
 msgid "Refresh"
 msgstr "Auffrischen"
 
-#: ../treebrowser/src/treebrowser.c:1905
+#: ../treebrowser/src/treebrowser.c:1805
 msgid "Home"
 msgstr "Ausgabe"
 
-#: ../treebrowser/src/treebrowser.c:1915
+#: ../treebrowser/src/treebrowser.c:1815
 msgid "Set path from document"
 msgstr "Pfad des Dokumentes übernehmen"
 
-#: ../treebrowser/src/treebrowser.c:1925
+#: ../treebrowser/src/treebrowser.c:1825
 msgid "Track path"
 msgstr "Pfad aufzeichnen"
 
-#: ../treebrowser/src/treebrowser.c:1935
+#: ../treebrowser/src/treebrowser.c:1835
 msgid "Hide bars"
 msgstr "Leisten verbergen"
 
-#: ../treebrowser/src/treebrowser.c:1945
+#: ../treebrowser/src/treebrowser.c:1845
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
 msgstr "Filter (*.c;*.h;*.cpp). Die Nutzung von »!« invertiert das Ergebnis."
 
-#: ../treebrowser/src/treebrowser.c:1950
+#: ../treebrowser/src/treebrowser.c:1850
 msgid "Addressbar for example '/projects/my-project'"
 msgstr "Adressleiste. Zum Beispiel »/projects/my-project«"
 
-#: ../treebrowser/src/treebrowser.c:1975
+#: ../treebrowser/src/treebrowser.c:1875
 msgid "Tree Browser"
 msgstr "Baumnavigator"
 
-#: ../treebrowser/src/treebrowser.c:2116
+#: ../treebrowser/src/treebrowser.c:2012
 msgid "External open command"
 msgstr "Externer Öffnen-Befehl"
 
-#: ../treebrowser/src/treebrowser.c:2126
+#: ../treebrowser/src/treebrowser.c:2022
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7819,63 +7873,63 @@ msgstr ""
 "%f wird mit dem Dateinamen ersetzt, der den kompletten Pfad beinhaltet.\n"
 "%d wird mit dem Pfad des Verzeichnisses der aktuellen Datei ersetzt."
 
-#: ../treebrowser/src/treebrowser.c:2145
+#: ../treebrowser/src/treebrowser.c:2041
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 "Das Terminal, welches für das Kommando »Terminal öffnen« genutzt werden "
 "soll. Z. B. »xterm«."
 
-#: ../treebrowser/src/treebrowser.c:2151
+#: ../treebrowser/src/treebrowser.c:2047
 msgid "Toolbar"
 msgstr "Werkzeugleiste:"
 
-#: ../treebrowser/src/treebrowser.c:2153
+#: ../treebrowser/src/treebrowser.c:2049
 msgid "Hidden"
 msgstr "Versteckt"
 
-#: ../treebrowser/src/treebrowser.c:2154
+#: ../treebrowser/src/treebrowser.c:2050
 msgid "Top"
 msgstr "Oben"
 
-#: ../treebrowser/src/treebrowser.c:2155
+#: ../treebrowser/src/treebrowser.c:2051
 msgid "Bottom"
 msgstr "Unten"
 
-#: ../treebrowser/src/treebrowser.c:2160
+#: ../treebrowser/src/treebrowser.c:2056
 msgid "If position is changed, the option require plugin restart."
 msgstr "Bei einer Veränderung der Position muss das Plugin neu geladen werden."
 
-#: ../treebrowser/src/treebrowser.c:2164
+#: ../treebrowser/src/treebrowser.c:2060
 msgid "Show icons"
 msgstr "Symbole anzeigen:"
 
-#: ../treebrowser/src/treebrowser.c:2166
+#: ../treebrowser/src/treebrowser.c:2062
 msgid "None"
 msgstr "Keines"
 
-#: ../treebrowser/src/treebrowser.c:2167
+#: ../treebrowser/src/treebrowser.c:2063
 msgid "Base"
 msgstr "Basis"
 
-#: ../treebrowser/src/treebrowser.c:2168
+#: ../treebrowser/src/treebrowser.c:2064
 msgid "Content-type"
 msgstr "Inhaltsart"
 
-#: ../treebrowser/src/treebrowser.c:2174
+#: ../treebrowser/src/treebrowser.c:2070
 msgid "Show hidden files"
 msgstr "Versteckte Dateien anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:2183
+#: ../treebrowser/src/treebrowser.c:2079
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr ""
 "Unter Windows versteckt dies nur Dateien, die mit einem ».« (Punkt) "
 "beginnen. "
 
-#: ../treebrowser/src/treebrowser.c:2185
+#: ../treebrowser/src/treebrowser.c:2081
 msgid "Hide object files"
 msgstr "Objektdateien verbergen"
 
-#: ../treebrowser/src/treebrowser.c:2194
+#: ../treebrowser/src/treebrowser.c:2090
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
@@ -7883,59 +7937,59 @@ msgstr ""
 "Keine generierten Objektdateien anzeigen. Dies bezieht *.o, *.obj, *.so, *."
 "dll, *.a, *.lib mit ein."
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2092
 msgid "Reverse filter"
 msgstr "Filter zurücksetzen"
 
-#: ../treebrowser/src/treebrowser.c:2205
+#: ../treebrowser/src/treebrowser.c:2101
 msgid "Follow current document"
 msgstr "Dem aktuellen Dokument folgen"
 
-#: ../treebrowser/src/treebrowser.c:2214
+#: ../treebrowser/src/treebrowser.c:2110
 msgid "Single click, open document and focus it"
 msgstr "Einzelklick öffnet Dokument und fokussiert es"
 
-#: ../treebrowser/src/treebrowser.c:2223
+#: ../treebrowser/src/treebrowser.c:2119
 msgid "Double click open directory"
 msgstr "Doppelklick öffnet ein Verzeichnis"
 
-#: ../treebrowser/src/treebrowser.c:2232
+#: ../treebrowser/src/treebrowser.c:2128
 msgid "On delete file, close it if is opened"
 msgstr "Datei schließen, wenn sie gelöscht wird"
 
-#: ../treebrowser/src/treebrowser.c:2241
+#: ../treebrowser/src/treebrowser.c:2137
 msgid "Focus editor on file open"
 msgstr "Fokus auf Editor legen beim Öffnen von Dateien"
 
-#: ../treebrowser/src/treebrowser.c:2250
+#: ../treebrowser/src/treebrowser.c:2146
 msgid "Show tree lines"
 msgstr "Leere Zeilen anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:2259
+#: ../treebrowser/src/treebrowser.c:2155
 msgid "Show bookmarks"
 msgstr "Lesezeichen anzeigen"
 
-#: ../treebrowser/src/treebrowser.c:2268
+#: ../treebrowser/src/treebrowser.c:2164
 msgid "Open new files"
 msgstr "Neue Dateien öffnen"
 
-#: ../treebrowser/src/treebrowser.c:2352
+#: ../treebrowser/src/treebrowser.c:2244
 msgid "Focus File List"
 msgstr "Dateiliste fokussieren"
 
-#: ../treebrowser/src/treebrowser.c:2354
+#: ../treebrowser/src/treebrowser.c:2246
 msgid "Focus Path Entry"
 msgstr "Pfadeintrag fokussieren"
 
-#: ../treebrowser/src/treebrowser.c:2356
+#: ../treebrowser/src/treebrowser.c:2248
 msgid "Rename Object"
 msgstr "Objekt umbenennen"
 
-#: ../treebrowser/src/treebrowser.c:2360
+#: ../treebrowser/src/treebrowser.c:2252
 msgid "New Folder"
 msgstr "Neues Verzeichnis"
 
-#: ../treebrowser/src/treebrowser.c:2364
+#: ../treebrowser/src/treebrowser.c:2256
 msgid "Track Current"
 msgstr "Pfad aufzeichnen"
 
