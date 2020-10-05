@@ -49,6 +49,7 @@ typedef struct {
 	gchar *filetype_7;
 	gchar *filetype_8;
 	gchar *filetype_9;
+	gchar *filetype_10;
 	/* others */
 	gchar *config_file;
 } SetfiletypeInfo;
@@ -67,6 +68,7 @@ enum
 	KB_filetype_7,
 	KB_filetype_8,
 	KB_filetype_9,
+	KB_filetype_10,
 	KB_COUNT
 };
 
@@ -96,6 +98,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	SAVE_CONF_TEXT(filetype_7);
 	SAVE_CONF_TEXT(filetype_8);
 	SAVE_CONF_TEXT(filetype_9);
+	SAVE_CONF_TEXT(filetype_10);
 #undef SAVE_CONF_TEXT
 	
 	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
@@ -138,6 +141,7 @@ static void kb_activate(guint key_id)
 	CASE_KEY_ID(filetype_7);
 	CASE_KEY_ID(filetype_8);
 	CASE_KEY_ID(filetype_9);
+	CASE_KEY_ID(filetype_10);
 #undef CASE_KEY_ID
 	}
 }
@@ -178,6 +182,7 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	GET_CONF_TEXT(filetype_7, _("File Type 7"));
 	GET_CONF_TEXT(filetype_8, _("File Type 8"));
 	GET_CONF_TEXT(filetype_9, _("File Type 9"));
+	GET_CONF_TEXT(filetype_10, _("File Type 10"));
 #undef GET_CONF_TEXT
 	
 	g_key_file_free(config);
@@ -194,6 +199,7 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	
 #define WIDGET_CONF_TEXT(name, description, tooltip) G_STMT_START {		\
 	label = gtk_label_new(description);									\
+	gtk_widget_set_size_request(label, 150, -1);						\
 	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
 	entry = gtk_entry_new();											\
 	gtk_entry_set_text(GTK_ENTRY(entry), sft_info->name);				\
@@ -214,6 +220,7 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"), _("XML, JSON, Erlang, ..."));
 	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, ..."));
 	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_10, _("File Type 10"), _("XML, JSON, Erlang, ..."));
 #undef WIDGET_CONF_TEXT
 	
 	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
@@ -235,6 +242,7 @@ static void plugin_setfiletype_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
 	g_free(sft_info->filetype_7);
 	g_free(sft_info->filetype_8);
 	g_free(sft_info->filetype_9);
+	g_free(sft_info->filetype_10);
 	g_free(sft_info);
 }
 

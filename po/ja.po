@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-04 11:01+0300\n"
+"POT-Creation-Date: 2020-10-05 11:31+0300\n"
 "PO-Revision-Date: 2011-10-21 14:08+0100\n"
 "Last-Translator: Masami Chikahiro <cmasa.z321@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -166,7 +166,7 @@ msgstr "現在の文書の綴りを検査"
 #: ../latex/src/latex.c:293 ../geanyprj/src/geanyprj.c:176
 #: ../geanyvc/src/geanyvc.c:1973 ../geniuspaste/src/geniuspaste.c:336
 #: ../lineoperations/src/lo_prefs.c:58 ../sendmail/src/sendmail.c:128
-#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:105
+#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:108
 #: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2001
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
@@ -7205,57 +7205,62 @@ msgstr ""
 "任意の電子メールプログラムによって編集中のファイルを非圧縮の添付ファイルとし"
 "て送信"
 
-#: ../setfiletype/src/setfiletype.c:172 ../setfiletype/src/setfiletype.c:208
+#: ../setfiletype/src/setfiletype.c:177 ../setfiletype/src/setfiletype.c:214
 msgid "File Type 1"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:173 ../setfiletype/src/setfiletype.c:209
+#: ../setfiletype/src/setfiletype.c:178 ../setfiletype/src/setfiletype.c:215
 msgid "File Type 2"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:174 ../setfiletype/src/setfiletype.c:210
+#: ../setfiletype/src/setfiletype.c:179 ../setfiletype/src/setfiletype.c:216
 msgid "File Type 3"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:175 ../setfiletype/src/setfiletype.c:211
+#: ../setfiletype/src/setfiletype.c:180 ../setfiletype/src/setfiletype.c:217
 msgid "File Type 4"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:176 ../setfiletype/src/setfiletype.c:212
+#: ../setfiletype/src/setfiletype.c:181 ../setfiletype/src/setfiletype.c:218
 msgid "File Type 5"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:177 ../setfiletype/src/setfiletype.c:213
+#: ../setfiletype/src/setfiletype.c:182 ../setfiletype/src/setfiletype.c:219
 msgid "File Type 6"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:178 ../setfiletype/src/setfiletype.c:214
+#: ../setfiletype/src/setfiletype.c:183 ../setfiletype/src/setfiletype.c:220
 msgid "File Type 7"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:179 ../setfiletype/src/setfiletype.c:215
+#: ../setfiletype/src/setfiletype.c:184 ../setfiletype/src/setfiletype.c:221
 msgid "File Type 8"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:180 ../setfiletype/src/setfiletype.c:216
+#: ../setfiletype/src/setfiletype.c:185 ../setfiletype/src/setfiletype.c:222
 msgid "File Type 9"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:208 ../setfiletype/src/setfiletype.c:209
-#: ../setfiletype/src/setfiletype.c:210 ../setfiletype/src/setfiletype.c:211
-#: ../setfiletype/src/setfiletype.c:212 ../setfiletype/src/setfiletype.c:213
+#: ../setfiletype/src/setfiletype.c:186 ../setfiletype/src/setfiletype.c:223
+#, fuzzy
+msgid "File Type 10"
+msgstr "ファイルを選択"
+
 #: ../setfiletype/src/setfiletype.c:214 ../setfiletype/src/setfiletype.c:215
-#: ../setfiletype/src/setfiletype.c:216
+#: ../setfiletype/src/setfiletype.c:216 ../setfiletype/src/setfiletype.c:217
+#: ../setfiletype/src/setfiletype.c:218 ../setfiletype/src/setfiletype.c:219
+#: ../setfiletype/src/setfiletype.c:220 ../setfiletype/src/setfiletype.c:221
+#: ../setfiletype/src/setfiletype.c:222 ../setfiletype/src/setfiletype.c:223
 msgid "XML, JSON, Erlang, ..."
 msgstr ""
 
 #. Set metadata
-#: ../setfiletype/src/setfiletype.c:250
+#: ../setfiletype/src/setfiletype.c:258
 #, fuzzy
 msgid "Set FileType"
 msgstr "ファイルを選択"
 
-#: ../setfiletype/src/setfiletype.c:251
+#: ../setfiletype/src/setfiletype.c:259
 msgid "Set file type (XML, JSON, Erlang, ...) by hotkey"
 msgstr ""
 
