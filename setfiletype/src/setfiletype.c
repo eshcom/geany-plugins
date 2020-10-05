@@ -50,6 +50,8 @@ typedef struct {
 	gchar *filetype_8;
 	gchar *filetype_9;
 	gchar *filetype_10;
+	gchar *filetype_11;
+	gchar *filetype_12;
 	/* others */
 	gchar *config_file;
 } SetfiletypeInfo;
@@ -69,6 +71,8 @@ enum
 	KB_filetype_8,
 	KB_filetype_9,
 	KB_filetype_10,
+	KB_filetype_11,
+	KB_filetype_12,
 	KB_COUNT
 };
 
@@ -99,6 +103,8 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	SAVE_CONF_TEXT(filetype_8);
 	SAVE_CONF_TEXT(filetype_9);
 	SAVE_CONF_TEXT(filetype_10);
+	SAVE_CONF_TEXT(filetype_11);
+	SAVE_CONF_TEXT(filetype_12);
 #undef SAVE_CONF_TEXT
 	
 	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
@@ -142,6 +148,8 @@ static void kb_activate(guint key_id)
 	CASE_KEY_ID(filetype_8);
 	CASE_KEY_ID(filetype_9);
 	CASE_KEY_ID(filetype_10);
+	CASE_KEY_ID(filetype_11);
+	CASE_KEY_ID(filetype_12);
 #undef CASE_KEY_ID
 	}
 }
@@ -183,6 +191,8 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	GET_CONF_TEXT(filetype_8, _("File Type 8"));
 	GET_CONF_TEXT(filetype_9, _("File Type 9"));
 	GET_CONF_TEXT(filetype_10, _("File Type 10"));
+	GET_CONF_TEXT(filetype_11, _("File Type 11"));
+	GET_CONF_TEXT(filetype_12, _("File Type 12"));
 #undef GET_CONF_TEXT
 	
 	g_key_file_free(config);
@@ -221,6 +231,8 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, ..."));
 	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, ..."));
 	WIDGET_CONF_TEXT(filetype_10, _("File Type 10"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_11, _("File Type 11"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_12, _("File Type 12"), _("XML, JSON, Erlang, ..."));
 #undef WIDGET_CONF_TEXT
 	
 	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
@@ -243,6 +255,8 @@ static void plugin_setfiletype_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
 	g_free(sft_info->filetype_8);
 	g_free(sft_info->filetype_9);
 	g_free(sft_info->filetype_10);
+	g_free(sft_info->filetype_11);
+	g_free(sft_info->filetype_12);
 	g_free(sft_info);
 }
 

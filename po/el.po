@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: geany-plugins 1.31\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-05 11:31+0300\n"
+"POT-Creation-Date: 2020-10-05 11:54+0300\n"
 "PO-Revision-Date: 2017-06-28 22:25+0200\n"
 "Last-Translator: Frank Lanitz <frank@frank.uvena.de>\n"
 "Language-Team: Greek\n"
@@ -163,7 +163,7 @@ msgstr ""
 #: ../latex/src/latex.c:293 ../geanyprj/src/geanyprj.c:176
 #: ../geanyvc/src/geanyvc.c:1973 ../geniuspaste/src/geniuspaste.c:336
 #: ../lineoperations/src/lo_prefs.c:58 ../sendmail/src/sendmail.c:128
-#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:108
+#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:114
 #: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2001
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
@@ -6872,60 +6872,69 @@ msgid ""
 "Sends the opened file as unzipped attachment by any mailer from your $PATH"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:177 ../setfiletype/src/setfiletype.c:214
+#: ../setfiletype/src/setfiletype.c:184 ../setfiletype/src/setfiletype.c:224
 msgid "File Type 1"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:178 ../setfiletype/src/setfiletype.c:215
+#: ../setfiletype/src/setfiletype.c:185 ../setfiletype/src/setfiletype.c:225
 msgid "File Type 2"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:179 ../setfiletype/src/setfiletype.c:216
+#: ../setfiletype/src/setfiletype.c:186 ../setfiletype/src/setfiletype.c:226
 msgid "File Type 3"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:180 ../setfiletype/src/setfiletype.c:217
+#: ../setfiletype/src/setfiletype.c:187 ../setfiletype/src/setfiletype.c:227
 msgid "File Type 4"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:181 ../setfiletype/src/setfiletype.c:218
+#: ../setfiletype/src/setfiletype.c:188 ../setfiletype/src/setfiletype.c:228
 msgid "File Type 5"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:182 ../setfiletype/src/setfiletype.c:219
+#: ../setfiletype/src/setfiletype.c:189 ../setfiletype/src/setfiletype.c:229
 msgid "File Type 6"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:183 ../setfiletype/src/setfiletype.c:220
+#: ../setfiletype/src/setfiletype.c:190 ../setfiletype/src/setfiletype.c:230
 msgid "File Type 7"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:184 ../setfiletype/src/setfiletype.c:221
+#: ../setfiletype/src/setfiletype.c:191 ../setfiletype/src/setfiletype.c:231
 msgid "File Type 8"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:185 ../setfiletype/src/setfiletype.c:222
+#: ../setfiletype/src/setfiletype.c:192 ../setfiletype/src/setfiletype.c:232
 msgid "File Type 9"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:186 ../setfiletype/src/setfiletype.c:223
+#: ../setfiletype/src/setfiletype.c:193 ../setfiletype/src/setfiletype.c:233
 msgid "File Type 10"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:214 ../setfiletype/src/setfiletype.c:215
-#: ../setfiletype/src/setfiletype.c:216 ../setfiletype/src/setfiletype.c:217
-#: ../setfiletype/src/setfiletype.c:218 ../setfiletype/src/setfiletype.c:219
-#: ../setfiletype/src/setfiletype.c:220 ../setfiletype/src/setfiletype.c:221
-#: ../setfiletype/src/setfiletype.c:222 ../setfiletype/src/setfiletype.c:223
+#: ../setfiletype/src/setfiletype.c:194 ../setfiletype/src/setfiletype.c:234
+msgid "File Type 11"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:195 ../setfiletype/src/setfiletype.c:235
+msgid "File Type 12"
+msgstr ""
+
+#: ../setfiletype/src/setfiletype.c:224 ../setfiletype/src/setfiletype.c:225
+#: ../setfiletype/src/setfiletype.c:226 ../setfiletype/src/setfiletype.c:227
+#: ../setfiletype/src/setfiletype.c:228 ../setfiletype/src/setfiletype.c:229
+#: ../setfiletype/src/setfiletype.c:230 ../setfiletype/src/setfiletype.c:231
+#: ../setfiletype/src/setfiletype.c:232 ../setfiletype/src/setfiletype.c:233
+#: ../setfiletype/src/setfiletype.c:234 ../setfiletype/src/setfiletype.c:235
 msgid "XML, JSON, Erlang, ..."
 msgstr ""
 
 #. Set metadata
-#: ../setfiletype/src/setfiletype.c:258
+#: ../setfiletype/src/setfiletype.c:272
 msgid "Set FileType"
 msgstr ""
 
-#: ../setfiletype/src/setfiletype.c:259
+#: ../setfiletype/src/setfiletype.c:273
 msgid "Set file type (XML, JSON, Erlang, ...) by hotkey"
 msgstr ""
 
