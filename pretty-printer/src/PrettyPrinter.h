@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #ifdef HAVE_GLIB
 	#include <glib.h>
@@ -51,8 +52,6 @@
 #ifndef TRUE
 	#define TRUE !(FALSE)
 #endif
-
-typedef unsigned int bool;
 
 /*==================================== STRUCTURES ====================================*/
 
