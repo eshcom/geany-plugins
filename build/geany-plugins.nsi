@@ -33,14 +33,15 @@ Unicode true
 ; helper defines  ;
 ;;;;;;;;;;;;;;;;;;;
 !define PRODUCT_NAME "Geany-Plugins"
-!define PRODUCT_VERSION "1.37"
-!define PRODUCT_VERSION_ID "1.37.0.0"
+!define PRODUCT_VERSION "1.38"
+!define PRODUCT_VERSION_ID "1.38.0.0"
 !define PRODUCT_PUBLISHER "The Geany developer team"
 !define PRODUCT_WEB_SITE "https://www.geany.org/"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_DIR_REGKEY "Software\Geany-Plugins"
 !define GEANY_DIR_REGKEY "Software\Geany"
-!define REQUIRED_GEANY_VERSION "1.37.0"
+; Geany version should be major.minor only (patch level is ignored for version checking)
+!define REQUIRED_GEANY_VERSION "1.38"
 !define RESOURCEDIR "geany-plugins-${PRODUCT_VERSION}"
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -258,7 +259,7 @@ Section Uninstall
 	Delete "$INSTDIR\bin\libgtkspell-0.dll"
 	Delete "$INSTDIR\bin\libgtkspell3-*.dll"
 	Delete "$INSTDIR\bin\libhistory8.dll"
-	Delete "$INSTDIR\bin\libhogweed-5.dll"
+	Delete "$INSTDIR\bin\libhogweed-6.dll"
 	Delete "$INSTDIR\bin\libhttp_parser-2.dll"
 	Delete "$INSTDIR\bin\libhunspell-1.7-0.dll"
 	Delete "$INSTDIR\bin\libicudt61.dll"
@@ -269,22 +270,22 @@ Section Uninstall
 	Delete "$INSTDIR\bin\libicule61.dll"
 	Delete "$INSTDIR\bin\libiculx61.dll"
 	Delete "$INSTDIR\bin\libicutest61.dll"
-	Delete "$INSTDIR\bin\libicutu65.dll"
-	Delete "$INSTDIR\bin\libicuuc65.dll"
-	Delete "$INSTDIR\bin\libicudt65.dll"
-	Delete "$INSTDIR\bin\libicuin65.dll"
-	Delete "$INSTDIR\bin\libicuio65.dll"
-	Delete "$INSTDIR\bin\libicule65.dll"
-	Delete "$INSTDIR\bin\libiculx65.dll"
-	Delete "$INSTDIR\bin\libicutest65.dll"
-	Delete "$INSTDIR\bin\libicutu65.dll"
-	Delete "$INSTDIR\bin\libicuuc65.dll"
+	Delete "$INSTDIR\bin\libicutu67.dll"
+	Delete "$INSTDIR\bin\libicuuc67.dll"
+	Delete "$INSTDIR\bin\libicudt67.dll"
+	Delete "$INSTDIR\bin\libicuin67.dll"
+	Delete "$INSTDIR\bin\libicuio67.dll"
+	Delete "$INSTDIR\bin\libicule67.dll"
+	Delete "$INSTDIR\bin\libiculx67.dll"
+	Delete "$INSTDIR\bin\libicutest67.dll"
+	Delete "$INSTDIR\bin\libicutu67.dll"
+	Delete "$INSTDIR\bin\libicuuc67.dll"
 	Delete "$INSTDIR\bin\libidn2-0.dll"
 	Delete "$INSTDIR\bin\libjavascriptcoregtk-1.0-0.dll"
 	Delete "$INSTDIR\bin\libjavascriptcoregtk-3.0-0.dll"
 	Delete "$INSTDIR\bin\libjpeg-8.dll"
 	Delete "$INSTDIR\bin\liblzma-5.dll"
-	Delete "$INSTDIR\bin\libnettle-7.dll"
+	Delete "$INSTDIR\bin\libnettle-8.dll"
 	Delete "$INSTDIR\bin\libnghttp2-14.dll"
 	Delete "$INSTDIR\bin\libogg-0.dll"
 	Delete "$INSTDIR\bin\liborc-0.4-0.dll"
@@ -333,8 +334,9 @@ Section Uninstall
 	RMDir /r "$INSTDIR\lib\gio"
 	RMDir /r "$INSTDIR\lib\gstreamer-1.0"
 	RMDir /r "$INSTDIR\lib\pkcs11"
-	RMDir /r "$INSTDIR\lib\sqlite3.31.1"
+	RMDir /r "$INSTDIR\lib\sqlite3.33.0"
 	RMDir /r "$INSTDIR\lib\geany-plugins"
+	RMDir /r "$INSTDIR\libexec\gstreamer-1.0"
 	RMDir /r "$INSTDIR\libexec\p11-kit"
 	RMDir /r "$INSTDIR\share\doc\geany-plugins"
 	RMDir /r "$INSTDIR\share\geany-plugins"
@@ -343,6 +345,7 @@ Section Uninstall
 	RMDir /r "$INSTDIR\share\libgpg-error"
 	RMDir /r "$INSTDIR\share\p11-kit"
 	RMDir /r "$INSTDIR\share\pki"
+	RMDir /r "$INSTDIR\share\sqlite"
 	RMDir /r "$INSTDIR\share\vala"
 	RMDir /r "$INSTDIR\share\webkitgtk-1.0"
 	RMDir /r "$INSTDIR\share\webkitgtk-3.0"
@@ -441,12 +444,10 @@ Function CheckForGeany
 	IntOp $R2 $R0 >> 16
 	IntOp $R2 $R2 & 0x0000FFFF ; $R2 now contains major version
 	IntOp $R3 $R0 & 0x0000FFFF ; $R3 now contains minor version
-	IntOp $R4 $R1 >> 16
-	IntOp $R4 $R4 & 0x0000FFFF ; $R4 now contains release
-	StrCpy $0 "$R2.$R3.$R4"
+	StrCpy $0 "$R2.$R3"
 	StrCmp $0 ${REQUIRED_GEANY_VERSION} version_check_done 0
 	MessageBox MB_YESNO|MB_ICONEXCLAMATION \
-		"You have Geany $0 installed but you need Geany ${REQUIRED_GEANY_VERSION}.$\nDo you really want to continue?" \
+		"You have Geany $0 installed but you need Geany ${REQUIRED_GEANY_VERSION}.x.$\nDo you really want to continue?" \
 		/SD IDNO IDNO stop IDYES ignore
 stop:
 	Abort

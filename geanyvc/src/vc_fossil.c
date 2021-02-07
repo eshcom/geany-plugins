@@ -27,7 +27,7 @@
 extern GeanyData *geany_data;
 
 #define FOSSIL_CLIENT "fossil"
-#define FOSSIL_CMD_LOG_WIDTH "0"  /* 0:single-line */
+#define FOSSIL_CMD_LOG_WIDTH "100"  /* 0:single-line */
 #define FOSSIL_CMD_LOG_NUM   "300"
 
 static const gchar *FOSSIL_CMD_DIFF_FILE[] = { FOSSIL_CLIENT, "diff", BASENAME, NULL };
@@ -57,7 +57,6 @@ parse_fossil_info(const gchar * txt, const gchar * fld)
 	gint len;
 
 	start = strstr(txt, fld);
-	g_return_val_if_fail(start, NULL);
 	if (!start) return NULL;
 
 	start += strlen(fld);
