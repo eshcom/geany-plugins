@@ -188,6 +188,13 @@ M: Colomban Wendling <ban@herbesfolles.org>
 W: http://plugins.geany.org/git-changebar.html
 S: Maintained
 
+jsonprettifier
+P: zhgzhg <zhgzhg@github.com>
+g: @zhgzhg
+M: zhgzhg <zhgzhg@github.com>
+W: https://github.com/zhgzhg/Geany-JSON-Prettifier
+S: Maintained
+
 keyrecord
 P: Artur Riazanov <tunyash@gmail.com>
 g:

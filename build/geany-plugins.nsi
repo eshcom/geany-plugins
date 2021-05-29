@@ -187,6 +187,7 @@ Section Uninstall
 	Delete "$INSTDIR\lib\geany\geanyvc.dll"
 	Delete "$INSTDIR\lib\geany\geniuspaste.dll"
 	Delete "$INSTDIR\lib\geany\git-changebar.dll"
+	Delete "$INSTDIR\lib\geany\jsonprettifier.dll"
 	Delete "$INSTDIR\lib\geany\keyrecord.dll"
 	Delete "$INSTDIR\lib\geany\lipsum.dll"
 	Delete "$INSTDIR\lib\geany\lineoperations.dll"

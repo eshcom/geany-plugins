@@ -104,6 +104,10 @@ if ENABLE_GITCHANGEBAR
 SUBDIRS += git-changebar
 endif
 
+if ENABLE_JSONPRETTIFIER
+SUBDIRS += jsonprettifier
+endif
+
 if ENABLE_KEYRECORD
 SUBDIRS += keyrecord
 endif
