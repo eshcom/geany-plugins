@@ -1297,6 +1297,9 @@ static GtkWidget *create_popup_menu(const gchar *name, const gchar *uri)
 	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_close_children), g_strdup(uri), (GClosureNotify)g_free, 0);
 	gtk_widget_set_sensitive(item, is_dir);
 	
+	item = gtk_separator_menu_item_new();
+	gtk_container_add(GTK_CONTAINER(menu), item);
+	
 #if GTK_CHECK_VERSION(3, 10, 0)
 	item = ui_image_menu_item_new("edit-copy", _("_Copy Name to Clipboard"));
 #else
@@ -1317,6 +1320,7 @@ static GtkWidget *create_popup_menu(const gchar *name, const gchar *uri)
 	
 	item = gtk_separator_menu_item_new();
 	gtk_container_add(GTK_CONTAINER(menu), item);
+	
 	gtk_widget_show(item);
 	
 #if GTK_CHECK_VERSION(3, 10, 0)
