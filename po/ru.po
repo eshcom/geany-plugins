@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-05 11:54+0300\n"
+"POT-Creation-Date: 2021-05-29 20:02+0300\n"
 "PO-Revision-Date: 2020-05-01 16:20+1000\n"
 "Last-Translator: Dmitry Unruh <dmitryunruh@googlemail.com>\n"
 "Language-Team: Russian <geany-i18n@uvena.de>\n"
@@ -5174,6 +5174,70 @@ msgid ""
 "%s"
 msgstr ""
 "Невозможно загрузить интерфейс, проверьте правильность установки. Ошибка: %s"
+
+#: ../jsonprettifier/src/jsonprettifier.c:53
+msgid "JSON Prettifier"
+msgstr "Форматирование JSON"
+
+#: ../jsonprettifier/src/jsonprettifier.c:54
+msgid ""
+"JSON file format prettifier, minifier and validator.\n"
+"https://github.com/zhgzhg/Geany-JSON-Prettifier"
+msgstr ""
+"Форматтер/валидатор/минификатор (в одну строку) JSON.\n"
+"https://github.com/zhgzhg/Geany-JSON-Prettifier"
+
+#: ../jsonprettifier/src/jsonprettifier.c:551
+msgid "Escape any forward slashes."
+msgstr "Экранировать любые косые черты (слеши)."
+
+#: ../jsonprettifier/src/jsonprettifier.c:560
+msgid "Allow invalid UTF-8 in the strings."
+msgstr "Разрешить недопустимые UTF-8 символы в строках."
+
+#: ../jsonprettifier/src/jsonprettifier.c:569
+msgid "Reformat multiple JSON entities at once."
+msgstr "Переформатировать сразу несколько объектов JSON."
+
+#: ../jsonprettifier/src/jsonprettifier.c:580
+msgid "Indent values with spaces"
+msgstr "Отступы с помощью пробелов"
+
+#: ../jsonprettifier/src/jsonprettifier.c:587
+msgid "Indent values with tabs"
+msgstr "Отступы с помощью табов"
+
+#: ../jsonprettifier/src/jsonprettifier.c:594
+msgid "Symbols count:"
+msgstr "Кол-во символов для отступа:"
+
+#: ../jsonprettifier/src/jsonprettifier.c:611
+msgid "Show errors in a message window."
+msgstr "Показать ошибки в окне сообщения."
+
+#: ../jsonprettifier/src/jsonprettifier.c:621
+msgid "Log successful formatting messages."
+msgstr "Логировать об успешном форматировании."
+
+#: ../jsonprettifier/src/jsonprettifier.c:628
+msgid ""
+"Allow (effectively strip and ignore) multiline comments like for e.g. /* "
+"comment */."
+msgstr ""
+"Разрешить (эффективно удалять и игнорировать) многострочные комментарии, "
+"например, /* комментарий */."
+
+#: ../jsonprettifier/src/jsonprettifier.c:786
+msgid "json_prettifier"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:793
+msgid "Run the JSON Prettifier"
+msgstr "Запустить форматирование JSON"
+
+#: ../jsonprettifier/src/jsonprettifier.c:800
+msgid "Run the JSON Minifier"
+msgstr "Запустить минификацию (в одну строку) JSON"
 
 #: ../keyrecord/src/keyrecord.c:154
 msgid "Start/Stop record"

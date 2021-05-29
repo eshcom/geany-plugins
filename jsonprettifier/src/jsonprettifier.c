@@ -577,21 +577,21 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 								fcfg_e_useTabsForIndentAlias);
 
 	values_indentation_spaces_rbtn = gtk_radio_button_new_with_label(
-			NULL, "Indent values with spaces");
+			NULL, _("Indent values with spaces"));
 	gtk_toggle_button_set_active(
 			GTK_TOGGLE_BUTTON(values_indentation_spaces_rbtn), isSet);
 
 	values_indentation_tabs_rbtn = gtk_radio_button_new_with_label(
 		gtk_radio_button_get_group(GTK_RADIO_BUTTON(
 				values_indentation_spaces_rbtn)),
-				"Indent values with tabs");
+				_("Indent values with tabs"));
 	gtk_toggle_button_set_active(
 		GTK_TOGGLE_BUTTON (values_indentation_tabs_rbtn), isSet);
 	gtk_toggle_button_set_active(
 		GTK_TOGGLE_BUTTON (values_indentation_spaces_rbtn), !isSet);
 
 	values_indentation_symbols_count_lbl = gtk_label_new(
-		"Symbols count:");
+		_("Symbols count:"));
 	values_indentation_symbols_count_sbtn =
 		gtk_spin_button_new_with_range(1,1024, 1);
 	i = config_get_uint_setting(keyfile_plugin, fcfg_e_indentSymbolsCnt,

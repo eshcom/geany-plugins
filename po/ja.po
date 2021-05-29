@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-05 11:54+0300\n"
+"POT-Creation-Date: 2021-05-29 20:02+0300\n"
 "PO-Revision-Date: 2011-10-21 14:08+0100\n"
 "Last-Translator: Masami Chikahiro <cmasa.z321@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -5098,6 +5098,68 @@ msgid ""
 msgstr ""
 "プラグイン %s のロードに失敗。\n"
 "インストールを確認してください。"
+
+#: ../jsonprettifier/src/jsonprettifier.c:53
+msgid "JSON Prettifier"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:54
+msgid ""
+"JSON file format prettifier, minifier and validator.\n"
+"https://github.com/zhgzhg/Geany-JSON-Prettifier"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:551
+msgid "Escape any forward slashes."
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:560
+msgid "Allow invalid UTF-8 in the strings."
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:569
+msgid "Reformat multiple JSON entities at once."
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:580
+msgid "Indent values with spaces"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:587
+msgid "Indent values with tabs"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:594
+msgid "Symbols count:"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:611
+#, fuzzy
+msgid "Show errors in a message window."
+msgstr "メッセージウィンドウ"
+
+#: ../jsonprettifier/src/jsonprettifier.c:621
+msgid "Log successful formatting messages."
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:628
+msgid ""
+"Allow (effectively strip and ignore) multiline comments like for e.g. /* "
+"comment */."
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:786
+msgid "json_prettifier"
+msgstr ""
+
+#: ../jsonprettifier/src/jsonprettifier.c:793
+#, fuzzy
+msgid "Run the JSON Prettifier"
+msgstr "XML整形を実行"
+
+#: ../jsonprettifier/src/jsonprettifier.c:800
+msgid "Run the JSON Minifier"
+msgstr ""
 
 #: ../keyrecord/src/keyrecord.c:154
 msgid "Start/Stop record"
