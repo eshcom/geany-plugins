@@ -762,14 +762,14 @@ void plugin_init(GeanyData *data)
 
 	/* ---------------------------- */
 
-	main_menu_item = gtk_menu_item_new_with_mnemonic("JSON Prettifier");
+	main_menu_item = gtk_menu_item_new_with_mnemonic(_("JSON Prettify"));
 	gtk_widget_show(main_menu_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
 						main_menu_item);
 	g_signal_connect(main_menu_item, "activate",
 						G_CALLBACK(item_activate_cb), NULL);
 
-	main_menu_item2 = gtk_menu_item_new_with_mnemonic("JSON Minifier");
+	main_menu_item2 = gtk_menu_item_new_with_mnemonic(_("JSON Minify"));
 	gtk_widget_show(main_menu_item2);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
 						main_menu_item2);
