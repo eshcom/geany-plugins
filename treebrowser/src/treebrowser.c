@@ -1145,6 +1145,12 @@ static void on_menu_close_children(GtkMenuItem *menuitem, gchar *uri)
 	}
 }
 
+static void on_menu_copy_name(GtkMenuItem *menuitem, gchar *name)
+{
+	GtkClipboard *cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+	gtk_clipboard_set_text(cb, name, -1);
+}
+
 static void on_menu_copy_uri(GtkMenuItem *menuitem, gchar *uri)
 {
 	GtkClipboard *cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
@@ -1290,6 +1296,15 @@ static GtkWidget *create_popup_menu(const gchar *name, const gchar *uri)
 	gtk_container_add(GTK_CONTAINER(menu), item);
 	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_close_children), g_strdup(uri), (GClosureNotify)g_free, 0);
 	gtk_widget_set_sensitive(item, is_dir);
+	
+#if GTK_CHECK_VERSION(3, 10, 0)
+	item = ui_image_menu_item_new("edit-copy", _("_Copy Name to Clipboard"));
+#else
+	item = ui_image_menu_item_new(GTK_STOCK_COPY, _("_Copy Name to Clipboard"));
+#endif
+	gtk_container_add(GTK_CONTAINER(menu), item);
+	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_copy_name), g_strdup(name), (GClosureNotify)g_free, 0);
+	gtk_widget_set_sensitive(item, is_exists);
 	
 #if GTK_CHECK_VERSION(3, 10, 0)
 	item = ui_image_menu_item_new("edit-copy", _("_Copy Full Path to Clipboard"));
