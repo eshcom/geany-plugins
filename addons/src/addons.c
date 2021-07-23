@@ -38,6 +38,7 @@
 #include "ao_tasks.h"
 #include "ao_xmltagging.h"
 #include "ao_wrapwords.h"
+#include "ao_copyfilename.h"
 #include "ao_copyfilepath.h"
 #include "ao_colortip.h"
 
@@ -53,6 +54,7 @@ enum
 	KB_FOCUS_TASKS,
 	KB_UPDATE_TASKS,
 	KB_XMLTAGGING,
+	KB_COPYFILENAME,
 	KB_COPYFILEPATH,
 	KB_COUNT
 };
@@ -88,6 +90,7 @@ typedef struct
 	AoBookmarkList *bookmarklist;
 	AoMarkWord *markword;
 	AoTasks *tasks;
+	AoCopyFileName *copyfilename;
 	AoCopyFilePath *copyfilepath;
 	AoColorTip *colortip;
 } AddonsInfo;
@@ -124,6 +127,12 @@ static void kb_ao_xmltagging(guint key_id)
 	{
 		ao_xmltagging();
 	}
+}
+
+
+static void kb_ao_copyfilename(guint key_id)
+{
+	ao_copy_file_name_copy(ao_info->copyfilename);
 }
 
 
@@ -380,6 +389,7 @@ static void ao_configure_response_cb(GtkDialog *dialog, gint response, gpointer 
 static gboolean plugin_addons_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 {
 	GKeyFile *config = g_key_file_new();
+	GtkWidget *ao_copy_file_name_menu_item;
 	GtkWidget *ao_copy_file_path_menu_item;
 	GeanyKeyGroup *key_group;
 
@@ -435,6 +445,7 @@ static gboolean plugin_addons_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer p
 		ao_info->enable_markword_single_click_deselect);
 	ao_info->tasks = ao_tasks_new(ao_info->enable_tasks,
 						ao_info->tasks_token_list, ao_info->tasks_scan_all_documents);
+	ao_info->copyfilename = ao_copy_file_name_new();
 	ao_info->copyfilepath = ao_copy_file_path_new();
 	ao_info->colortip = ao_color_tip_new(ao_info->enable_colortip,
 		ao_info->enable_double_click_color_chooser);
@@ -451,6 +462,9 @@ static gboolean plugin_addons_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer p
 		0, 0, "update_tasks", _("Update Tasks List"), NULL);
 	keybindings_set_item(key_group, KB_XMLTAGGING, kb_ao_xmltagging,
 		0, 0, "xml_tagging", _("Run XML tagging"), NULL);
+	ao_copy_file_name_menu_item = ao_copy_file_name_get_menu_item(ao_info->copyfilename);
+	keybindings_set_item(key_group, KB_COPYFILENAME, kb_ao_copyfilename,
+		0, 0, "copy_file_name", _("Copy File Name"), ao_copy_file_name_menu_item);
 	ao_copy_file_path_menu_item = ao_copy_file_path_get_menu_item(ao_info->copyfilepath);
 	keybindings_set_item(key_group, KB_COPYFILEPATH, kb_ao_copyfilepath,
 		0, 0, "copy_file_path", _("Copy File Path"), ao_copy_file_path_menu_item);
@@ -681,6 +695,7 @@ static void plugin_addons_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin, G_GNUC_UNUS
 	g_object_unref(ao_info->bookmarklist);
 	g_object_unref(ao_info->markword);
 	g_object_unref(ao_info->tasks);
+	g_object_unref(ao_info->copyfilename);
 	g_object_unref(ao_info->copyfilepath);
 	g_object_unref(ao_info->colortip);
 	g_free(ao_info->tasks_token_list);

@@ -12,6 +12,8 @@ addons_la_SOURCES = \
 	ao_bookmarklist.h \
 	ao_colortip.c \
 	ao_colortip.h \
+	ao_copyfilename.c \
+	ao_copyfilename.h \
 	ao_copyfilepath.c \
 	ao_copyfilepath.h \
 	ao_doclist.c \
