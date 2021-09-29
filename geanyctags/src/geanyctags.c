@@ -112,7 +112,7 @@ static void plugin_geanyctags_help(G_GNUC_UNUSED GeanyPlugin *plugin,
 	utils_open_browser("https://plugins.geany.org/geanyctags.html");
 }
 
-static void spawn_cmd(const gchar *cmd, const gchar *dir)
+static gboolean spawn_cmd(const gchar *cmd, const gchar *dir)
 {
 	GError *error = NULL;
 	gchar **argv = NULL;
@@ -121,7 +121,7 @@ static void spawn_cmd(const gchar *cmd, const gchar *dir)
 	gchar *utf8_cmd_string;
 	gchar *out;
 	gint exitcode;
-	gboolean success;
+	gboolean success, result;
 	GString *output;
 	
 #ifndef G_OS_WIN32
@@ -164,26 +164,17 @@ static void spawn_cmd(const gchar *cmd, const gchar *dir)
 			g_error_free(error);
 		}
 		msgwin_msg_add(COLOR_RED, -1, NULL, "%s", out);
+		result = FALSE;
 	}
 	else
 	{
 		msgwin_msg_add(COLOR_BLACK, -1, NULL, "%s", out);
+		result = TRUE;
 	}
 	g_strfreev(argv);
 	g_free(working_dir);
 	g_free(out);
-}
-
-static gchar *get_tags_filename(void)
-{
-	gchar *ret = NULL;
-	
-	if (geany_data->app->project)
-	{
-		ret = utils_remove_ext_from_filename(geany_data->app->project->file_name);
-		SETPTR(ret, g_strconcat(ret, ".tags", NULL));
-	}
-	return ret;
+	return result;
 }
 
 static gchar *generate_find_string(GeanyProject *prj)
@@ -203,25 +194,6 @@ static gchar *generate_find_string(GeanyProject *prj)
 }
 
 
-static gchar *get_base_path(void)
-{
-	gchar *ret;
-	GeanyProject *prj = geany_data->app->project;
-	gchar *project_dir_utf8;
-
-	if (!prj)
-		return NULL;
-	
-	if (g_path_is_absolute(prj->base_path))
-		return g_strdup(prj->base_path);
-	
-	project_dir_utf8 = g_path_get_dirname(prj->file_name);
-	ret = g_build_filename(project_dir_utf8, prj->base_path, NULL);
-	g_free(project_dir_utf8);
-	return ret;
-}
-
-
 static void
 on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 {
@@ -233,7 +205,7 @@ on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 	gchar *tag_filename;
 	gchar *base_path;
 	
-	tag_filename = get_tags_filename();
+	tag_filename = project_get_tags_file();
 	
 #ifndef G_OS_WIN32
 	gchar *find_string = generate_find_string(prj);
@@ -254,9 +226,10 @@ on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 					  " --sort=foldcase --excmd=number -f \"",
 					  tag_filename, "\"", NULL);
 #endif
+	base_path = project_get_base_path();
 	
-	base_path = get_base_path();
-	spawn_cmd(cmd, base_path);
+	if (spawn_cmd(cmd, base_path))
+		project_load_tags_file(tag_filename, base_path);
 	
 	g_free(cmd);
 	g_free(tag_filename);
@@ -268,6 +241,7 @@ static void show_entry(tagEntry *entry)
 	const gchar *kind;
 	const gchar *signature;
 	const gchar *scope;
+	const gchar *scope_sep = "::";
 	const gchar *file;
 	const gchar *name;
 	gchar *scope_str;
@@ -292,8 +266,14 @@ static void show_entry(tagEntry *entry)
 		scope = tagsField(entry, "union");
 	if (!scope)
 		scope = tagsField(entry, "enum");
-	
-	scope_str = scope ? g_strconcat(scope, "::", NULL)
+	//~ esh: for erlang the module name (scope) is the same as the file name,
+	//		 show scope only if file name is empty
+	if (!scope && EMPTY(file))
+	{
+		scope = tagsField(entry, "module"); // esh: used in Erlang
+		scope_sep = ":";
+	}
+	scope_str = scope ? g_strconcat(scope, scope_sep, NULL)
 					  : g_strdup("");
 	
 	kind = entry->kind;
@@ -439,11 +419,11 @@ static void find_tags(const gchar *name, gboolean declaration,
 	if (!prj)
 		return;
 	
-	base_path = get_base_path();
+	base_path = project_get_base_path();
 	msgwin_clear_tab(MSG_MESSAGE);
 	msgwin_set_messages_dir(base_path);
 	
-	tag_filename = get_tags_filename();
+	tag_filename = project_get_tags_file();
 	tf = tagsOpen(tag_filename, &info);
 	
 	if (tf)
