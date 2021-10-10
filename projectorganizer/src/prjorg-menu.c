@@ -57,7 +57,7 @@ static gboolean try_swap_header_source(gchar *utf8_file_name, gboolean is_header
 	gboolean found = FALSE;
 
 	name_pattern = g_path_get_basename(utf8_file_name);
-	SETPTR(name_pattern, utils_remove_ext_from_filename(name_pattern));
+	SETPTR(name_pattern, utils_remove_ext_from_filename(name_pattern, FALSE));
 	SETPTR(name_pattern, g_strconcat(name_pattern, ".*", NULL));
 	pattern = g_pattern_spec_new(name_pattern);
 	g_free(name_pattern);

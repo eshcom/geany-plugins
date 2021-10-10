@@ -51,7 +51,7 @@ static void glatex_init_cutom_template_item(gchar *file, GPtrArray *array)
 	template->filepath = g_strdup(file);
 
 	tmp = g_path_get_basename(file);
-	template->label = utils_remove_ext_from_filename(tmp);
+	template->label = utils_remove_ext_from_filename(tmp, FALSE);
 	g_free(tmp);
 
 	/* Adding struct to array */
