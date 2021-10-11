@@ -185,9 +185,11 @@ static gchar *generate_find_string(GeanyProject *prj)
 	{
 		guint i;
 		
-		SETPTR(ret, g_strconcat(ret, " \\( -name \"", prj->file_patterns[0], "\"", NULL));
+		SETPTR(ret, g_strconcat(ret, " \\( -name \"", prj->file_patterns[0],
+								"\"", NULL));
 		for (i = 1; prj->file_patterns[i]; i++)
-			SETPTR(ret, g_strconcat(ret, " -o -name \"", prj->file_patterns[i], "\"", NULL));
+			SETPTR(ret, g_strconcat(ret, " -o -name \"", prj->file_patterns[i],
+									"\"", NULL));
 		SETPTR(ret, g_strconcat(ret, " \\)", NULL));
 	}
 	return ret;
@@ -210,20 +212,22 @@ on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 #ifndef G_OS_WIN32
 	gchar *find_string = generate_find_string(prj);
 	cmd = g_strconcat(find_string,
-					  " | ctags --totals --fields=fKsSt --extra=-fq --c-kinds=+p"
-					  " --sort=foldcase --excmd=number -L - -f '",
+					  " | ctags --totals --fields=fKsSt --extra=-fq"
+					  " --c-kinds=+p --sort=foldcase --excmd=number -L - -f '",
 					  tag_filename, "'", NULL);
 	g_free(find_string);
 #else
-	/* We don't have find and | on windows, generate tags for all files in the project (-R recursively) */
+	/* We don't have find and | on windows, generate tags
+	 * for all files in the project (-R recursively) */
 	
-	/* Unfortunately, there's a bug in ctags - when run with -R, the first line is
-	 * empty, ctags doesn't recognize the tags file as a valid ctags file and
-	 * refuses to overwrite it. Therefore, we need to delete the tags file manually. */
+	/* Unfortunately, there's a bug in ctags - when run with -R,
+	 * the first line is empty, ctags doesn't recognize the tags
+	 * file as a valid ctags file and refuses to overwrite it.
+	 * Therefore, we need to delete the tags file manually. */
 	g_unlink(tag_filename);
 	
-	cmd = g_strconcat("ctags.exe -R --totals --fields=fKsSt --extra=-fq --c-kinds=+p"
-					  " --sort=foldcase --excmd=number -f \"",
+	cmd = g_strconcat("ctags.exe -R --totals --fields=fKsSt --extra=-fq"
+					  " --c-kinds=+p --sort=foldcase --excmd=number -f \"",
 					  tag_filename, "\"", NULL);
 #endif
 	base_path = project_get_base_path();
@@ -312,7 +316,7 @@ static gchar *get_selection(void)
 	return ret;
 }
 
-/* TODO: Not possible to do it the way below because some of the API is private 
+/* TODO: Not possible to do it the way below because some of the API is private
  * in Geany. This means the cursor has to be placed at the symbol first and
  * then right-clicked (right-clicking without having the cursor at the symbol
  * doesn't work) */
@@ -340,7 +344,8 @@ static gchar *get_selection()
 	editor_find_current_word(doc->editor, -1, editor_info.current_word,
 							 GEANY_MAX_WORD_LENGTH, NULL);
 	
-	return editor_info.current_word != 0 ? g_strdup(editor_info.current_word) : NULL;
+	return editor_info.current_word != 0 ? g_strdup(editor_info.current_word)
+										 : NULL;
 }
 */
 
@@ -363,13 +368,15 @@ static gboolean find_first(tagFile *tf, tagEntry *entry,
 	{
 		int options = TAG_IGNORECASE;
 		
-		options |= match_type == MATCH_PREFIX ? TAG_PARTIALMATCH : TAG_FULLMATCH;
+		options |= match_type == MATCH_PREFIX ? TAG_PARTIALMATCH
+											  : TAG_FULLMATCH;
 		ret = tagsFind(tf, entry, name, options) == TagSuccess;
 	}
 	return ret;
 }
 
-static gboolean find_next(tagFile *tf, tagEntry *entry, MatchType match_type)
+static gboolean find_next(tagFile *tf, tagEntry *entry,
+						  MatchType match_type)
 {
 	gboolean ret;
 	
@@ -391,7 +398,8 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 		gboolean is_prototype;
 		
 		is_prototype = g_strcmp0(entry->kind, "prototype") == 0;
-		filter = (declaration && !is_prototype) || (!declaration && is_prototype);
+		filter = (declaration && !is_prototype) ||
+				 (!declaration && is_prototype);
 		if (filter)
 			return TRUE;
 	}
@@ -462,10 +470,12 @@ static void find_tags(const gchar *name, gboolean declaration,
 			}
 			if (num == 1)
 			{
-				GeanyDocument *doc = document_open_file(path, FALSE, NULL, NULL);
+				GeanyDocument *doc = document_open_file(path, FALSE,
+														NULL, NULL);
 				if (doc != NULL)
 				{
-					navqueue_goto_line(document_get_current(), doc, last_line_number);
+					navqueue_goto_line(document_get_current(), doc,
+									   last_line_number);
 					gtk_widget_grab_focus(GTK_WIDGET(doc->editor->sci));
 				}
 			}
@@ -510,12 +520,15 @@ static void create_dialog_find_file(void)
 		return;
 	
 	s_ft_dialog.widget = gtk_dialog_new_with_buttons(
-							_("Find Tag"), GTK_WINDOW(geany->main_widgets->window),
+							_("Find Tag"),
+							GTK_WINDOW(geany->main_widgets->window),
 							GTK_DIALOG_DESTROY_WITH_PARENT,
 							GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
 	
-	gtk_dialog_add_button(GTK_DIALOG(s_ft_dialog.widget), "gtk-find", GTK_RESPONSE_ACCEPT);
-	gtk_dialog_set_default_response(GTK_DIALOG(s_ft_dialog.widget), GTK_RESPONSE_ACCEPT);
+	gtk_dialog_add_button(GTK_DIALOG(s_ft_dialog.widget), "gtk-find",
+						  GTK_RESPONSE_ACCEPT);
+	gtk_dialog_set_default_response(GTK_DIALOG(s_ft_dialog.widget),
+									GTK_RESPONSE_ACCEPT);
 	
 	vbox = ui_dialog_vbox_new(GTK_DIALOG(s_ft_dialog.widget));
 	gtk_box_set_spacing(GTK_BOX(vbox), 9);
@@ -545,9 +558,12 @@ static void create_dialog_find_file(void)
 	gtk_size_group_add_widget(size_group, label);
 	
 	s_ft_dialog.combo_match = gtk_combo_box_text_new();
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match), _("exact"));
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match), _("prefix"));
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match), _("pattern"));
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match),
+								   _("exact"));
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match),
+								   _("prefix"));
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo_match),
+								   _("pattern"));
 	gtk_combo_box_set_active(GTK_COMBO_BOX(s_ft_dialog.combo_match), 1);
 	gtk_label_set_mnemonic_widget(GTK_LABEL(label), s_ft_dialog.combo_match);
 	
@@ -556,13 +572,17 @@ static void create_dialog_find_file(void)
 	gtk_box_pack_start(GTK_BOX(ebox), s_ft_dialog.combo_match, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 	
-	s_ft_dialog.case_sensitive = gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.case_sensitive), FALSE);
+	s_ft_dialog.case_sensitive =
+			gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
+	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.case_sensitive),
+								  FALSE);
 	
-	s_ft_dialog.declaration = gtk_check_button_new_with_mnemonic(_("_Declaration"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.declaration), FALSE);
+	s_ft_dialog.declaration =
+			gtk_check_button_new_with_mnemonic(_("_Declaration"));
+	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.declaration),
+								  FALSE);
 	
-	g_object_unref(G_OBJECT(size_group));	/* auto destroy the size group */
+	g_object_unref(G_OBJECT(size_group)); /* auto destroy the size group */
 	
 	gtk_container_add(GTK_CONTAINER(vbox), s_ft_dialog.case_sensitive);
 	gtk_container_add(GTK_CONTAINER(vbox), s_ft_dialog.declaration);
@@ -592,11 +612,15 @@ static void on_find_tag(GtkMenuItem *menuitem, gpointer user_data)
 		MatchType match_type;
 		
 		name = gtk_entry_get_text(GTK_ENTRY(entry));
-		case_sensitive = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(s_ft_dialog.case_sensitive));
-		declaration = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(s_ft_dialog.declaration));
-		match_type = gtk_combo_box_get_active(GTK_COMBO_BOX(s_ft_dialog.combo_match));
+		case_sensitive = gtk_toggle_button_get_active(
+								GTK_TOGGLE_BUTTON(s_ft_dialog.case_sensitive));
+		declaration = gtk_toggle_button_get_active(
+								GTK_TOGGLE_BUTTON(s_ft_dialog.declaration));
+		match_type = gtk_combo_box_get_active(
+								GTK_COMBO_BOX(s_ft_dialog.combo_match));
 		
-		ui_combo_box_add_to_history(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo), name, 0);
+		ui_combo_box_add_to_history(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo),
+									name, 0);
 		
 		find_tags(name, declaration, case_sensitive, match_type);
 	}
@@ -619,47 +643,61 @@ static gboolean kb_callback(guint key_id)
 	return FALSE;
 }
 
-static gboolean plugin_geanyctags_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
+									   G_GNUC_UNUSED gpointer pdata)
 {
 	GeanyKeyGroup *key_group;
 	
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	
-	key_group = plugin_set_key_group(geany_plugin, "GeanyCtags", KB_COUNT, kb_callback);
+	key_group = plugin_set_key_group(geany_plugin, "GeanyCtags",
+									 KB_COUNT, kb_callback);
 	
 	s_context_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_context_sep_item);
-	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu), s_context_sep_item);
+	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu),
+						   s_context_sep_item);
 	
-	s_context_fdec_item = gtk_menu_item_new_with_mnemonic(_("Find Tag Declaration (geanyctags)"));
+	s_context_fdec_item = gtk_menu_item_new_with_mnemonic(
+									_("Find Tag Declaration (geanyctags)"));
 	gtk_widget_show(s_context_fdec_item);
-	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu), s_context_fdec_item);
-	g_signal_connect((gpointer) s_context_fdec_item, "activate", G_CALLBACK(on_find_declaration), NULL);
+	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu),
+						   s_context_fdec_item);
+	g_signal_connect((gpointer) s_context_fdec_item, "activate",
+					 G_CALLBACK(on_find_declaration), NULL);
 	
-	s_context_fdef_item = gtk_menu_item_new_with_mnemonic(_("Find Tag Definition (geanyctags)"));
+	s_context_fdef_item = gtk_menu_item_new_with_mnemonic(
+									_("Find Tag Definition (geanyctags)"));
 	gtk_widget_show(s_context_fdef_item);
-	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu), s_context_fdef_item);
-	g_signal_connect((gpointer) s_context_fdef_item, "activate", G_CALLBACK(on_find_definition), NULL);
+	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu),
+						   s_context_fdef_item);
+	g_signal_connect((gpointer) s_context_fdef_item, "activate",
+					 G_CALLBACK(on_find_definition), NULL);
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
 						 "find_tag", _("Find tag"), s_context_fdef_item);
 	
 	s_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_sep_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_sep_item);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
+					  s_sep_item);
 	
 	s_gt_item = gtk_menu_item_new_with_mnemonic(_("Generate tags"));
 	gtk_widget_show(s_gt_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_gt_item);
-	g_signal_connect((gpointer) s_gt_item, "activate", G_CALLBACK(on_generate_tags), NULL);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
+					  s_gt_item);
+	g_signal_connect((gpointer) s_gt_item, "activate",
+					 G_CALLBACK(on_generate_tags), NULL);
 	keybindings_set_item(key_group, KB_GENERATE_TAGS, NULL, 0, 0,
 						 "generate_tags", _("Generate tags"), s_gt_item);
 	
 	s_ft_item = gtk_menu_item_new_with_mnemonic(_("Find tag..."));
 	gtk_widget_show(s_ft_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_ft_item);
-	g_signal_connect((gpointer) s_ft_item, "activate", G_CALLBACK(on_find_tag), NULL);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
+					  s_ft_item);
+	g_signal_connect((gpointer) s_ft_item, "activate",
+					 G_CALLBACK(on_find_tag), NULL);
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	//~ keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
 						 //~ "find_tag", _("Find tag"), s_ft_item);
@@ -694,7 +732,8 @@ void geany_load_module(GeanyPlugin *plugin)
 	
 	/* Set metadata */
 	plugin->info->name = "GeanyCtags";
-	plugin->info->description = _("Ctags generation and search plugin for geany projects");
+	plugin->info->description = _("Ctags generation and search plugin "
+								  "for geany projects");
 	plugin->info->version = VERSION;
 	plugin->info->author = "Jiri Techet <techet@gmail.com>";
 	

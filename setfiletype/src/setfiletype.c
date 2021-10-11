@@ -82,15 +82,18 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 {
 	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
 		return;
-	GKeyFile *config = g_key_file_new();
+	GKeyFile *config	 = g_key_file_new();
 	gchar    *config_dir = g_path_get_dirname(sft_info->config_file);
 	
-	g_key_file_load_from_file(config, sft_info->config_file, G_KEY_FILE_NONE, NULL);
+	g_key_file_load_from_file(config, sft_info->config_file,
+							  G_KEY_FILE_NONE, NULL);
 	
-#define SAVE_CONF_TEXT(name) G_STMT_START {												\
-	sft_info->name = gtk_editable_get_chars(GTK_EDITABLE(								\
-						g_object_get_data(G_OBJECT(dialog), "entry_" #name)), 0, -1);	\
-	g_key_file_set_string(config, "setfiletype", #name, sft_info->name);				\
+#define SAVE_CONF_TEXT(name) G_STMT_START {									\
+	sft_info->name = gtk_editable_get_chars(								\
+						GTK_EDITABLE(g_object_get_data(G_OBJECT(dialog),	\
+													   "entry_" #name)),	\
+						0, -1);												\
+	g_key_file_set_string(config, "setfiletype", #name, sft_info->name);	\
 } G_STMT_END
 	
 	SAVE_CONF_TEXT(filetype_1);
@@ -114,8 +117,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 			_("Plugin configuration directory could not be created."));
 	}
 	else
-	{
-		/* write config to file */
+	{	/* write config to file */
 		gchar *data;
 		data = g_key_file_to_data(config, NULL, NULL);
 		utils_write_file(sft_info->config_file, data);
@@ -133,10 +135,11 @@ static void kb_activate(guint key_id)
 		return;
 	switch (key_id)
 	{
-#define CASE_KEY_ID(name) G_STMT_START {											\
-		case KB_##name:																\
-			document_set_filetype(doc, filetypes_lookup_by_name(sft_info->name));	\
-			return;																	\
+#define CASE_KEY_ID(name) G_STMT_START {						\
+	case KB_##name:												\
+		document_set_filetype(doc,								\
+					filetypes_lookup_by_name(sft_info->name));	\
+		return;													\
 } G_STMT_END
 	CASE_KEY_ID(filetype_1);
 	CASE_KEY_ID(filetype_2);
@@ -169,16 +172,20 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	sft_info->config_file = g_strconcat(geany->app->configdir,
 										G_DIR_SEPARATOR_S, "plugins",
 										G_DIR_SEPARATOR_S, "setfiletype",
-										G_DIR_SEPARATOR_S, "setfiletype.conf", NULL);
+										G_DIR_SEPARATOR_S, "setfiletype.conf",
+										NULL);
 	
-	g_key_file_load_from_file(config, sft_info->config_file, G_KEY_FILE_NONE, NULL);
+	g_key_file_load_from_file(config, sft_info->config_file,
+							  G_KEY_FILE_NONE, NULL);
 	
-	key_group = plugin_set_key_group(geany_plugin, "setfiletype", KB_COUNT, NULL);
+	key_group = plugin_set_key_group(geany_plugin, "setfiletype",
+									 KB_COUNT, NULL);
 	
-#define GET_CONF_TEXT(name, hotkey_text) G_STMT_START {								\
-	sft_info->name = utils_get_setting_string(config, "setfiletype", #name, NULL);	\
-	keybindings_set_item(key_group, KB_##name, kb_activate,							\
-						 0, 0, #name, hotkey_text, NULL);							\
+#define GET_CONF_TEXT(name, hotkey_text) G_STMT_START {					\
+	sft_info->name = utils_get_setting_string(config, "setfiletype",	\
+											  #name, NULL);				\
+	keybindings_set_item(key_group, KB_##name, kb_activate,				\
+						 0, 0, #name, hotkey_text, NULL);				\
 } G_STMT_END
 	
 	GET_CONF_TEXT(filetype_1, _("File Type 1"));
@@ -270,7 +277,8 @@ void geany_load_module(GeanyPlugin *plugin)
 	
 	/* Set metadata */
 	plugin->info->name = _("Set FileType");
-	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) by hotkey");
+	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) "
+								  "by hotkey");
 	plugin->info->version = "0.1";
 	plugin->info->author = "Egor Shinkarev <esh.eburg@gmail.com>";
 	

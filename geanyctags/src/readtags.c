@@ -179,10 +179,10 @@ static int readTagLineRaw(tagFile *const file)
 	int result = 1;
 	int reReadLine;
 	
-	/*  If reading the line places any character other than a null or a
-	 *  newline at the last character position in the buffer (one less than
-	 *  the buffer size), then we must resize the buffer and reattempt to read
-	 *  the line.
+	/*  If reading the line places any character other than a null
+	 *  or a newline at the last character position in the buffer
+	 *  (one less than the buffer size), then we must resize the
+	 *  buffer and reattempt to read the line.
 	 */
 	do
 	{
@@ -222,6 +222,7 @@ static int readTagLineRaw(tagFile *const file)
 	
 	if (result)
 		copyName(file);
+	
 	return result;
 }
 
@@ -239,8 +240,9 @@ static tagResult growFields(tagFile *const file)
 {
 	tagResult result = TagFailure;
 	unsigned short newCount = (unsigned short) 2 * file->fields.max;
-	tagExtensionField *newFields = (tagExtensionField*)
-			realloc(file->fields.list, newCount * sizeof(tagExtensionField));
+	tagExtensionField *newFields = (tagExtensionField *)
+										realloc(file->fields.list,
+												newCount * sizeof(tagExtensionField));
 	if (newFields == NULL)
 		perror("too many extension fields");
 	else
@@ -443,7 +445,8 @@ static void gotoFirstLogicalTag(tagFile *const file)
 	fsetpos(file->fp, &startOfLine);
 }
 
-static tagFile *initialize(const char *const filePath, tagFileInfo *const info)
+static tagFile *initialize(const char *const filePath,
+						   tagFileInfo *const info)
 {
 	tagFile *result = (tagFile*) calloc((size_t) 1, sizeof(tagFile));
 	if (result != NULL)
@@ -451,8 +454,9 @@ static tagFile *initialize(const char *const filePath, tagFileInfo *const info)
 		growString(&result->line);
 		growString(&result->name);
 		result->fields.max = 20;
-		result->fields.list = (tagExtensionField*) calloc(
-			result->fields.max, sizeof(tagExtensionField));
+		result->fields.list = (tagExtensionField *)
+										calloc(result->fields.max,
+											   sizeof(tagExtensionField));
 		result->fp = fopen(filePath, "r");
 		if (result->fp == NULL)
 		{
@@ -521,9 +525,10 @@ static const char *readFieldValue(
 		result = entry->kind;
 	else if (strcmp(key, "file") == 0)
 		result = EmptyString;
-	else for (i = 0; i < entry->fields.count && result == NULL; ++i)
-		if (strcmp(entry->fields.list[i].key, key) == 0)
-			result = entry->fields.list[i].value;
+	else
+		for (i = 0; i < entry->fields.count && result == NULL; ++i)
+			if (strcmp(entry->fields.list[i].key, key) == 0)
+				result = entry->fields.list[i].value;
 	return result;
 }
 
@@ -546,7 +551,7 @@ static int nameComparison(tagFile *const file)
 	{
 		if (file->search.partial)
 			result = strnuppercmp(file->search.name, file->name.buffer,
-					file->search.nameLength);
+								  file->search.nameLength);
 		else
 			result = struppercmp(file->search.name, file->name.buffer);
 	}
@@ -554,7 +559,7 @@ static int nameComparison(tagFile *const file)
 	{
 		if (file->search.partial)
 			result = strncmp(file->search.name, file->name.buffer,
-					file->search.nameLength);
+							 file->search.nameLength);
 		else
 			result = strcmp(file->search.name, file->name.buffer);
 	}
@@ -570,10 +575,11 @@ static void findFirstNonMatchBefore(tagFile *const file)
 	off_t pos = start;
 	do
 	{
-		if (pos < (off_t) JUMP_BACK)
+		if (pos < (off_t)JUMP_BACK)
 			pos = 0;
 		else
 			pos = pos - JUMP_BACK;
+		
 		more_lines = readTagLineSeek(file, pos);
 		comp = nameComparison(file);
 	} while (more_lines && comp == 0 && pos > 0 && pos < start);
@@ -604,14 +610,12 @@ static tagResult findBinary(tagFile *const file)
 	while (result != TagSuccess)
 	{
 		if (!readTagLineSeek(file, pos))
-		{
-			/* in case we fell off end of file */
+		{	/* in case we fell off end of file */
 			result = findFirstMatchBefore(file);
 			break;
 		}
 		else if (pos == last_pos)
-		{
-			/* prevent infinite loop if we backed up to beginning of file */
+		{	/* prevent infinite loop if we backed up to beginning of file */
 			break;
 		}
 		else
@@ -652,7 +656,7 @@ static tagResult findSequential(tagFile *const file)
 }
 
 static tagResult find(tagFile *const file, tagEntry *const entry,
-					   const char *const name, const int options)
+					  const char *const name, const int options)
 {
 	tagResult result;
 	if (file->search.name != NULL)
@@ -843,6 +847,7 @@ static void findTag(const char *const name, const int options)
 	{
 		if (SortOverride)
 			tagsSetSortType(file, SortMethod);
+		
 		if (tagsFind(file, &entry, name, options) == TagSuccess)
 		{
 			do
@@ -869,6 +874,7 @@ static void listTags(void)
 	{
 		while (tagsNext(file, &entry) == TagSuccess)
 			printTag(&entry);
+		
 		tagsClose(file);
 	}
 }
