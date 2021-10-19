@@ -2152,6 +2152,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	
 	label	= gtk_label_new(_("External open command"));
 	configure_widgets.OPEN_EXTERNAL_CMD = gtk_entry_new();
+	gtk_widget_set_size_request(configure_widgets.OPEN_EXTERNAL_CMD, 400, -1);
 	gtk_entry_set_text(GTK_ENTRY(configure_widgets.OPEN_EXTERNAL_CMD),
 					   CONFIG_OPEN_EXTERNAL_CMD);
 #if GTK_CHECK_VERSION(3, 14, 0)
@@ -2172,6 +2173,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Terminal"));
 	configure_widgets.OPEN_TERMINAL = gtk_entry_new();
+	gtk_widget_set_size_request(configure_widgets.OPEN_TERMINAL, 400, -1);
 	gtk_entry_set_text(GTK_ENTRY(configure_widgets.OPEN_TERMINAL),
 					   CONFIG_OPEN_TERMINAL);
 #if GTK_CHECK_VERSION(3, 14, 0)

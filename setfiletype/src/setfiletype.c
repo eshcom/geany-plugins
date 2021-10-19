@@ -216,9 +216,10 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	
 #define WIDGET_CONF_TEXT(name, description, tooltip) G_STMT_START {		\
 	label = gtk_label_new(description);									\
-	gtk_widget_set_size_request(label, 150, -1);						\
+	gtk_widget_set_size_request(label, 210, -1);						\
 	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
 	entry = gtk_entry_new();											\
+	gtk_widget_set_size_request(entry, 400, -1);						\
 	gtk_entry_set_text(GTK_ENTRY(entry), sft_info->name);				\
 	if (tooltip) gtk_widget_set_tooltip_text(entry, tooltip);			\
 	hbox = gtk_hbox_new(FALSE, 0);										\
