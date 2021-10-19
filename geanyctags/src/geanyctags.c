@@ -49,6 +49,17 @@
 static GeanyPlugin *geany_plugin = NULL;
 static GeanyData *geany_data = NULL;
 
+typedef struct {
+	/* settings */
+	gchar *extra_options_1;
+	gchar *extra_options_2;
+	gchar *extra_options_3;
+	/* others */
+	gchar *config_file;
+} GeanyctagsInfo;
+
+static GeanyctagsInfo *gtags_info = NULL;
+
 
 static GtkWidget *s_context_fdec_item, *s_context_fdef_item, *s_context_sep_item,
 				 *s_gt_item, *s_sep_item, *s_ft_item;
@@ -81,28 +92,28 @@ static void set_widgets_sensitive(gboolean sensitive)
 	gtk_widget_set_sensitive(GTK_WIDGET(s_context_fdef_item), sensitive);
 }
 
-static void on_project_open(G_GNUC_UNUSED GObject * obj, GKeyFile * config,
+static void on_project_open(G_GNUC_UNUSED GObject *obj, GKeyFile *config,
 							G_GNUC_UNUSED gpointer user_data)
 {
 	set_widgets_sensitive(TRUE);
 }
 
-static void on_project_close(G_GNUC_UNUSED GObject * obj,
+static void on_project_save(G_GNUC_UNUSED GObject *obj, GKeyFile *config,
+							G_GNUC_UNUSED gpointer user_data)
+{
+	set_widgets_sensitive(TRUE);
+}
+
+static void on_project_close(G_GNUC_UNUSED GObject *obj,
 							 G_GNUC_UNUSED gpointer user_data)
 {
 	set_widgets_sensitive(FALSE);
 }
 
-static void on_project_save(G_GNUC_UNUSED GObject * obj, GKeyFile * config,
-							G_GNUC_UNUSED gpointer user_data)
-{
-	set_widgets_sensitive(TRUE);
-}
-
 static PluginCallback plugin_geanyctags_callbacks[] = {
-	{"project-open", (GCallback) & on_project_open, TRUE, NULL},
-	{"project-close", (GCallback) & on_project_close, TRUE, NULL},
-	{"project-save", (GCallback) & on_project_save, TRUE, NULL},
+	{"project-open", (GCallback) &on_project_open, TRUE, NULL},
+	{"project-save", (GCallback) &on_project_save, TRUE, NULL},
+	{"project-close", (GCallback) &on_project_close, TRUE, NULL},
 	{NULL, NULL, FALSE, NULL}
 };
 
@@ -177,45 +188,58 @@ static gboolean spawn_cmd(const gchar *cmd, const gchar *dir)
 	return result;
 }
 
-static gchar *generate_find_string(GeanyProject *prj)
+#define ADD_EXTRA_OPTIONS(gstr, options)	\
+	if (!EMPTY(options))					\
+	{										\
+		g_string_append_c(gstr, ' ');		\
+		g_string_append(gstr, options);		\
+	}
+
+static GString *generate_find_string(GeanyProject *prj)
 {
-	gchar *ret = g_strdup("find -L . -not -path '*/\\.*'");
+	GString *gstr = g_string_new("find -L . -type f -not -path '*/.*'");
 	
 	if (!EMPTY(prj->file_patterns))
 	{
-		guint i;
+		ADD_EXTRA_OPTIONS(gstr, gtags_info->extra_options_1);
+		ADD_EXTRA_OPTIONS(gstr, gtags_info->extra_options_2);
+		ADD_EXTRA_OPTIONS(gstr, gtags_info->extra_options_3);
 		
-		SETPTR(ret, g_strconcat(ret, " \\( -name \"", prj->file_patterns[0],
-								"\"", NULL));
-		for (i = 1; prj->file_patterns[i]; i++)
-			SETPTR(ret, g_strconcat(ret, " -o -name \"", prj->file_patterns[i],
-									"\"", NULL));
-		SETPTR(ret, g_strconcat(ret, " \\)", NULL));
+		g_string_append(gstr, " \\( -name \"");
+		g_string_append(gstr, prj->file_patterns[0]);
+		g_string_append_c(gstr, '\"');
+		
+		for (guint i = 1; prj->file_patterns[i]; i++)
+		{
+			g_string_append(gstr, " -o -name \"");
+			g_string_append(gstr, prj->file_patterns[i]);
+			g_string_append_c(gstr, '\"');
+		}
+		g_string_append(gstr, " \\)");
 	}
-	return ret;
+	return gstr;
 }
 
 
-static void
-on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
+static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 {
 	GeanyProject *prj = geany_data->app->project;
 	if (!prj)
 		return;
 	
-	gchar *cmd;
+	GString *cmd;
 	gchar *tag_filename;
 	gchar *base_path;
 	
 	tag_filename = project_get_tags_file();
 	
 #ifndef G_OS_WIN32
-	gchar *find_string = generate_find_string(prj);
-	cmd = g_strconcat(find_string,
-					  " | ctags --totals --fields=fKsSt --extra=-fq"
-					  " --c-kinds=+p --sort=foldcase --excmd=number -L - -f '",
-					  tag_filename, "'", NULL);
-	g_free(find_string);
+	cmd = generate_find_string(prj);
+	
+	g_string_append(cmd, " | ctags --totals --fields=fKsSt --extra=-fq"
+						 " --c-kinds=+p --sort=foldcase --excmd=number -L - -f '");
+	g_string_append(cmd, tag_filename);
+	g_string_append_c(cmd, '\'');
 #else
 	/* We don't have find and | on windows, generate tags
 	 * for all files in the project (-R recursively) */
@@ -226,16 +250,18 @@ on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 	 * Therefore, we need to delete the tags file manually. */
 	g_unlink(tag_filename);
 	
-	cmd = g_strconcat("ctags.exe -R --totals --fields=fKsSt --extra=-fq"
-					  " --c-kinds=+p --sort=foldcase --excmd=number -f \"",
-					  tag_filename, "\"", NULL);
+	cmd = g_string_new("ctags.exe -R --totals --fields=fKsSt --extra=-fq"
+					   " --c-kinds=+p --sort=foldcase --excmd=number -f \"");
+	g_string_append(cmd, tag_filename);
+	g_string_append_c(cmd, '"');
 #endif
+	
 	base_path = project_get_base_path();
 	
-	if (spawn_cmd(cmd, base_path))
+	if (spawn_cmd(cmd->str, base_path))
 		project_load_tags_file(tag_filename, base_path);
 	
-	g_free(cmd);
+	g_string_free(cmd, TRUE);
 	g_free(tag_filename);
 	g_free(base_path);
 }
@@ -646,13 +672,38 @@ static gboolean kb_callback(guint key_id)
 static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 									   G_GNUC_UNUSED gpointer pdata)
 {
-	GeanyKeyGroup *key_group;
-	
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	
+	GKeyFile *config = g_key_file_new();
+	GeanyKeyGroup *key_group;
+	
 	key_group = plugin_set_key_group(geany_plugin, "GeanyCtags",
 									 KB_COUNT, kb_callback);
+	
+	gtags_info = g_new0(GeanyctagsInfo, 1);
+	
+	gtags_info->config_file = g_strconcat(geany->app->configdir,
+										  G_DIR_SEPARATOR_S, "plugins",
+										  G_DIR_SEPARATOR_S, "geanyctags",
+										  G_DIR_SEPARATOR_S, "geanyctags.conf",
+										  NULL);
+	
+	g_key_file_load_from_file(config, gtags_info->config_file,
+							  G_KEY_FILE_NONE, NULL);
+	
+#define GET_CONF_TEXT(name) G_STMT_START {								\
+	gtags_info->name = utils_get_setting_string(config, "geanyctags",	\
+												#name, NULL);			\
+} G_STMT_END
+	
+	GET_CONF_TEXT(extra_options_1);
+	GET_CONF_TEXT(extra_options_2);
+	GET_CONF_TEXT(extra_options_3);
+#undef GET_CONF_TEXT
+	
+	g_key_file_free(config);
+	
 	
 	s_context_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_context_sep_item);
@@ -706,9 +757,90 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	return TRUE;
 }
 
+static void configure_response_cb(GtkDialog *dialog, gint response,
+								  gpointer user_data)
+{
+	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
+		return;
+	GKeyFile *config	 = g_key_file_new();
+	gchar    *config_dir = g_path_get_dirname(gtags_info->config_file);
+	
+	g_key_file_load_from_file(config, gtags_info->config_file,
+							  G_KEY_FILE_NONE, NULL);
+	
+#define SAVE_CONF_TEXT(name) G_STMT_START {										\
+	gtags_info->name = gtk_editable_get_chars(									\
+							GTK_EDITABLE(g_object_get_data(G_OBJECT(dialog),	\
+														   "entry_" #name)),	\
+							0, -1);												\
+	g_strstrip(gtags_info->name);												\
+	g_key_file_set_string(config, "geanyctags", #name, gtags_info->name);		\
+} G_STMT_END
+	
+	SAVE_CONF_TEXT(extra_options_1);
+	SAVE_CONF_TEXT(extra_options_2);
+	SAVE_CONF_TEXT(extra_options_3);
+#undef SAVE_CONF_TEXT
+	
+	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
+		utils_mkdir(config_dir, TRUE) != 0)
+	{
+		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
+			_("Plugin configuration directory could not be created."));
+	}
+	else
+	{	/* write config to file */
+		gchar *data;
+		data = g_key_file_to_data(config, NULL, NULL);
+		utils_write_file(gtags_info->config_file, data);
+		g_free(data);
+	}
+	g_free(config_dir);
+	g_key_file_free(config);
+}
+
+static GtkWidget *plugin_geanyctags_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
+											  GtkDialog *dialog,
+											  G_GNUC_UNUSED gpointer pdata)
+{
+	GtkWidget *vbox, *hbox, *label, *entry;
+	
+	vbox = gtk_vbox_new(FALSE, 0);
+	
+#define WIDGET_CONF_TEXT(name, description) G_STMT_START {				\
+	label = gtk_label_new(description);									\
+	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
+	entry = gtk_entry_new();											\
+	gtk_entry_set_text(GTK_ENTRY(entry), gtags_info->name);				\
+	gtk_widget_set_tooltip_text(entry,									\
+								_("Other options to pass to Find"));	\
+	hbox = gtk_hbox_new(FALSE, 0);										\
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 6);			\
+	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);			\
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);			\
+	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
+} G_STMT_END
+	
+	WIDGET_CONF_TEXT(extra_options_1, _("Extra options 1:"));
+	WIDGET_CONF_TEXT(extra_options_2, _("Extra options 2:"));
+	WIDGET_CONF_TEXT(extra_options_3, _("Extra options 3:"));
+#undef WIDGET_CONF_TEXT
+	
+	g_signal_connect(dialog, "response",
+					 G_CALLBACK(configure_response_cb), NULL);
+	gtk_widget_show_all(vbox);
+	return vbox;
+}
+
 static void plugin_geanyctags_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
 									  G_GNUC_UNUSED gpointer pdata)
 {
+	g_free(gtags_info->config_file);
+	g_free(gtags_info->extra_options_1);
+	g_free(gtags_info->extra_options_2);
+	g_free(gtags_info->extra_options_3);
+	g_free(gtags_info);
+	
 	gtk_widget_destroy(s_context_fdec_item);
 	gtk_widget_destroy(s_context_fdef_item);
 	gtk_widget_destroy(s_context_sep_item);
@@ -731,7 +863,7 @@ void geany_load_module(GeanyPlugin *plugin)
 	main_locale_init(LOCALEDIR, GETTEXT_PACKAGE);
 	
 	/* Set metadata */
-	plugin->info->name = "GeanyCtags";
+	plugin->info->name = _("Geany Ctags");
 	plugin->info->description = _("Ctags generation and search plugin "
 								  "for geany projects");
 	plugin->info->version = VERSION;
@@ -739,9 +871,10 @@ void geany_load_module(GeanyPlugin *plugin)
 	
 	/* Set functions */
 	plugin->funcs->init = plugin_geanyctags_init;
-	plugin->funcs->cleanup = plugin_geanyctags_cleanup;
 	plugin->funcs->help = plugin_geanyctags_help;
+	plugin->funcs->cleanup = plugin_geanyctags_cleanup;
 	plugin->funcs->callbacks = plugin_geanyctags_callbacks;
+	plugin->funcs->configure = plugin_geanyctags_configure;
 	
 	/* Register! */
 	GEANY_PLUGIN_REGISTER(plugin, 226);

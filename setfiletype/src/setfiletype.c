@@ -167,6 +167,9 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	GKeyFile *config = g_key_file_new();
 	GeanyKeyGroup *key_group;
 	
+	key_group = plugin_set_key_group(geany_plugin, "setfiletype",
+									 KB_COUNT, NULL);
+	
 	sft_info = g_new0(SetfiletypeInfo, 1);
 	
 	sft_info->config_file = g_strconcat(geany->app->configdir,
@@ -177,9 +180,6 @@ static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 	
 	g_key_file_load_from_file(config, sft_info->config_file,
 							  G_KEY_FILE_NONE, NULL);
-	
-	key_group = plugin_set_key_group(geany_plugin, "setfiletype",
-									 KB_COUNT, NULL);
 	
 #define GET_CONF_TEXT(name, hotkey_text) G_STMT_START {					\
 	sft_info->name = utils_get_setting_string(config, "setfiletype",	\
@@ -214,14 +214,14 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	
 	vbox = gtk_vbox_new(FALSE, 0);
 	
-#define WIDGET_CONF_TEXT(name, description, tooltip) G_STMT_START {		\
+#define WIDGET_CONF_TEXT(name, description) G_STMT_START {				\
 	label = gtk_label_new(description);									\
 	gtk_widget_set_size_request(label, 210, -1);						\
 	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
 	entry = gtk_entry_new();											\
 	gtk_widget_set_size_request(entry, 400, -1);						\
 	gtk_entry_set_text(GTK_ENTRY(entry), sft_info->name);				\
-	if (tooltip) gtk_widget_set_tooltip_text(entry, tooltip);			\
+	gtk_widget_set_tooltip_text(entry, _("XML, JSON, Erlang, ..."));	\
 	hbox = gtk_hbox_new(FALSE, 0);										\
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 6);			\
 	gtk_box_pack_start(GTK_BOX(hbox), entry, FALSE, FALSE, 0);			\
@@ -229,21 +229,22 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
 } G_STMT_END
 	
-	WIDGET_CONF_TEXT(filetype_1, _("File Type 1"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_2, _("File Type 2"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_3, _("File Type 3"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_4, _("File Type 4"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_5, _("File Type 5"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_6, _("File Type 6"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_10, _("File Type 10"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_11, _("File Type 11"), _("XML, JSON, Erlang, ..."));
-	WIDGET_CONF_TEXT(filetype_12, _("File Type 12"), _("XML, JSON, Erlang, ..."));
+	WIDGET_CONF_TEXT(filetype_1, _("File Type 1"));
+	WIDGET_CONF_TEXT(filetype_2, _("File Type 2"));
+	WIDGET_CONF_TEXT(filetype_3, _("File Type 3"));
+	WIDGET_CONF_TEXT(filetype_4, _("File Type 4"));
+	WIDGET_CONF_TEXT(filetype_5, _("File Type 5"));
+	WIDGET_CONF_TEXT(filetype_6, _("File Type 6"));
+	WIDGET_CONF_TEXT(filetype_7, _("File Type 7"));
+	WIDGET_CONF_TEXT(filetype_8, _("File Type 8"));
+	WIDGET_CONF_TEXT(filetype_9, _("File Type 9"));
+	WIDGET_CONF_TEXT(filetype_10, _("File Type 10"));
+	WIDGET_CONF_TEXT(filetype_11, _("File Type 11"));
+	WIDGET_CONF_TEXT(filetype_12, _("File Type 12"));
 #undef WIDGET_CONF_TEXT
 	
-	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
+	g_signal_connect(dialog, "response",
+					 G_CALLBACK(configure_response_cb), NULL);
 	gtk_widget_show_all(vbox);
 	return vbox;
 }
