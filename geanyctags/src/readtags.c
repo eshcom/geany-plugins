@@ -516,8 +516,8 @@ static tagResult readNext(tagFile *const file, tagEntry *const entry)
 	return result;
 }
 
-static const char *readFieldValue(
-	const tagEntry *const entry, const char *const key)
+static const char *readFieldValue(const tagEntry *const entry,
+								  const char *const key)
 {
 	const char *result = NULL;
 	int i;

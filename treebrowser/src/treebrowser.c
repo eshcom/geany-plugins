@@ -271,7 +271,6 @@ static GdkPixbuf *utils_pixbuf_from_path(gchar *path)
 	return ret;
 }
 
-
 /* result must be freed */
 static gchar *path_is_in_dir(gchar *src, gchar *find)
 {
@@ -305,9 +304,9 @@ static gchar *path_is_in_dir(gchar *src, gchar *find)
 	return diffed_path;
 }
 
-/* Return: FALSE - if file is filtered and not shown, and
- *         TRUE  - if file isn`t filtered, and have to be shown */
-static gboolean check_filtered(const gchar *base_name)
+/* Return: FALSE - if the file has not passed the filter and should not be shown
+ *         TRUE  - if the file passed the filter and should be shown */
+static gboolean check_filter(const gchar *base_name)
 {
 	if (CONFIG_HIDE_OBJECT_FILES)
 	{
@@ -315,13 +314,13 @@ static gboolean check_filtered(const gchar *base_name)
 		foreach_strv(ext, EXT_OBJECT_FILES)
 		{
 			if (**ext && g_str_has_suffix(base_name, *ext))
-				return FALSE;
+				return FALSE; // not passed
 		}
 	}
 	
 	const gchar *entry_text = gtk_entry_get_text(GTK_ENTRY(filter));
 	if (EMPTY(entry_text))
-		return TRUE;
+		return TRUE; // passed
 	
 	gchar **filters = g_strsplit(entry_text, ";", 0);
 	
@@ -338,21 +337,21 @@ static gboolean check_filtered(const gchar *base_name)
 		i = 0;
 	}
 	
-	gboolean filtered = CONFIG_REVERSE_FILTER || temporary_reverse
+	gboolean passed = CONFIG_REVERSE_FILTER || temporary_reverse
 													? TRUE : FALSE;
 	for (; filters[i]; i++)
 	{
 		if (utils_str_equal(base_name, "*") ||
 			g_pattern_match_simple(filters[i], base_name))
 		{
-			filtered = CONFIG_REVERSE_FILTER || temporary_reverse
+			passed = CONFIG_REVERSE_FILTER || temporary_reverse
 													? FALSE : TRUE;
 			break;
 		}
 	}
 	g_strfreev(filters);
 	
-	return filtered;
+	return passed;
 }
 
 #ifdef G_OS_WIN32
@@ -565,7 +564,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 				else
 				{
 					gchar *utf8_name = utils_get_utf8_from_locale(fname);
-					if (check_filtered(utf8_name))
+					if (check_filter(utf8_name))
 					{
 						icon = CONFIG_SHOW_ICONS == 2
 										? utils_pixbuf_from_path(uri)
@@ -1572,8 +1571,8 @@ static gboolean on_treeview_keypress(GtkWidget *widget, GdkEventKey *event)
 	
 	GdkModifierType modifiers = gtk_accelerator_get_default_mod_mask();
 	if ((event->keyval == GDK_Menu) ||
-	    (event->keyval == GDK_F10 &&
-	     (event->state & modifiers) == GDK_SHIFT_MASK))
+		(event->keyval == GDK_F10 &&
+		 (event->state & modifiers) == GDK_SHIFT_MASK))
 	{
 		gchar *name = NULL, *uri = NULL;
 		GtkWidget *menu;
@@ -2563,7 +2562,7 @@ void plugin_init(GeanyData *data)
 		0, 0, "track_current", _("Track Current"), NULL);
 	
 	plugin_signal_connect(geany_plugin, NULL, "document-activate", TRUE,
-						  (GCallback)&treebrowser_track_current_cb, NULL);
+						  (GCallback) &treebrowser_track_current_cb, NULL);
 }
 
 void plugin_cleanup(void)

@@ -123,47 +123,35 @@ static void plugin_geanyctags_help(G_GNUC_UNUSED GeanyPlugin *plugin,
 	utils_open_browser("https://plugins.geany.org/geanyctags.html");
 }
 
-static gboolean spawn_cmd(const gchar *cmd, const gchar *dir)
+static gboolean spawn_cmd(const gchar *locale_cmd, const gchar *locale_dir)
 {
-	GError *error = NULL;
-	gchar **argv = NULL;
-	gchar *working_dir;
-	gchar *utf8_working_dir;
-	gchar *utf8_cmd_string;
-	gchar *out;
-	gint exitcode;
-	gboolean success, result;
-	GString *output;
-	
-#ifndef G_OS_WIN32
-	/* run within shell so we can use pipes */
-	argv = g_new0(gchar *, 4);
-	argv[0] = g_strdup("/bin/sh");
-	argv[1] = g_strdup("-c");
-	argv[2] = g_strdup(cmd);
-	argv[3] = NULL;
-#endif
-	
-	utf8_cmd_string = utils_get_utf8_from_locale(cmd);
-	utf8_working_dir = g_strdup(dir);
-	working_dir = utils_get_locale_from_utf8(utf8_working_dir);
-	
 	msgwin_clear_tab(MSG_MESSAGE);
 	msgwin_switch_tab(MSG_MESSAGE, TRUE);
 	msgwin_msg_add(COLOR_BLUE, -1, NULL, _("%s (in directory: %s)"),
-				   utf8_cmd_string, utf8_working_dir);
-	g_free(utf8_working_dir);
-	g_free(utf8_cmd_string);
+				   locale_cmd, locale_dir);
 	
-	output = g_string_new(NULL);
+	GString *output = g_string_new(NULL);
+	GError *error = NULL;
+	gint exitcode;
+	gboolean success, result;
+	
 #ifndef G_OS_WIN32
-	success = spawn_sync(working_dir, NULL, argv, NULL, NULL,
+	/* run within shell so we can use pipes */
+	gchar **argv = g_new0(gchar *, 4);
+	argv[0] = g_strdup("/bin/sh");
+	argv[1] = g_strdup("-c");
+	argv[2] = g_strdup(locale_cmd);
+	argv[3] = NULL;
+	
+	success = spawn_sync(locale_dir, NULL, argv, NULL, NULL,
 						 NULL, output, &exitcode, &error);
+	g_strfreev(argv);
 #else
-	success = spawn_sync(working_dir, cmd, NULL, NULL, NULL,
+	success = spawn_sync(locale_dir, locale_cmd, NULL, NULL, NULL,
 						 output, NULL, &exitcode, &error);
 #endif
-	out = g_string_free(output, FALSE);
+	
+	gchar *out = g_string_free(output, FALSE);
 	
 	if (!success || exitcode != 0)
 	{
@@ -182,12 +170,11 @@ static gboolean spawn_cmd(const gchar *cmd, const gchar *dir)
 		msgwin_msg_add(COLOR_BLACK, -1, NULL, "%s", out);
 		result = TRUE;
 	}
-	g_strfreev(argv);
-	g_free(working_dir);
 	g_free(out);
 	return result;
 }
 
+#ifndef G_OS_WIN32
 #define ADD_EXTRA_OPTIONS(gstr, options)	\
 	if (!EMPTY(options))					\
 	{										\
@@ -195,7 +182,7 @@ static gboolean spawn_cmd(const gchar *cmd, const gchar *dir)
 		g_string_append(gstr, options);		\
 	}
 
-static GString *generate_find_string(GeanyProject *prj)
+static GString *generate_find_cmd(GeanyProject *prj)
 {
 	GString *gstr = g_string_new("find -L . -type f -not -path '*/.*'");
 	
@@ -219,7 +206,7 @@ static GString *generate_find_string(GeanyProject *prj)
 	}
 	return gstr;
 }
-
+#endif
 
 static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 {
@@ -228,13 +215,10 @@ static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 		return;
 	
 	GString *cmd;
-	gchar *tag_filename;
-	gchar *base_path;
-	
-	tag_filename = project_get_tags_file();
+	gchar *tag_filename = project_get_tags_file();
 	
 #ifndef G_OS_WIN32
-	cmd = generate_find_string(prj);
+	cmd = generate_find_cmd(prj);
 	
 	g_string_append(cmd, " | ctags --totals --fields=fKsSt --extra=-fq"
 						 " --c-kinds=+p --sort=foldcase --excmd=number -L - -f '");
@@ -256,40 +240,34 @@ static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 	g_string_append_c(cmd, '"');
 #endif
 	
-	base_path = project_get_base_path();
+	gchar *base_path = project_get_base_path();
+	gchar *locale_path = utils_get_locale_from_utf8(base_path);
 	
-	if (spawn_cmd(cmd->str, base_path))
+	if (spawn_cmd(cmd->str, locale_path))
 		project_load_tags_file(tag_filename, base_path);
 	
 	g_string_free(cmd, TRUE);
 	g_free(tag_filename);
+	g_free(locale_path);
 	g_free(base_path);
 }
 
 static void show_entry(tagEntry *entry)
 {
-	const gchar *kind;
-	const gchar *signature;
-	const gchar *scope;
-	const gchar *scope_sep = "::";
-	const gchar *file;
-	const gchar *name;
-	gchar *scope_str;
-	gchar *kind_str;
-	
-	file = entry->file;
+	const gchar *file = entry->file;
 	if (!file)
 		file = "";
 	
-	name = entry->name;
+	const gchar *name = entry->name;
 	if (!name)
 		name = "";
 	
-	signature = tagsField(entry, "signature");
+	const gchar *signature = tagsField(entry, "signature");
 	if (!signature)
 		signature = "";
 	
-	scope = tagsField(entry, "class");
+	const gchar *scope = tagsField(entry, "class");
+	const gchar *scope_sep = "::";
 	if (!scope)
 		scope = tagsField(entry, "struct");
 	if (!scope)
@@ -303,10 +281,11 @@ static void show_entry(tagEntry *entry)
 		scope = tagsField(entry, "module"); // esh: used in Erlang
 		scope_sep = ":";
 	}
-	scope_str = scope ? g_strconcat(scope, scope_sep, NULL)
-					  : g_strdup("");
+	gchar *scope_str = scope ? g_strconcat(scope, scope_sep, NULL)
+							 : g_strdup("");
 	
-	kind = entry->kind;
+	const gchar *kind = entry->kind;
+	gchar *kind_str;
 	if (kind)
 	{
 		kind_str = g_strconcat(kind, ":  ", NULL);
@@ -325,14 +304,12 @@ static void show_entry(tagEntry *entry)
 
 static gchar *get_selection(void)
 {
-	gchar *ret = NULL;
 	GeanyDocument *doc = document_get_current();
-	GeanyEditor *editor;
-	
 	if (!doc)
 		return NULL;
 	
-	editor = doc->editor;
+	GeanyEditor *editor = doc->editor;
+	gchar *ret = NULL;
 	
 	if (sci_has_selection(editor->sci))
 		ret = sci_get_selection_contents(editor->sci);
@@ -350,21 +327,20 @@ static gchar *get_selection(void)
 /*
 static gchar *get_selection()
 {
-	gchar *ret = NULL;
 	GeanyDocument *doc = document_get_current();
-	
 	if (!doc)
 		return NULL;
 	
 	if (!sci_has_selection(doc->editor->sci))
-		sci_set_current_position(doc->editor->sci, editor_info.click_pos, FALSE);
+		sci_set_current_position(doc->editor->sci,
+								 editor_info.click_pos, FALSE);
 	
 	if (sci_has_selection(doc->editor->sci))
 		return sci_get_selection_contents(doc->editor->sci);
 	
 	gint len = sci_get_selected_text_length(doc->editor->sci);
 	
-	ret = g_malloc(len + 1);
+	gchar *ret = g_malloc(len + 1);
 	sci_get_selected_text(doc->editor->sci, ret);
 	
 	editor_find_current_word(doc->editor, -1, editor_info.current_word,
@@ -417,7 +393,6 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 						   gboolean declaration, gboolean case_sensitive)
 {
 	gboolean filter = TRUE;
-	gchar *entry_name;
 	
 	if (!EMPTY(entry->kind))
 	{
@@ -429,8 +404,8 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 		if (filter)
 			return TRUE;
 	}
-	entry_name = case_sensitive ? g_strdup(entry->name)
-								: g_utf8_strdown(entry->name, -1);
+	gchar *entry_name = case_sensitive ? g_strdup(entry->name)
+									   : g_utf8_strdown(entry->name, -1);
 	
 	filter = !g_pattern_match_string(name, entry_name);
 	g_free(entry_name);
@@ -441,39 +416,32 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 static void find_tags(const gchar *name, gboolean declaration,
 					  gboolean case_sensitive, MatchType match_type)
 {
-	tagFile *tf;
-	GeanyProject *prj;
-	gchar *tag_filename = NULL;
-	gchar *base_path;
-	tagEntry entry;
-	tagFileInfo info;
-	int last_line_number = 0;
-	
-	prj = geany_data->app->project;
+	GeanyProject *prj = geany_data->app->project;
 	if (!prj)
 		return;
 	
-	base_path = project_get_base_path();
+	gchar *base_path = project_get_base_path();
 	msgwin_clear_tab(MSG_MESSAGE);
 	msgwin_set_messages_dir(base_path);
 	
-	tag_filename = project_get_tags_file();
-	tf = tagsOpen(tag_filename, &info);
+	gchar *tag_filename = project_get_tags_file();
+	tagFileInfo info;
+	tagFile *tf = tagsOpen(tag_filename, &info);
 	
 	if (tf)
 	{
+		tagEntry entry;
 		if (find_first(tf, &entry, name, match_type))
 		{
-			GPatternSpec *name_pat;
-			gchar *name_case;
-			gchar *path = NULL; 
 			gint num = 0;
-			
-			name_case = case_sensitive ? g_strdup(name)
-									   : g_utf8_strdown(name, -1);
+			gchar *path = NULL; 
+			gchar *name_case = case_sensitive ? g_strdup(name)
+											  : g_utf8_strdown(name, -1);
 			
 			SETPTR(name_case, g_strconcat("*", name_case, "*", NULL));
-			name_pat = g_pattern_spec_new(name_case);
+			GPatternSpec *name_pat = g_pattern_spec_new(name_case);
+			
+			int last_line_number = 0;
 			
 			if (!filter_tag(&entry, name_pat, declaration, case_sensitive))
 			{
@@ -519,9 +487,7 @@ static void find_tags(const gchar *name, gboolean declaration,
 
 static void on_find_declaration(GtkMenuItem *menuitem, gpointer user_data)
 {
-	gchar *name;
-	
-	name = get_selection();
+	gchar *name = get_selection();
 	if (name)
 		find_tags(name, TRUE, TRUE, MATCH_FULL);
 	g_free(name);
@@ -529,9 +495,7 @@ static void on_find_declaration(GtkMenuItem *menuitem, gpointer user_data)
 
 static void on_find_definition(GtkMenuItem *menuitem, gpointer user_data)
 {
-	gchar *name;
-	
-	name = get_selection();
+	gchar *name = get_selection();
 	if (name)
 		find_tags(name, FALSE, TRUE, MATCH_FULL);
 	g_free(name);
@@ -617,14 +581,11 @@ static void create_dialog_find_file(void)
 
 static void on_find_tag(GtkMenuItem *menuitem, gpointer user_data)
 {
-	gchar *selection;
-	GtkWidget *entry;
-	
 	create_dialog_find_file();
 	
-	entry = gtk_bin_get_child(GTK_BIN(s_ft_dialog.combo));
+	GtkWidget *entry = gtk_bin_get_child(GTK_BIN(s_ft_dialog.combo));
 	
-	selection = get_selection();
+	gchar *selection = get_selection();
 	if (selection)
 		gtk_entry_set_text(GTK_ENTRY(entry), selection);
 	g_free(selection);
@@ -762,8 +723,9 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 {
 	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
 		return;
-	GKeyFile *config	 = g_key_file_new();
-	gchar    *config_dir = g_path_get_dirname(gtags_info->config_file);
+	
+	GKeyFile *config = g_key_file_new();
+	gchar *config_dir = g_path_get_dirname(gtags_info->config_file);
 	
 	g_key_file_load_from_file(config, gtags_info->config_file,
 							  G_KEY_FILE_NONE, NULL);

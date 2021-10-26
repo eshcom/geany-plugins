@@ -186,7 +186,7 @@ void xml_format(GtkMenuItem* menuitem, gpointer gdata)
     ScintillaObject* sco;
     int input_length;
     gboolean has_selection;
-    const gchar* input_buffer;
+    gchar *input_buffer;
     int output_length;
     gchar* output_buffer;
     xmlDoc* parsedDocument;
@@ -204,7 +204,8 @@ void xml_format(GtkMenuItem* menuitem, gpointer gdata)
 
     has_selection = sci_has_selection(sco);
     /* retrieves the text */
-    input_buffer = (has_selection)?sci_get_selection_contents(sco):sci_get_contents(sco, -1);
+    input_buffer = has_selection ? sci_get_selection_contents(sco)
+                                 : sci_get_contents(sco, -1);
 
     /* checks if the data is an XML format */
     parsedDocument = xmlParseDoc((const unsigned char*)input_buffer);
