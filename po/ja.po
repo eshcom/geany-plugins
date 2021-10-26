@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-22 20:26+0300\n"
+"POT-Creation-Date: 2021-10-26 10:55+0300\n"
 "PO-Revision-Date: 2011-10-21 14:08+0100\n"
 "Last-Translator: Masami Chikahiro <cmasa.z321@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -36,7 +36,7 @@ msgstr "番号"
 msgid "Contents"
 msgstr "内容"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:663
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:659
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "ブックマーク"
@@ -183,7 +183,7 @@ msgstr "現在の文書の綴りを検査"
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:58
 #: ../sendmail/src/sendmail.c:128 ../sendmail/src/sendmail.c:293
 #: ../setfiletype/src/setfiletype.c:117 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2142
+#: ../treebrowser/src/treebrowser.c:2182
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "プラグイン設定ディレクトリを作成できません。"
@@ -5525,7 +5525,7 @@ msgstr "既定の設定の保存に失敗: %s"
 msgid "Unable to read value for '%s' key: %s"
 msgstr "設定ディレクトリを '%s' に作成できません"
 
-#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2174
+#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2217
 #, fuzzy
 msgid "Terminal"
 msgstr "終了"
@@ -6138,7 +6138,7 @@ msgid "Add"
 msgstr "アドオン"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2453
+#: ../treebrowser/src/treebrowser.c:2557
 #, fuzzy
 msgid "New File"
 msgstr "新規ファイル"
@@ -7612,11 +7612,11 @@ msgstr "現在マークしたリストをテーブルに変換."
 msgid "_More TableConvert"
 msgstr "テーブル変換"
 
-#: ../treebrowser/src/treebrowser.c:126
+#: ../treebrowser/src/treebrowser.c:134
 msgid "TreeBrowser"
 msgstr "ツリーブラウザ"
 
-#: ../treebrowser/src/treebrowser.c:127
+#: ../treebrowser/src/treebrowser.c:135
 #, fuzzy
 msgid ""
 "This plugin adds a tree browser to Geany, allowing the user to browse files "
@@ -7625,30 +7625,30 @@ msgstr ""
 "このプラグインはGeanyにツリーブラウザを追加し、ディレクトリをツリービューに表"
 "示して、ユーザがファイルを選択できるようにします。"
 
-#: ../treebrowser/src/treebrowser.c:460
+#: ../treebrowser/src/treebrowser.c:461
 #, c-format
 msgid "%s: no such directory."
 msgstr "%s: ディレクトリがありません"
 
-#: ../treebrowser/src/treebrowser.c:567 ../treebrowser/src/treebrowser.c:605
-#: ../treebrowser/src/treebrowser.c:712
+#: ../treebrowser/src/treebrowser.c:562 ../treebrowser/src/treebrowser.c:601
+#: ../treebrowser/src/treebrowser.c:711
 msgid "(Empty)"
 msgstr "(空)"
 
-#: ../treebrowser/src/treebrowser.c:996
+#: ../treebrowser/src/treebrowser.c:977
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "設定済みの外部コマンド '%s' が実行できません (%s)."
 
-#: ../treebrowser/src/treebrowser.c:1070
+#: ../treebrowser/src/treebrowser.c:1053
 msgid "NewDirectory"
 msgstr "新規ディレクトリ"
 
-#: ../treebrowser/src/treebrowser.c:1072
+#: ../treebrowser/src/treebrowser.c:1055
 msgid "NewFile"
 msgstr "新規ファイル"
 
-#: ../treebrowser/src/treebrowser.c:1077
+#: ../treebrowser/src/treebrowser.c:1061
 #, fuzzy, c-format
 msgid ""
 "Target file '%s' exists.\n"
@@ -7657,20 +7657,25 @@ msgstr ""
 "対象ファイル '%s' が存在します。\n"
 "このファイルを空のファイルで上書きしてもいいですか?"
 
-#: ../treebrowser/src/treebrowser.c:1122
+#: ../treebrowser/src/treebrowser.c:1106
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "'%s' を削除してもよいですか?"
 
-#: ../treebrowser/src/treebrowser.c:1240 ../treebrowser/src/treebrowser.c:1242
+#: ../treebrowser/src/treebrowser.c:1225 ../treebrowser/src/treebrowser.c:1227
 #, fuzzy
 msgid "Go _Up"
 msgstr "上に移動(_U)"
 
-#: ../treebrowser/src/treebrowser.c:1248 ../treebrowser/src/treebrowser.c:1250
+#: ../treebrowser/src/treebrowser.c:1233 ../treebrowser/src/treebrowser.c:1235
 #, fuzzy
 msgid "Set _Path From Document"
 msgstr "文書からパスを設定"
+
+#: ../treebrowser/src/treebrowser.c:1243 ../treebrowser/src/treebrowser.c:1245
+#, fuzzy
+msgid "Set Project _Path"
+msgstr "プロジェクト"
 
 #: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
 #, fuzzy
@@ -7727,66 +7732,71 @@ msgstr "下位の文書を閉じる"
 msgid "_Copy Name to Clipboard"
 msgstr "クリップボードにコピー"
 
-#: ../treebrowser/src/treebrowser.c:1378 ../treebrowser/src/treebrowser.c:1380
+#: ../treebrowser/src/treebrowser.c:1379 ../treebrowser/src/treebrowser.c:1382
 #, fuzzy
 msgid "_Copy Full Path to Clipboard"
 msgstr "完全パスをクリップボードにコピー"
 
-#: ../treebrowser/src/treebrowser.c:1393 ../treebrowser/src/treebrowser.c:1395
+#: ../treebrowser/src/treebrowser.c:1395 ../treebrowser/src/treebrowser.c:1397
 #, fuzzy
 msgid "E_xpand All"
 msgstr "すべて展開"
 
-#: ../treebrowser/src/treebrowser.c:1401 ../treebrowser/src/treebrowser.c:1403
+#: ../treebrowser/src/treebrowser.c:1403 ../treebrowser/src/treebrowser.c:1405
 #, fuzzy
 msgid "Coll_apse All"
 msgstr "すべて閉じる"
 
-#: ../treebrowser/src/treebrowser.c:1411
+#: ../treebrowser/src/treebrowser.c:1413
 #, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "ブックマークを表示"
 
-#: ../treebrowser/src/treebrowser.c:1417
+#: ../treebrowser/src/treebrowser.c:1420
 #, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "隠しファイルを表示"
 
-#: ../treebrowser/src/treebrowser.c:1423
+#: ../treebrowser/src/treebrowser.c:1427
 #, fuzzy
 msgid "Show Tool_bars"
 msgstr "ツールバーを表示"
 
-#: ../treebrowser/src/treebrowser.c:1771
+#: ../treebrowser/src/treebrowser.c:1788
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr "対象ファイル '%s' が存在します。置き換えてもいいですか?"
 
-#: ../treebrowser/src/treebrowser.c:1920
+#: ../treebrowser/src/treebrowser.c:1934
 msgid "Go up"
 msgstr "上に移動"
 
-#: ../treebrowser/src/treebrowser.c:1931 ../treebrowser/src/treebrowser.c:2457
+#: ../treebrowser/src/treebrowser.c:1945 ../treebrowser/src/treebrowser.c:2561
 msgid "Refresh"
 msgstr "表示を更新"
 
-#: ../treebrowser/src/treebrowser.c:1941
+#: ../treebrowser/src/treebrowser.c:1955
 msgid "Home"
 msgstr "ホーム"
 
-#: ../treebrowser/src/treebrowser.c:1951
+#: ../treebrowser/src/treebrowser.c:1967
+#, fuzzy
+msgid "Set project path"
+msgstr "プロジェクト"
+
+#: ../treebrowser/src/treebrowser.c:1978
 msgid "Set path from document"
 msgstr "文書からパスを設定"
 
-#: ../treebrowser/src/treebrowser.c:1961
+#: ../treebrowser/src/treebrowser.c:1988
 msgid "Track path"
 msgstr "パスを記録"
 
-#: ../treebrowser/src/treebrowser.c:1972
+#: ../treebrowser/src/treebrowser.c:1999
 msgid "Hide bars"
 msgstr "バーを隠す"
 
-#: ../treebrowser/src/treebrowser.c:1982
+#: ../treebrowser/src/treebrowser.c:2009
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
@@ -7794,19 +7804,19 @@ msgstr ""
 "フィルタ(*.c;*.h;*.cpp)と '!' 反転を使った一時フィルタを使用するには次のよう"
 "にします '!;*.c;*.h;*.cpp'"
 
-#: ../treebrowser/src/treebrowser.c:1988
+#: ../treebrowser/src/treebrowser.c:2015
 msgid "Addressbar for example '/projects/my-project'"
 msgstr "アドレスバーの入力例 '/projects/my-project'"
 
-#: ../treebrowser/src/treebrowser.c:2014
+#: ../treebrowser/src/treebrowser.c:2041
 msgid "Tree Browser"
 msgstr "ツリーブラウザ"
 
-#: ../treebrowser/src/treebrowser.c:2153
+#: ../treebrowser/src/treebrowser.c:2193
 msgid "External open command"
 msgstr "他のプログラムで開く"
 
-#: ../treebrowser/src/treebrowser.c:2165
+#: ../treebrowser/src/treebrowser.c:2206
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7820,59 +7830,59 @@ msgstr ""
 "%f は完全パスを含むファイル名に置き換えられます。\n"
 "%d は選択したファイルがあるパス名に置き換えられます。"
 
-#: ../treebrowser/src/treebrowser.c:2186
+#: ../treebrowser/src/treebrowser.c:2229
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2193
+#: ../treebrowser/src/treebrowser.c:2236
 msgid "Toolbar"
 msgstr "ツールバー"
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2240
 msgid "Hidden"
 msgstr "非表示"
 
-#: ../treebrowser/src/treebrowser.c:2198
+#: ../treebrowser/src/treebrowser.c:2243
 msgid "Top"
 msgstr "上"
 
-#: ../treebrowser/src/treebrowser.c:2200
+#: ../treebrowser/src/treebrowser.c:2246
 msgid "Bottom"
 msgstr "下"
 
-#: ../treebrowser/src/treebrowser.c:2205
+#: ../treebrowser/src/treebrowser.c:2252
 msgid "If position is changed, the option require plugin restart."
 msgstr "位置を変更したときは、プラグインの再起動が必要です。"
 
-#: ../treebrowser/src/treebrowser.c:2211
+#: ../treebrowser/src/treebrowser.c:2258
 msgid "Show icons"
 msgstr "アイコンを表示"
 
-#: ../treebrowser/src/treebrowser.c:2214
+#: ../treebrowser/src/treebrowser.c:2262
 msgid "None"
 msgstr "なし"
 
-#: ../treebrowser/src/treebrowser.c:2216
+#: ../treebrowser/src/treebrowser.c:2265
 msgid "Base"
 msgstr "基本"
 
-#: ../treebrowser/src/treebrowser.c:2218
+#: ../treebrowser/src/treebrowser.c:2268
 msgid "Content-type"
 msgstr "内容"
 
-#: ../treebrowser/src/treebrowser.c:2227
+#: ../treebrowser/src/treebrowser.c:2277
 msgid "Show hidden files"
 msgstr "隠しファイルを表示"
 
-#: ../treebrowser/src/treebrowser.c:2239
+#: ../treebrowser/src/treebrowser.c:2292
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr "'.'(ドット)から始まるファイルを隠します"
 
-#: ../treebrowser/src/treebrowser.c:2242
-msgid "Hide object files"
-msgstr "オブジェクトファイルを表示しない"
+#: ../treebrowser/src/treebrowser.c:2296
+msgid "Hide object files:"
+msgstr "オブジェクトファイルを表示しない:"
 
-#: ../treebrowser/src/treebrowser.c:2254
+#: ../treebrowser/src/treebrowser.c:2309
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
@@ -7880,61 +7890,61 @@ msgstr ""
 "ファイルブラウザにオブジェクトファイルを表示しません。除外されるファイルは *."
 "o, *.obj, *.so, *.dll, *.a, *.lib です。"
 
-#: ../treebrowser/src/treebrowser.c:2258
+#: ../treebrowser/src/treebrowser.c:2324
 msgid "Reverse filter"
 msgstr "フィルタを反転"
 
-#: ../treebrowser/src/treebrowser.c:2271
+#: ../treebrowser/src/treebrowser.c:2339
 msgid "Follow current document"
 msgstr "現在の文書のディレクトリに合わせる"
 
-#: ../treebrowser/src/treebrowser.c:2284
+#: ../treebrowser/src/treebrowser.c:2356
 msgid "Single click, open document and focus it"
 msgstr "シングルクリックで文書を表示"
 
-#: ../treebrowser/src/treebrowser.c:2297
+#: ../treebrowser/src/treebrowser.c:2371
 msgid "Double click open directory"
 msgstr "ダブルクリックでディレクトリを表示"
 
-#: ../treebrowser/src/treebrowser.c:2310
+#: ../treebrowser/src/treebrowser.c:2388
 msgid "On delete file, close it if is opened"
 msgstr "ファイル削除時に、開いていたら閉じる"
 
-#: ../treebrowser/src/treebrowser.c:2323
+#: ../treebrowser/src/treebrowser.c:2405
 msgid "Focus editor on file open"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2336
+#: ../treebrowser/src/treebrowser.c:2422
 msgid "Show tree lines"
 msgstr "ツリー行数を表示"
 
-#: ../treebrowser/src/treebrowser.c:2349
+#: ../treebrowser/src/treebrowser.c:2437
 msgid "Show bookmarks"
 msgstr "ブックマークを表示"
 
-#: ../treebrowser/src/treebrowser.c:2362
+#: ../treebrowser/src/treebrowser.c:2451
 #, fuzzy
 msgid "Open new files"
 msgstr "ファイルを開く"
 
-#: ../treebrowser/src/treebrowser.c:2447
+#: ../treebrowser/src/treebrowser.c:2551
 msgid "Focus File List"
 msgstr "ファイル覧に切り替え"
 
-#: ../treebrowser/src/treebrowser.c:2449
+#: ../treebrowser/src/treebrowser.c:2553
 msgid "Focus Path Entry"
 msgstr "パス入力に切り替え"
 
-#: ../treebrowser/src/treebrowser.c:2451
+#: ../treebrowser/src/treebrowser.c:2555
 msgid "Rename Object"
 msgstr "オブジェクトの名前変更"
 
-#: ../treebrowser/src/treebrowser.c:2455
+#: ../treebrowser/src/treebrowser.c:2559
 #, fuzzy
 msgid "New Folder"
 msgstr "フォルダを選択"
 
-#: ../treebrowser/src/treebrowser.c:2459
+#: ../treebrowser/src/treebrowser.c:2563
 #, fuzzy
 msgid "Track Current"
 msgstr "パスを記録"

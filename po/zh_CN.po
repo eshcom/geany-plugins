@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-22 20:26+0300\n"
+"POT-Creation-Date: 2021-10-26 10:55+0300\n"
 "PO-Revision-Date: 2009-10-30 08:44+0800\n"
 "Last-Translator: Xhacker Liu <liu.dongyuan@gmail.com>\n"
 "Language-Team: zh_CN <>\n"
@@ -37,7 +37,7 @@ msgstr "No."
 msgid "Contents"
 msgstr "内容"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:663
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:659
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "书签"
@@ -190,7 +190,7 @@ msgstr "检查当前文件的拼写。"
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:58
 #: ../sendmail/src/sendmail.c:128 ../sendmail/src/sendmail.c:293
 #: ../setfiletype/src/setfiletype.c:117 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2142
+#: ../treebrowser/src/treebrowser.c:2182
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "无法创建插件配置文件目录。"
@@ -5594,7 +5594,7 @@ msgstr "显示当前文件日志"
 msgid "Unable to read value for '%s' key: %s"
 msgstr ""
 
-#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2174
+#: ../multiterm/src/tab-label.vala:62 ../treebrowser/src/treebrowser.c:2217
 #, fuzzy
 msgid "Terminal"
 msgstr "已终止"
@@ -6187,7 +6187,7 @@ msgid "Add"
 msgstr "附加组件"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2453
+#: ../treebrowser/src/treebrowser.c:2557
 #, fuzzy
 msgid "New File"
 msgstr "文件(_F)"
@@ -7720,63 +7720,68 @@ msgstr ""
 msgid "_More TableConvert"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:126
+#: ../treebrowser/src/treebrowser.c:134
 #, fuzzy
 msgid "TreeBrowser"
 msgstr "浏览..."
 
-#: ../treebrowser/src/treebrowser.c:127
+#: ../treebrowser/src/treebrowser.c:135
 msgid ""
 "This plugin adds a tree browser to Geany, allowing the user to browse files "
 "using a tree view of the directory being browsed."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:460
+#: ../treebrowser/src/treebrowser.c:461
 #, c-format
 msgid "%s: no such directory."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:567 ../treebrowser/src/treebrowser.c:605
-#: ../treebrowser/src/treebrowser.c:712
+#: ../treebrowser/src/treebrowser.c:562 ../treebrowser/src/treebrowser.c:601
+#: ../treebrowser/src/treebrowser.c:711
 #, fuzzy
 msgid "(Empty)"
 msgstr "（空行）"
 
-#: ../treebrowser/src/treebrowser.c:996
+#: ../treebrowser/src/treebrowser.c:977
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1070
+#: ../treebrowser/src/treebrowser.c:1053
 #, fuzzy
 msgid "NewDirectory"
 msgstr "目录(_D)"
 
-#: ../treebrowser/src/treebrowser.c:1072
+#: ../treebrowser/src/treebrowser.c:1055
 #, fuzzy
 msgid "NewFile"
 msgstr "文件(_F)"
 
-#: ../treebrowser/src/treebrowser.c:1077
+#: ../treebrowser/src/treebrowser.c:1061
 #, c-format
 msgid ""
 "Target file '%s' exists.\n"
 "Do you really want to replace it with an empty file?"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1122
+#: ../treebrowser/src/treebrowser.c:1106
 #, fuzzy, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "您真的想恢复：%s？"
 
-#: ../treebrowser/src/treebrowser.c:1240 ../treebrowser/src/treebrowser.c:1242
+#: ../treebrowser/src/treebrowser.c:1225 ../treebrowser/src/treebrowser.c:1227
 msgid "Go _Up"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1248 ../treebrowser/src/treebrowser.c:1250
+#: ../treebrowser/src/treebrowser.c:1233 ../treebrowser/src/treebrowser.c:1235
 #, fuzzy
 msgid "Set _Path From Document"
 msgstr "为您的新文档设置编码"
+
+#: ../treebrowser/src/treebrowser.c:1243 ../treebrowser/src/treebrowser.c:1245
+#, fuzzy
+msgid "Set Project _Path"
+msgstr "项目"
 
 #: ../treebrowser/src/treebrowser.c:1256 ../treebrowser/src/treebrowser.c:1258
 #, fuzzy
@@ -7831,87 +7836,92 @@ msgstr "关闭其他文件(_H)"
 msgid "_Copy Name to Clipboard"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1378 ../treebrowser/src/treebrowser.c:1380
+#: ../treebrowser/src/treebrowser.c:1379 ../treebrowser/src/treebrowser.c:1382
 msgid "_Copy Full Path to Clipboard"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1393 ../treebrowser/src/treebrowser.c:1395
+#: ../treebrowser/src/treebrowser.c:1395 ../treebrowser/src/treebrowser.c:1397
 msgid "E_xpand All"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1401 ../treebrowser/src/treebrowser.c:1403
+#: ../treebrowser/src/treebrowser.c:1403 ../treebrowser/src/treebrowser.c:1405
 #, fuzzy
 msgid "Coll_apse All"
 msgstr "关闭全部(_L)"
 
-#: ../treebrowser/src/treebrowser.c:1411
+#: ../treebrowser/src/treebrowser.c:1413
 #, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "书签"
 
-#: ../treebrowser/src/treebrowser.c:1417
+#: ../treebrowser/src/treebrowser.c:1420
 #, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "显示文件差异"
 
-#: ../treebrowser/src/treebrowser.c:1423
+#: ../treebrowser/src/treebrowser.c:1427
 #, fuzzy
 msgid "Show Tool_bars"
 msgstr "显示状态"
 
-#: ../treebrowser/src/treebrowser.c:1771
+#: ../treebrowser/src/treebrowser.c:1788
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1920
+#: ../treebrowser/src/treebrowser.c:1934
 msgid "Go up"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1931 ../treebrowser/src/treebrowser.c:2457
+#: ../treebrowser/src/treebrowser.c:1945 ../treebrowser/src/treebrowser.c:2561
 #, fuzzy
 msgid "Refresh"
 msgstr "Series"
 
-#: ../treebrowser/src/treebrowser.c:1941
+#: ../treebrowser/src/treebrowser.c:1955
 #, fuzzy
 msgid "Home"
 msgstr "Volume"
 
-#: ../treebrowser/src/treebrowser.c:1951
+#: ../treebrowser/src/treebrowser.c:1967
+#, fuzzy
+msgid "Set project path"
+msgstr "项目"
+
+#: ../treebrowser/src/treebrowser.c:1978
 #, fuzzy
 msgid "Set path from document"
 msgstr "为您的新文档设置编码"
 
-#: ../treebrowser/src/treebrowser.c:1961
+#: ../treebrowser/src/treebrowser.c:1988
 #, fuzzy
 msgid "Track path"
 msgstr "根目录："
 
-#: ../treebrowser/src/treebrowser.c:1972
+#: ../treebrowser/src/treebrowser.c:1999
 #, fuzzy
 msgid "Hide bars"
 msgstr "隐藏侧栏(_I)"
 
-#: ../treebrowser/src/treebrowser.c:1982
+#: ../treebrowser/src/treebrowser.c:2009
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1988
+#: ../treebrowser/src/treebrowser.c:2015
 msgid "Addressbar for example '/projects/my-project'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2014
+#: ../treebrowser/src/treebrowser.c:2041
 msgid "Tree Browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2153
+#: ../treebrowser/src/treebrowser.c:2193
 msgid "External open command"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2165
+#: ../treebrowser/src/treebrowser.c:2206
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7921,130 +7931,129 @@ msgid ""
 "filename"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2186
+#: ../treebrowser/src/treebrowser.c:2229
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2193
+#: ../treebrowser/src/treebrowser.c:2236
 msgid "Toolbar"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2240
 msgid "Hidden"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2198
+#: ../treebrowser/src/treebrowser.c:2243
 msgid "Top"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2200
+#: ../treebrowser/src/treebrowser.c:2246
 msgid "Bottom"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2205
+#: ../treebrowser/src/treebrowser.c:2252
 msgid "If position is changed, the option require plugin restart."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2211
+#: ../treebrowser/src/treebrowser.c:2258
 #, fuzzy
 msgid "Show icons"
 msgstr "显示图标。"
 
-#: ../treebrowser/src/treebrowser.c:2214
+#: ../treebrowser/src/treebrowser.c:2262
 msgid "None"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2216
+#: ../treebrowser/src/treebrowser.c:2265
 #, fuzzy
 msgid "Base"
 msgstr "暂停(_P)"
 
-#: ../treebrowser/src/treebrowser.c:2218
+#: ../treebrowser/src/treebrowser.c:2268
 #, fuzzy
 msgid "Content-type"
 msgstr "内容"
 
-#: ../treebrowser/src/treebrowser.c:2227
+#: ../treebrowser/src/treebrowser.c:2277
 #, fuzzy
 msgid "Show hidden files"
 msgstr "显示文件差异"
 
-#: ../treebrowser/src/treebrowser.c:2239
+#: ../treebrowser/src/treebrowser.c:2292
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2242
-#, fuzzy
-msgid "Hide object files"
-msgstr "选择文件"
+#: ../treebrowser/src/treebrowser.c:2296
+msgid "Hide object files:"
+msgstr "选择文件:"
 
-#: ../treebrowser/src/treebrowser.c:2254
+#: ../treebrowser/src/treebrowser.c:2309
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2258
+#: ../treebrowser/src/treebrowser.c:2324
 #, fuzzy
 msgid "Reverse filter"
 msgstr "恢复单个文件"
 
-#: ../treebrowser/src/treebrowser.c:2271
+#: ../treebrowser/src/treebrowser.c:2339
 msgid "Follow current document"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2284
+#: ../treebrowser/src/treebrowser.c:2356
 msgid "Single click, open document and focus it"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2297
+#: ../treebrowser/src/treebrowser.c:2371
 #, fuzzy
 msgid "Double click open directory"
 msgstr "显示目录差异"
 
-#: ../treebrowser/src/treebrowser.c:2310
+#: ../treebrowser/src/treebrowser.c:2388
 msgid "On delete file, close it if is opened"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2323
+#: ../treebrowser/src/treebrowser.c:2405
 msgid "Focus editor on file open"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2336
+#: ../treebrowser/src/treebrowser.c:2422
 #, fuzzy
 msgid "Show tree lines"
 msgstr "显示工具提示。"
 
-#: ../treebrowser/src/treebrowser.c:2349
+#: ../treebrowser/src/treebrowser.c:2437
 #, fuzzy
 msgid "Show bookmarks"
 msgstr "书签"
 
-#: ../treebrowser/src/treebrowser.c:2362
+#: ../treebrowser/src/treebrowser.c:2451
 #, fuzzy
 msgid "Open new files"
 msgstr "打开文件"
 
-#: ../treebrowser/src/treebrowser.c:2447
+#: ../treebrowser/src/treebrowser.c:2551
 #, fuzzy
 msgid "Focus File List"
 msgstr "焦点书签列表"
 
-#: ../treebrowser/src/treebrowser.c:2449
+#: ../treebrowser/src/treebrowser.c:2553
 msgid "Focus Path Entry"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2451
+#: ../treebrowser/src/treebrowser.c:2555
 #, fuzzy
 msgid "Rename Object"
 msgstr "文件名："
 
-#: ../treebrowser/src/treebrowser.c:2455
+#: ../treebrowser/src/treebrowser.c:2559
 #, fuzzy
 msgid "New Folder"
 msgstr "选择颜色"
 
-#: ../treebrowser/src/treebrowser.c:2459
+#: ../treebrowser/src/treebrowser.c:2563
 #, fuzzy
 msgid "Track Current"
 msgstr "根目录："
