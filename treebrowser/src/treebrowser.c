@@ -122,6 +122,13 @@ enum
 };
 
 
+/* SearchFilter (for check_filter) */
+typedef struct {
+	gchar **filters;
+	gboolean reverse;
+} SearchFilter;
+
+
 /* ------------------
  * PLUGIN INFO
  * ------------------ */
@@ -304,9 +311,39 @@ static gchar *path_is_in_dir(gchar *src, gchar *find)
 	return diffed_path;
 }
 
+static SearchFilter *get_filter(void)
+{
+	SearchFilter *fobj = g_new0(SearchFilter, 1);
+	fobj->reverse = CONFIG_REVERSE_FILTER;
+	fobj->filters = NULL;
+	
+	const gchar *entry_text = gtk_entry_get_text(GTK_ENTRY(filter));
+	if (EMPTY(entry_text))
+		return fobj;
+	
+	while (TRUE)
+	{
+		if (*entry_text == '!')
+			fobj->reverse = TRUE;
+		else if (*entry_text != ' ' && *entry_text != ';')
+			break;
+		entry_text++;
+	}
+	fobj->filters = g_strsplit(entry_text, ";", 0);
+	
+	return fobj;
+}
+
+static void free_filter(SearchFilter *fobj)
+{
+	g_strfreev(fobj->filters);
+	g_free(fobj);
+}
+
 /* Return: FALSE - if the file has not passed the filter and should not be shown
  *         TRUE  - if the file passed the filter and should be shown */
-static gboolean check_filter(const gchar *base_name)
+static gboolean check_filter(const gchar *base_name,
+							 const SearchFilter *fobj)
 {
 	if (CONFIG_HIDE_OBJECT_FILES)
 	{
@@ -318,39 +355,20 @@ static gboolean check_filter(const gchar *base_name)
 		}
 	}
 	
-	const gchar *entry_text = gtk_entry_get_text(GTK_ENTRY(filter));
-	if (EMPTY(entry_text))
+	if (!fobj->filters || !(*fobj->filters))
 		return TRUE; // passed
 	
-	gchar **filters = g_strsplit(entry_text, ";", 0);
-	
-	gboolean temporary_reverse;
-	guint i;
-	if (utils_str_equal(filters[0], "!"))
-	{
-		temporary_reverse = TRUE;
-		i = 1;
-	}
-	else
-	{
-		temporary_reverse = FALSE;
-		i = 0;
-	}
-	
-	gboolean passed = CONFIG_REVERSE_FILTER || temporary_reverse
-													? TRUE : FALSE;
-	for (; filters[i]; i++)
+	gboolean passed = fobj->reverse;
+	gchar **filt;
+	foreach_strv(filt, fobj->filters)
 	{
 		if (utils_str_equal(base_name, "*") ||
-			g_pattern_match_simple(filters[i], base_name))
+			g_pattern_match_simple(*filt, base_name))
 		{
-			passed = CONFIG_REVERSE_FILTER || temporary_reverse
-													? FALSE : TRUE;
+			passed = !fobj->reverse;
 			break;
 		}
 	}
-	g_strfreev(filters);
-	
 	return passed;
 }
 
@@ -520,6 +538,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 	GSList *list = utils_get_file_list(directory, NULL, NULL);
 	if (list != NULL)
 	{
+		SearchFilter *fobj = get_filter();
 		GtkTreeIter iter, *last_dir_iter = NULL;
 		GSList *node;
 		foreach_slist_free(node, list)
@@ -564,7 +583,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 				else
 				{
 					gchar *utf8_name = utils_get_utf8_from_locale(fname);
-					if (check_filter(utf8_name))
+					if (check_filter(utf8_name, fobj))
 					{
 						icon = CONFIG_SHOW_ICONS == 2
 										? utils_pixbuf_from_path(uri)
@@ -591,6 +610,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 			g_free(uri);
 			g_free(fname);
 		}
+		free_filter(fobj);
 	}
 	else
 	{

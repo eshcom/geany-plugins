@@ -24,6 +24,7 @@
 #endif
 
 #include <geanyplugin.h>
+#include <../../utils/src/spawn.h>
 
 #include "readtags.h"
 
@@ -130,48 +131,30 @@ static gboolean spawn_cmd(const gchar *locale_cmd, const gchar *locale_dir)
 	msgwin_msg_add(COLOR_BLUE, -1, NULL, _("%s (in directory: %s)"),
 				   locale_cmd, locale_dir);
 	
-	GString *output = g_string_new(NULL);
-	GError *error = NULL;
-	gint exitcode;
-	gboolean success, result;
+	SpawnResult *result = call_spawn_sync(locale_cmd, locale_dir);
+	gboolean success;
 	
-#ifndef G_OS_WIN32
-	/* run within shell so we can use pipes */
-	gchar **argv = g_new0(gchar *, 4);
-	argv[0] = g_strdup("/bin/sh");
-	argv[1] = g_strdup("-c");
-	argv[2] = g_strdup(locale_cmd);
-	argv[3] = NULL;
-	
-	success = spawn_sync(locale_dir, NULL, argv, NULL, NULL,
-						 NULL, output, &exitcode, &error);
-	g_strfreev(argv);
-#else
-	success = spawn_sync(locale_dir, locale_cmd, NULL, NULL, NULL,
-						 output, NULL, &exitcode, &error);
-#endif
-	
-	gchar *out = g_string_free(output, FALSE);
-	
-	if (!success || exitcode != 0)
+	if (result->success)
 	{
-		if (error != NULL)
-		{
-			msgwin_msg_add(COLOR_RED, -1, NULL,
-						   _("Process execution failed (%s)"),
-						   error->message);
-			g_error_free(error);
-		}
-		msgwin_msg_add(COLOR_RED, -1, NULL, "%s", out);
-		result = FALSE;
+		if (!EMPTY(result->output1))
+			msgwin_msg_add(COLOR_BLACK, -1, NULL, "%s", result->output1);
+		success = TRUE;
 	}
 	else
 	{
-		msgwin_msg_add(COLOR_BLACK, -1, NULL, "%s", out);
-		result = TRUE;
+		if (!EMPTY(result->errmsg))
+			msgwin_msg_add(COLOR_RED, -1, NULL,
+						   _("Process execution failed (%s)"),
+						   result->errmsg);
+		if (!EMPTY(result->output1))
+			msgwin_msg_add(COLOR_RED, -1, NULL, "%s", result->output1);
+		if (!EMPTY(result->output2))
+			msgwin_msg_add(COLOR_RED, -1, NULL, "%s", result->output2);
+		success = FALSE;
 	}
-	g_free(out);
-	return result;
+	
+	free_spawn_result(result);
+	return success;
 }
 
 #ifndef G_OS_WIN32
