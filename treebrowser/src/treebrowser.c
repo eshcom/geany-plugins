@@ -19,6 +19,7 @@
 #include "geany.h"
 #include <geanyplugin.h>
 #include <gp_gtkcompat.h>
+#include <../../utils/src/spawn.h>
 
 #include <gio/gio.h>
 
@@ -112,7 +113,9 @@ enum
 enum
 {
 	KB_FOCUS_FILE_LIST,
+	KB_FOCUS_FILE_LIST_2,
 	KB_FOCUS_PATH_ENTRY,
+	KB_FOCUS_FILTER_ENTRY,
 	KB_RENAME_OBJECT,
 	KB_CREATE_FILE,
 	KB_CREATE_DIR,
@@ -177,9 +180,12 @@ static void 	on_menu_create_new_object(GtkMenuItem *menuitem,
 										  const gchar *type);
 static void 	on_button_project_path(void);
 static void 	on_button_current_path(void);
+static void 	on_button_go_up(void);
 static void 	load_settings(void);
 static gboolean save_settings(void);
 
+static gboolean treebrowser_expand_to_path(gchar *root, gchar *find,
+										   gboolean set_cursor);
 
 /* ------------------
  * PLUGIN CALLBACKS
@@ -371,6 +377,88 @@ static gboolean check_filter(const gchar *base_name,
 	}
 	return passed;
 }
+
+#ifndef G_OS_WIN32
+static GString *generate_find_cmd(void)
+{
+	SearchFilter *fobj = get_filter();
+	
+	if (!fobj->filters || !(*fobj->filters))
+	{
+		free_filter(fobj);
+		return NULL;
+	}
+	
+	GString *gstr = g_string_new("find -L . -type f");
+	
+	if (!CONFIG_SHOW_HIDDEN_FILES)
+		g_string_append(gstr, " -not -path '*/.*' -not -name \".*\"");
+	
+	if (CONFIG_HIDE_OBJECT_FILES)
+	{
+		gchar **ext;
+		foreach_strv(ext, EXT_OBJECT_FILES)
+		{
+			if (**ext)
+			{
+				g_string_append(gstr, " -not -name \"");
+				g_string_append_c(gstr, '*');
+				g_string_append(gstr, *ext);
+				g_string_append_c(gstr, '\"');
+			}
+		}
+	}
+	
+	g_string_append(gstr, fobj->reverse ? " \\( -not -name \""
+										: " \\( -name \"");
+	g_string_append(gstr, fobj->filters[0]);
+	g_string_append_c(gstr, '\"');
+	
+	for (guint i = 1; fobj->filters[i]; i++)
+	{
+		g_string_append(gstr, fobj->reverse ? " -not -name \""
+											: " -o -name \"");
+		g_string_append(gstr, fobj->filters[i]);
+		g_string_append_c(gstr, '\"');
+	}
+	g_string_append(gstr, " \\)");
+	
+	g_string_append(gstr, " -exec dirname {} \\; | sort -u");
+	
+	free_filter(fobj);
+	return gstr;
+}
+
+static void find_and_expand_to_paths(void)
+{
+	GString *findcmd = generate_find_cmd();
+	if (findcmd)
+	{
+		SpawnResult *result = call_spawn_sync(findcmd->str,
+											  addressbar_last_address);
+		gboolean first = TRUE;
+		gchar **dirs = g_strsplit(result->output2, "\n", 0);
+		
+		for (gchar **dir_next, **dir = dirs; *dir && **dir; dir++)
+		{
+			dir_next = dir + 1;
+			if (*dir_next && **dir_next &&
+				utils_match_dirs(*dir, *dir_next) == MATCH_DIRS_PREF_1)
+				continue;
+			
+			gchar *path = g_build_filename(addressbar_last_address,
+										   *dir + 1, NULL); // +1 - for skip dot
+			treebrowser_expand_to_path(addressbar_last_address, path, first);
+			g_free(path);
+			
+			if (first) first = FALSE;
+		}
+		g_strfreev(dirs);
+		free_spawn_result(result);
+		g_string_free(findcmd, TRUE);
+	}
+}
+#endif
 
 #ifdef G_OS_WIN32
 static gboolean win32_check_hidden(const gchar *filename)
@@ -749,7 +837,8 @@ static void treebrowser_load_bookmarks(void)
 	g_free(bookmarks);
 }
 
-static gboolean treebrowser_search(gchar *uri, gpointer parent)
+static gboolean treebrowser_search(gchar *uri, gpointer parent,
+								   gboolean set_cursor)
 {
 	GtkTreeIter iter;
 	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(treestore), &iter, parent))
@@ -757,7 +846,7 @@ static gboolean treebrowser_search(gchar *uri, gpointer parent)
 		do
 		{
 			if (gtk_tree_model_iter_has_child(GTK_TREE_MODEL(treestore), &iter))
-				if (treebrowser_search(uri, &iter))
+				if (treebrowser_search(uri, &iter, set_cursor))
 					return TRUE;
 			
 			gchar *uri_current;
@@ -769,10 +858,13 @@ static gboolean treebrowser_search(gchar *uri, gpointer parent)
 				GtkTreePath *path = gtk_tree_model_get_path(
 											GTK_TREE_MODEL(treestore), &iter);
 				gtk_tree_view_expand_to_path(GTK_TREE_VIEW(treeview), path);
-				gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(treeview), path,
-											 NULL, FALSE, 0, 0);
-				gtk_tree_view_set_cursor(GTK_TREE_VIEW(treeview), path,
-										 treeview_column_text, FALSE);
+				if (set_cursor)
+				{
+					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(treeview), path,
+												 NULL, FALSE, 0, 0);
+					gtk_tree_view_set_cursor(GTK_TREE_VIEW(treeview), path,
+											 treeview_column_text, FALSE);
+				}
 				gtk_tree_path_free(path);
 				g_free(uri_current);
 				return TRUE;
@@ -851,7 +943,8 @@ static void treebrowser_tree_store_iter_clear_nodes(gpointer iter,
 		gtk_tree_store_remove(GTK_TREE_STORE(treestore), iter);
 }
 
-static gboolean treebrowser_expand_to_path(gchar *root, gchar *find)
+static gboolean treebrowser_expand_to_path(gchar *root, gchar *find,
+										   gboolean set_cursor)
 {
 	gchar **find_segments = g_strsplit(find, G_DIR_SEPARATOR_S, 0);
 	guint find_segments_n = g_strv_length(find_segments);
@@ -866,7 +959,8 @@ static gboolean treebrowser_expand_to_path(gchar *root, gchar *find)
 		
 		if (founded)
 		{
-			if (treebrowser_search(path->str, NULL))
+			if (treebrowser_search(path->str, NULL,
+								   set_cursor && i == find_segments_n - 1))
 				global_founded = TRUE;
 		}
 		else
@@ -890,7 +984,7 @@ static gboolean treebrowser_track_current(void)
 		gchar *path_current = utils_get_locale_from_utf8(doc->file_name);
 		
 		// Checking if the document is in the expanded or collapsed files
-		if (!treebrowser_search(path_current, NULL))
+		if (!treebrowser_search(path_current, NULL, TRUE))
 		{	// Else we have to chroting to the document`s nearles path
 			froot = path_is_in_dir(addressbar_last_address,
 								   g_path_get_dirname(path_current));
@@ -900,7 +994,7 @@ static gboolean treebrowser_track_current(void)
 			if (!utils_str_equal(froot, addressbar_last_address))
 				treebrowser_chroot(froot);
 			
-			treebrowser_expand_to_path(froot, path_current);
+			treebrowser_expand_to_path(froot, path_current, TRUE);
 		}
 		g_free(froot);
 		g_free(path_current);
@@ -959,9 +1053,7 @@ static void treebrowser_create_new_current(const gchar *type)
 
 static void on_menu_go_up(GtkMenuItem *menuitem, gpointer *user_data)
 {
-	gchar *uri = g_path_get_dirname(addressbar_last_address);
-	treebrowser_chroot(uri);
-	g_free(uri);
+	on_button_go_up();
 }
 
 static void on_menu_project_path(GtkMenuItem *menuitem, gpointer *user_data)
@@ -1093,7 +1185,7 @@ static void on_menu_create_new_object(GtkMenuItem *menuitem,
 			if (creation_success)
 			{
 				treebrowser_browse(uri, refresh_root ? NULL : &iter);
-				if (treebrowser_search(uri_new, NULL))
+				if (treebrowser_search(uri_new, NULL, TRUE))
 					treebrowser_rename_current();
 				if (CONFIG_OPEN_NEW_FILES && utils_str_equal(type, "file"))
 					document_open_file(uri_new,FALSE, NULL, NULL);
@@ -1197,16 +1289,10 @@ static void on_menu_close_children(GtkMenuItem *menuitem, gchar *uri)
 	}
 }
 
-static void on_menu_copy_name(GtkMenuItem *menuitem, gchar *name)
+static void on_menu_copy_item(GtkMenuItem *menuitem, gchar *item)
 {
 	GtkClipboard *cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-	gtk_clipboard_set_text(cb, name, -1);
-}
-
-static void on_menu_copy_uri(GtkMenuItem *menuitem, gchar *uri)
-{
-	GtkClipboard *cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-	gtk_clipboard_set_text(cb, uri, -1);
+	gtk_clipboard_set_text(cb, item, -1);
 }
 
 static void on_menu_show_bookmarks(GtkMenuItem *menuitem, gpointer *user_data)
@@ -1389,7 +1475,7 @@ static GtkWidget *create_popup_menu(const gchar *name, const gchar *uri)
 	item = ui_image_menu_item_new(GTK_STOCK_COPY, _("_Copy Name to Clipboard"));
 #endif
 	gtk_container_add(GTK_CONTAINER(menu), item);
-	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_copy_name),
+	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_copy_item),
 						  g_strdup(name), (GClosureNotify)g_free, 0);
 	gtk_widget_set_sensitive(item, is_exists);
 	
@@ -1401,7 +1487,7 @@ static GtkWidget *create_popup_menu(const gchar *name, const gchar *uri)
 								  _("_Copy Full Path to Clipboard"));
 #endif
 	gtk_container_add(GTK_CONTAINER(menu), item);
-	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_copy_uri),
+	g_signal_connect_data(item, "activate", G_CALLBACK(on_menu_copy_item),
 						  g_strdup(uri), (GClosureNotify)g_free, 0);
 	gtk_widget_set_sensitive(item, is_exists);
 	
@@ -1509,6 +1595,10 @@ static void on_addressbar_activate(GtkEntry *entry, gpointer user_data)
 static void on_filter_activate(GtkEntry *entry, gpointer user_data)
 {
 	treebrowser_chroot(addressbar_last_address);
+	
+#ifndef G_OS_WIN32
+	find_and_expand_to_paths();
+#endif
 }
 
 static void on_filter_clear(GtkEntry *entry, gint icon_pos,
@@ -2523,10 +2613,14 @@ static void kb_activate(guint key_id)
 	switch (key_id)
 	{
 		case KB_FOCUS_FILE_LIST:
+		case KB_FOCUS_FILE_LIST_2:
 			gtk_widget_grab_focus(treeview);
 			break;
 		case KB_FOCUS_PATH_ENTRY:
 			gtk_widget_grab_focus(addressbar);
+			break;
+		case KB_FOCUS_FILTER_ENTRY:
+			gtk_widget_grab_focus(filter);
 			break;
 		case KB_RENAME_OBJECT:
 			treebrowser_rename_current();
@@ -2568,8 +2662,12 @@ void plugin_init(GeanyData *data)
 	
 	keybindings_set_item(key_group, KB_FOCUS_FILE_LIST, kb_activate,
 		0, 0, "focus_file_list", _("Focus File List"), NULL);
+	keybindings_set_item(key_group, KB_FOCUS_FILE_LIST_2, kb_activate,
+		0, 0, "focus_file_list_2", _("Focus File List (second hotkey)"), NULL);
 	keybindings_set_item(key_group, KB_FOCUS_PATH_ENTRY, kb_activate,
 		0, 0, "focus_path_entry", _("Focus Path Entry"), NULL);
+	keybindings_set_item(key_group, KB_FOCUS_FILTER_ENTRY, kb_activate,
+		0, 0, "focus_filter_entry", _("Focus Filter Entry"), NULL);
 	keybindings_set_item(key_group, KB_RENAME_OBJECT, kb_activate,
 		0, 0, "rename_object", _("Rename Object"), NULL);
 	keybindings_set_item(key_group, KB_CREATE_FILE, kb_activate,
