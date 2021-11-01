@@ -35,11 +35,11 @@ typedef enum {
 } sortType;
 
 /* Options for tagsFind() */
-#define TAG_FULLMATCH     0x0
-#define TAG_PARTIALMATCH  0x1
+#define TAG_FULLMATCH    0x0
+#define TAG_PARTIALMATCH 0x1
 
-#define TAG_OBSERVECASE   0x0
-#define TAG_IGNORECASE    0x2
+#define TAG_OBSERVECASE  0x0
+#define TAG_IGNORECASE   0x2
 
 /*
 *  DATA DECLARATIONS
@@ -105,7 +105,8 @@ typedef struct {
 	struct {
 		/* pattern for locating source line (may be NULL if not present) */
 		const char *pattern;
-		/* line number in source file of tag definition (may be zero if not known) */
+		/* line number in source file of tag definition
+		 * (may be zero if not known) */
 		unsigned long lineNumber;
 	} address;
 	
@@ -183,7 +184,8 @@ extern tagResult tagsNext(tagFile *const file, tagEntry *const entry);
 *  containing the key of the desired extension field. If no such field of the
 *  specified key exists, the function will return null.
 */
-extern const char *tagsField(const tagEntry *const entry, const char *const key);
+extern const char *tagsField(const tagEntry *const entry,
+							 const char *const key);
 
 /*
 *  Find the first tag matching `name'. The structure pointed to by `entry'
@@ -200,25 +202,25 @@ extern const char *tagsField(const tagEntry *const entry, const char *const key)
 *        Only tags whose full lengths match `name' will qualify.
 *
 *    TAG_IGNORECASE
-*        Matching will be performed in a case-insenstive manner. Note that
-*        this disables binary searches of the tag file.
+*        Matching will be performed in a case-insenstive manner.
+*        Note that this disables binary searches of the tag file.
 *
 *    TAG_OBSERVECASE
-*        Matching will be performed in a case-senstive manner. Note that
-*        this enables binary searches of the tag file.
+*        Matching will be performed in a case-senstive manner.
+*        Note that this enables binary searches of the tag file.
 *
-*  The function will return TagSuccess if a tag matching the name is found, or
-*  TagFailure if not.
+*  The function will return TagSuccess if a tag matching the name is found,
+*  or TagFailure if not.
 */
 extern tagResult tagsFind(tagFile *const file, tagEntry *const entry,
 						  const char *const name, const int options);
 
 /*
-*  Find the next tag matching the name and options supplied to the most recent
-*  call to tagsFind() for the same tag file. The structure pointed to by
-*  `entry' will be populated with information about the tag file entry. The
-*  function will return TagSuccess if another tag matching the name is found,
-*  or TagFailure if not.
+*  Find the next tag matching the name and options supplied to the most
+*  recent call to tagsFind() for the same tag file. The structure pointed
+*  to by `entry' will be populated with information about the tag file entry.
+*  The function will return TagSuccess if another tag matching the name
+*  is found, or TagFailure if not.
 */
 extern tagResult tagsFindNext(tagFile *const file, tagEntry *const entry);
 

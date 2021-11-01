@@ -43,7 +43,7 @@ struct sTagFile {
 	/* how is the tag file sorted? */
 	sortType sortMethod;
 	/* pointer to file structure */
-	FILE* fp;
+	FILE *fp;
 	/* file position of first character of `line' */
 	off_t pos;
 	/* size of tag file in seekable positions */
@@ -109,7 +109,7 @@ static int struppercmp(const char *s1, const char *s2)
 	int result;
 	do
 	{
-		result = toupper((int) *s1) - toupper((int) *s2);
+		result = toupper((int)*s1) - toupper((int)*s2);
 	} while (result == 0 && *s1++ != '\0' && *s2++ != '\0');
 	return result;
 }
@@ -119,7 +119,7 @@ static int strnuppercmp(const char *s1, const char *s2, size_t n)
 	int result;
 	do
 	{
-		result = toupper((int) *s1) - toupper((int) *s2);
+		result = toupper((int)*s1) - toupper((int)*s2);
 	} while (result == 0 && --n > 0 && *s1++ != '\0' && *s2++ != '\0');
 	return result;
 }
@@ -129,16 +129,17 @@ static int growString(vstring *s)
 	int result = 0;
 	size_t newLength;
 	char *newLine;
+	
 	if (s->size == 0)
 	{
 		newLength = 128;
-		newLine = (char*) malloc(newLength);
+		newLine = (char *)malloc(newLength);
 		*newLine = '\0';
 	}
 	else
 	{
 		newLength = 2 * s->size;
-		newLine = (char*) realloc(s->buffer, newLength);
+		newLine = (char *)realloc(s->buffer, newLength);
 	}
 	if (newLine == NULL)
 		perror("string too large");
@@ -154,7 +155,6 @@ static int growString(vstring *s)
 /* Copy name of tag out of tag line */
 static void copyName(tagFile *const file)
 {
-	size_t length;
 	const char *end = strchr(file->line.buffer, '\t');
 	if (end == NULL)
 	{
@@ -162,6 +162,8 @@ static void copyName(tagFile *const file)
 		if (end == NULL)
 			end = strchr(file->line.buffer, '\r');
 	}
+	
+	size_t length;
 	if (end != NULL)
 		length = end - file->line.buffer;
 	else
@@ -192,7 +194,7 @@ static int readTagLineRaw(tagFile *const file)
 		file->pos = ftell(file->fp);
 		reReadLine = 0;
 		*pLastChar = '\0';
-		line = fgets(file->line.buffer, (int) file->line.size, file->fp);
+		line = fgets(file->line.buffer, (int)file->line.size, file->fp);
 		if (line == NULL)
 		{
 			/* read error */
@@ -239,7 +241,7 @@ static int readTagLine(tagFile *const file)
 static tagResult growFields(tagFile *const file)
 {
 	tagResult result = TagFailure;
-	unsigned short newCount = (unsigned short) 2 * file->fields.max;
+	unsigned short newCount = (unsigned short)2 * file->fields.max;
 	tagExtensionField *newFields = (tagExtensionField *)
 										realloc(file->fields.list,
 												newCount * sizeof(tagExtensionField));
@@ -264,12 +266,12 @@ static void parseExtensionFields(tagFile *const file, tagEntry *const entry,
 			*p++ = '\0';
 		if (*p != '\0')
 		{
-			char *colon;
 			char *field = p;
 			p = strchr(p, TAB);
 			if (p != NULL)
 				*p++ = '\0';
-			colon = strchr(field, ':');
+			
+			char *colon = strchr(field, ':');
 			if (colon == NULL)
 				entry->kind = field;
 			else
@@ -277,6 +279,7 @@ static void parseExtensionFields(tagFile *const file, tagEntry *const entry,
 				const char *key = field;
 				const char *value = colon + 1;
 				*colon = '\0';
+				
 				if (strcmp(key, "kind") == 0)
 					entry->kind = value;
 				else if (strcmp(key, "file") == 0)
@@ -287,6 +290,7 @@ static void parseExtensionFields(tagFile *const file, tagEntry *const entry,
 				{
 					if (entry->fields.count == file->fields.max)
 						growFields(file);
+					
 					file->fields.list[entry->fields.count].key = key;
 					file->fields.list[entry->fields.count].value = value;
 					++entry->fields.count;
@@ -298,7 +302,6 @@ static void parseExtensionFields(tagFile *const file, tagEntry *const entry,
 
 static void parseTagLine(tagFile *file, tagEntry *const entry)
 {
-	int i;
 	char *p = file->line.buffer;
 	char *tab = strchr(p, TAB);
 	
@@ -306,8 +309,8 @@ static void parseTagLine(tagFile *file, tagEntry *const entry)
 	entry->fields.count = 0;
 	entry->kind = NULL;
 	entry->fileScope = 0;
-	
 	entry->name = p;
+	
 	if (tab != NULL)
 	{
 		*tab = '\0';
@@ -316,13 +319,12 @@ static void parseTagLine(tagFile *file, tagEntry *const entry)
 		tab = strchr(p, TAB);
 		if (tab != NULL)
 		{
-			int fieldsPresent;
 			*tab = '\0';
 			p = tab + 1;
 			if (*p == '/'  ||  *p == '?')
 			{
 				/* parse pattern */
-				int delimiter = *(unsigned char*) p;
+				int delimiter = *(unsigned char *)p;
 				entry->address.lineNumber = 0;
 				entry->address.pattern = p;
 				do
@@ -336,19 +338,19 @@ static void parseTagLine(tagFile *file, tagEntry *const entry)
 				else
 					++p;
 			}
-			else if (isdigit((int) *(unsigned char*) p))
+			else if (isdigit((int)*(unsigned char *)p))
 			{
 				/* parse line number */
 				entry->address.pattern = p;
 				entry->address.lineNumber = atol(p);
-				while (isdigit((int) *(unsigned char*) p))
+				while (isdigit((int)*(unsigned char *)p))
 					++p;
 			}
 			else
 			{
 				/* invalid pattern */
 			}
-			fieldsPresent = (strncmp(p, ";\"", 2) == 0);
+			int fieldsPresent = (strncmp(p, ";\"", 2) == 0);
 			*p = '\0';
 			if (fieldsPresent)
 				parseExtensionFields(file, entry, p + 2);
@@ -357,7 +359,7 @@ static void parseTagLine(tagFile *file, tagEntry *const entry)
 	if (entry->fields.count > 0)
 		entry->fields.list = file->fields.list;
 	
-	for (i = entry->fields.count; i < file->fields.max; ++i)
+	for (int i = entry->fields.count; i < file->fields.max; ++i)
 	{
 		file->fields.list[i].key = NULL;
 		file->fields.list[i].value = NULL;
@@ -378,8 +380,6 @@ static char *duplicate(const char *str)
 
 static void readPseudoTags(tagFile *const file, tagFileInfo *const info)
 {
-	fpos_t startOfLine;
-	const size_t prefixLength = strlen(PseudoTagPrefix);
 	if (info != NULL)
 	{
 		info->file.format     = 1;
@@ -389,6 +389,9 @@ static void readPseudoTags(tagFile *const file, tagFileInfo *const info)
 		info->program.url     = NULL;
 		info->program.version = NULL;
 	}
+	
+	const size_t prefixLength = strlen(PseudoTagPrefix);
+	fpos_t startOfLine;
 	while (1)
 	{
 		fgetpos(file->fp, &startOfLine);
@@ -403,10 +406,11 @@ static void readPseudoTags(tagFile *const file, tagFileInfo *const info)
 			parseTagLine(file, &entry);
 			key = entry.name + prefixLength;
 			value = entry.file;
+			
 			if (strcmp(key, "TAG_FILE_SORTED") == 0)
-				file->sortMethod = (sortType) atoi(value);
+				file->sortMethod = (sortType)atoi(value);
 			else if (strcmp(key, "TAG_FILE_FORMAT") == 0)
-				file->format = (short) atoi(value);
+				file->format = (short)atoi(value);
 			else if (strcmp(key, "TAG_PROGRAM_AUTHOR") == 0)
 				file->program.author = duplicate(value);
 			else if (strcmp(key, "TAG_PROGRAM_NAME") == 0)
@@ -415,6 +419,7 @@ static void readPseudoTags(tagFile *const file, tagFileInfo *const info)
 				file->program.url = duplicate(value);
 			else if (strcmp(key, "TAG_PROGRAM_VERSION") == 0)
 				file->program.version = duplicate(value);
+			
 			if (info != NULL)
 			{
 				info->file.format     = file->format;
@@ -431,8 +436,8 @@ static void readPseudoTags(tagFile *const file, tagFileInfo *const info)
 
 static void gotoFirstLogicalTag(tagFile *const file)
 {
-	fpos_t startOfLine;
 	const size_t prefixLength = strlen(PseudoTagPrefix);
+	fpos_t startOfLine;
 	rewind(file->fp);
 	while (1)
 	{
@@ -448,7 +453,7 @@ static void gotoFirstLogicalTag(tagFile *const file)
 static tagFile *initialize(const char *const filePath,
 						   tagFileInfo *const info)
 {
-	tagFile *result = (tagFile*) calloc((size_t) 1, sizeof(tagFile));
+	tagFile *result = (tagFile *)calloc((size_t)1, sizeof(tagFile));
 	if (result != NULL)
 	{
 		growString(&result->line);
@@ -520,13 +525,12 @@ static const char *readFieldValue(const tagEntry *const entry,
 								  const char *const key)
 {
 	const char *result = NULL;
-	int i;
 	if (strcmp(key, "kind") == 0)
 		result = entry->kind;
 	else if (strcmp(key, "file") == 0)
 		result = EmptyString;
 	else
-		for (i = 0; i < entry->fields.count && result == NULL; ++i)
+		for (int i = 0; i < entry->fields.count && result == NULL; ++i)
 			if (strcmp(entry->fields.list[i].key, key) == 0)
 				result = entry->fields.list[i].value;
 	return result;
@@ -537,9 +541,9 @@ static int readTagLineSeek(tagFile *const file, const off_t pos)
 	int result = 0;
 	if (fseek(file->fp, pos, SEEK_SET) == 0)
 	{
-		result = readTagLine(file);  /* read probable partial line */
+		result = readTagLine(file); /* read probable partial line */
 		if (pos > 0 && result)
-			result = readTagLine(file);  /* read complete line */
+			result = readTagLine(file); /* read complete line */
 	}
 	return result;
 }
@@ -607,6 +611,7 @@ static tagResult findBinary(tagFile *const file)
 	off_t upper_limit = file->size;
 	off_t last_pos = 0;
 	off_t pos = upper_limit / 2;
+	
 	while (result != TagSuccess)
 	{
 		if (!readTagLineSeek(file, pos))
@@ -658,9 +663,9 @@ static tagResult findSequential(tagFile *const file)
 static tagResult find(tagFile *const file, tagEntry *const entry,
 					  const char *const name, const int options)
 {
-	tagResult result;
 	if (file->search.name != NULL)
 		free(file->search.name);
+	
 	file->search.name = duplicate(name);
 	file->search.nameLength = strlen(name);
 	file->search.partial = (options & TAG_PARTIALMATCH) != 0;
@@ -668,6 +673,8 @@ static tagResult find(tagFile *const file, tagEntry *const entry,
 	fseek(file->fp, 0, SEEK_END);
 	file->size = ftell(file->fp);
 	rewind(file->fp);
+	
+	tagResult result;
 	if ((file->sortMethod == TAG_SORTED     && !file->search.ignorecase) ||
 		(file->sortMethod == TAG_FOLDSORTED &&  file->search.ignorecase))
 	{
@@ -804,13 +811,13 @@ static sortType SortMethod;
 
 static void printTag(const tagEntry *entry)
 {
-	int i;
 	int first = 1;
-	const char* separator = ";\"";
-	const char* const empty = "";
+	const char *separator = ";\"";
+	const char *const empty = "";
 	
 /* "sep" returns a value only the first time it is evaluated */
 #define sep(first ? (first = 0, separator) : empty)
+	
 	printf("%s\t%s\t%s", entry->name, entry->file,
 		   entry->address.pattern);
 	
@@ -824,7 +831,7 @@ static void printTag(const tagEntry *entry)
 		if (entry->address.lineNumber > 0)
 			printf("%s\tline:%lu", sep, entry->address.lineNumber);
 #endif
-		for (i = 0; i < entry->fields.count; ++i)
+		for (int i = 0; i < entry->fields.count; ++i)
 			printf("%s\t%s:%s", sep, entry->fields.list[i].key,
 				   entry->fields.list[i].value);
 	}
@@ -835,12 +842,11 @@ static void printTag(const tagEntry *entry)
 static void findTag(const char *const name, const int options)
 {
 	tagFileInfo info;
-	tagEntry entry;
 	tagFile *const file = tagsOpen(TagFileName, &info);
 	if (file == NULL)
 	{
-		fprintf(stderr, "%s: cannot open tag file: %s: %s\n",
-				ProgramName, strerror(info.status.error_number), name);
+		fprintf(stderr, "%s: cannot open tag file: %s: %s\n", ProgramName,
+				strerror(info.status.error_number), name);
 		exit(1);
 	}
 	else
@@ -848,6 +854,7 @@ static void findTag(const char *const name, const int options)
 		if (SortOverride)
 			tagsSetSortType(file, SortMethod);
 		
+		tagEntry entry;
 		if (tagsFind(file, &entry, name, options) == TagSuccess)
 		{
 			do
@@ -862,7 +869,6 @@ static void findTag(const char *const name, const int options)
 static void listTags(void)
 {
 	tagFileInfo info;
-	tagEntry entry;
 	tagFile *const file = tagsOpen(TagFileName, &info);
 	if (file == NULL)
 	{
@@ -872,6 +878,7 @@ static void listTags(void)
 	}
 	else
 	{
+		tagEntry entry;
 		while (tagsNext(file, &entry) == TagSuccess)
 			printTag(&entry);
 		
@@ -893,16 +900,17 @@ const char *const Usage =
 
 extern int main(int argc, char **argv)
 {
-	int options = 0;
-	int actionSupplied = 0;
-	int i;
 	ProgramName = argv[0];
 	if (argc == 1)
 	{
 		fprintf(stderr, Usage, ProgramName);
 		exit(1);
 	}
-	for (i = 1; i < argc; ++i)
+	
+	int options = 0;
+	int actionSupplied = 0;
+	
+	for (int i = 1; i < argc; ++i)
 	{
 		const char *const arg = argv[i];
 		if (arg[0] != '-')
@@ -912,16 +920,15 @@ extern int main(int argc, char **argv)
 		}
 		else
 		{
-			size_t j;
-			for (j = 1; arg[j] != '\0'; ++j)
+			for (size_t j = 1; arg[j] != '\0'; ++j)
 			{
 				switch (arg[j])
 				{
-					case 'e': extensionFields = 1;         break;
-					case 'i': options |= TAG_IGNORECASE;   break;
-					case 'p': options |= TAG_PARTIALMATCH; break;
+					case 'e': extensionFields = 1;            break;
+					case 'i': options |= TAG_IGNORECASE;      break;
+					case 'p': options |= TAG_PARTIALMATCH;    break;
 					case 'l': listTags(); actionSupplied = 1; break;
-			
+					
 					case 't':
 						if (arg[j+1] != '\0')
 						{
@@ -942,7 +949,7 @@ extern int main(int argc, char **argv)
 						if (arg[j] == '\0')
 							SortMethod = TAG_SORTED;
 						else if (strchr("012", arg[j]) != NULL)
-							SortMethod = (sortType) (arg[j] - '0');
+							SortMethod = (sortType)(arg[j] - '0');
 						else
 						{
 							fprintf(stderr, Usage, ProgramName);

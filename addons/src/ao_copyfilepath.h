@@ -25,24 +25,26 @@
 
 G_BEGIN_DECLS
 
-#define AO_COPY_FILE_PATH_TYPE				(ao_copy_file_path_get_type())
-#define AO_COPY_FILE_PATH(obj)				(G_TYPE_CHECK_INSTANCE_CAST((obj),\
-			AO_COPY_FILE_PATH_TYPE, AoCopyFilePath))
-#define AO_COPY_FILE_PATH_CLASS(klass)		(G_TYPE_CHECK_CLASS_CAST((klass),\
-			AO_COPY_FILE_PATH_TYPE, AoCopyFilePathClass))
-#define IS_AO_COPY_FILE_PATH(obj)			(G_TYPE_CHECK_INSTANCE_TYPE((obj),\
-			AO_COPY_FILE_PATH_TYPE))
-#define IS_AO_COPY_FILE_PATH_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE((klass),\
-			AO_COPY_FILE_PATH_TYPE))
+#define AO_COPY_FILE_PATH_TYPE	(ao_copy_file_path_get_type())
+#define AO_COPY_FILE_PATH(obj)									\
+	(G_TYPE_CHECK_INSTANCE_CAST((obj), AO_COPY_FILE_PATH_TYPE,	\
+								AoCopyFilePath))
+#define AO_COPY_FILE_PATH_CLASS(klass)							\
+	(G_TYPE_CHECK_CLASS_CAST((klass), AO_COPY_FILE_PATH_TYPE,	\
+							 AoCopyFilePathClass))
+#define IS_AO_COPY_FILE_PATH(obj)								\
+	(G_TYPE_CHECK_INSTANCE_TYPE((obj), AO_COPY_FILE_PATH_TYPE))
+#define IS_AO_COPY_FILE_PATH_CLASS(klass)						\
+	(G_TYPE_CHECK_CLASS_TYPE((klass), AO_COPY_FILE_PATH_TYPE))
 
 typedef struct _AoCopyFilePath			AoCopyFilePath;
 typedef struct _AoCopyFilePathClass		AoCopyFilePathClass;
 
 
-GType			ao_copy_file_path_get_type		(void);
-AoCopyFilePath*	ao_copy_file_path_new			(void);
-void 			ao_copy_file_path_copy			(AoCopyFilePath *self);
-GtkWidget* 		ao_copy_file_path_get_menu_item	(AoCopyFilePath *self);
+GType			 ao_copy_file_path_get_type(void);
+AoCopyFilePath	*ao_copy_file_path_new(void);
+void 			 ao_copy_file_path_copy(AoCopyFilePath *self);
+GtkWidget		*ao_copy_file_path_get_menu_item(AoCopyFilePath *self);
 
 G_END_DECLS
 

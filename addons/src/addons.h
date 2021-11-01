@@ -26,9 +26,10 @@
 #define ADDONS_H 1
 
 
-extern GeanyPlugin		*geany_plugin;
-extern GeanyData		*geany_data;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;
 
-GtkWidget *ao_image_menu_item_new(const gchar *stock_id, const gchar *label);
+GtkWidget *ao_image_menu_item_new(const gchar *stock_id,
+								  const gchar *label);
 
 #endif

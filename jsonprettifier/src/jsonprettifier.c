@@ -218,7 +218,8 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 	
 	/* begin the prettifying process */
 	
-	const gchar *chosenActionString = beautify ? "Prettifying" : "Minifying";
+	const gchar *chosenActionString = beautify ? "Prettifying"
+											   : "Minifying";
 	gchar timeNow[11];
 	{
 		time_t rawtime;
@@ -382,7 +383,7 @@ static void config_set_uint_setting(GKeyFile *keyfile,
 	g_key_file_set_integer(keyfile, fcfg_g_settings, name, value);
 }
 
-static void on_configure_response(GtkDialog* dialog, gint response,
+static void on_configure_response(GtkDialog *dialog, gint response,
 									gpointer user_data)
 {
 	if (keyfile_plugin &&
@@ -426,11 +427,10 @@ static void on_configure_response(GtkDialog* dialog, gint response,
 		config_set_setting(keyfile_plugin, fcfg_e_useTabsForIndent,
 						   fcfg_e_useTabsForIndentAlias, value);
 		
-		gint i = gtk_spin_button_get_value_as_int(
+		textIndentationSymbolsCount = gtk_spin_button_get_value_as_int(
 						GTK_SPIN_BUTTON(values_indentation_symbols_count_sbtn));
-		textIndentationSymbolsCount = i;
-		
-		for (i = 0; i < textIndentationSymbolsCount; ++i)
+		gint i = 0;
+		for (; i < textIndentationSymbolsCount; ++i)
 			textIndentationString[i] = textIndentationWithTabs ? '\t' : ' ';
 		textIndentationString[i] = '\0';
 		
@@ -479,8 +479,6 @@ static void config_set_defaults(GKeyFile *keyfile)
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
 {
-	gboolean isSet = FALSE;
-	
 	GtkWidget *vbox = gtk_vbox_new(FALSE, 7);
 	GtkWidget *_hbox1 = gtk_hbox_new(FALSE, 7);
 	GtkWidget *_hbox2 = gtk_hbox_new(FALSE, 7);
@@ -510,8 +508,8 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 		GTK_TOGGLE_BUTTON(reformat_multiple_json_entities_at_once_btn),
 		config_get_setting(keyfile_plugin, fcfg_e_reformatMultJsonEntities, NULL));
 	
-	isSet = config_get_setting(keyfile_plugin, fcfg_e_useTabsForIndent,
-							   fcfg_e_useTabsForIndentAlias);
+	gboolean isSet = config_get_setting(keyfile_plugin, fcfg_e_useTabsForIndent,
+										fcfg_e_useTabsForIndentAlias);
 	
 	values_indentation_spaces_rbtn = gtk_radio_button_new_with_label(NULL,
 										_("Indent values with spaces"));

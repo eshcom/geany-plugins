@@ -1,19 +1,19 @@
 /*
- *	  Copyright 2010-2014 Jiri Techet <techet@gmail.com>
+ *   Copyright 2010-2014 Jiri Techet <techet@gmail.com>
  *
- *	  This program is free software; you can redistribute it and/or modify
- *	  it under the terms of the GNU General Public License as published by
- *	  the Free Software Foundation; either version 2 of the License, or
- *	  (at your option) any later version.
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- *	  This program is distributed in the hope that it will be useful,
- *	  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	  GNU General Public License for more details.
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- *	  You should have received a copy of the GNU General Public License
- *	  along with this program; if not, write to the Free Software
- *	  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <sys/time.h>
@@ -62,8 +62,8 @@ typedef struct {
 static GeanyctagsInfo *gtags_info = NULL;
 
 
-static GtkWidget *s_context_fdec_item, *s_context_fdef_item, *s_context_sep_item,
-				 *s_gt_item, *s_sep_item, *s_ft_item;
+static GtkWidget *s_context_fdec_item, *s_context_fdef_item,
+				 *s_context_sep_item, *s_gt_item, *s_sep_item, *s_ft_item;
 
 static struct
 {
@@ -577,17 +577,14 @@ static void on_find_tag(GtkMenuItem *menuitem, gpointer user_data)
 	
 	if (gtk_dialog_run(GTK_DIALOG(s_ft_dialog.widget)) == GTK_RESPONSE_ACCEPT)
 	{
-		const gchar *name;
-		gboolean case_sensitive, declaration;
-		MatchType match_type;
+		gboolean case_sensitive = gtk_toggle_button_get_active(
+									GTK_TOGGLE_BUTTON(s_ft_dialog.case_sensitive));
+		gboolean declaration = gtk_toggle_button_get_active(
+									GTK_TOGGLE_BUTTON(s_ft_dialog.declaration));
+		MatchType match_type = gtk_combo_box_get_active(
+									GTK_COMBO_BOX(s_ft_dialog.combo_match));
 		
-		name = gtk_entry_get_text(GTK_ENTRY(entry));
-		case_sensitive = gtk_toggle_button_get_active(
-								GTK_TOGGLE_BUTTON(s_ft_dialog.case_sensitive));
-		declaration = gtk_toggle_button_get_active(
-								GTK_TOGGLE_BUTTON(s_ft_dialog.declaration));
-		match_type = gtk_combo_box_get_active(
-								GTK_COMBO_BOX(s_ft_dialog.combo_match));
+		const gchar *name = gtk_entry_get_text(GTK_ENTRY(entry));
 		
 		ui_combo_box_add_to_history(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo),
 									name, 0);
