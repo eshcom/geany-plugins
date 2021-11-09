@@ -28,31 +28,31 @@
 #endif
 
 /* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin 				*geany_plugin;
-GeanyData 					*geany_data;
+GeanyPlugin					*geany_plugin;
+GeanyData					*geany_data;
 
-static gint 				page_number 				= 0;
-static GtkTreeStore 		*treestore;
-static GtkWidget 			*treeview;
-static GtkWidget 			*sidebar_vbox;
-static GtkWidget 			*sidebar_vbox_bars;
-static GtkWidget 			*filter;
-static GtkWidget 			*addressbar;
-static gchar 				*addressbar_last_address 	= NULL;
+static gint					page_number					= 0;
+static GtkTreeStore			*treestore;
+static GtkWidget			*treeview;
+static GtkWidget			*sidebar_vbox;
+static GtkWidget			*sidebar_vbox_bars;
+static GtkWidget			*filter;
+static GtkWidget			*addressbar;
+static gchar				*addressbar_last_address	= NULL;
 
-static GtkTreeIter 			bookmarks_iter;
-static gboolean 			bookmarks_expanded 			= FALSE;
+static GtkTreeIter			bookmarks_iter;
+static gboolean				bookmarks_expanded			= FALSE;
 
-static GtkTreeViewColumn 	*treeview_column_text;
-static GtkCellRenderer 		*render_icon, *render_text;
+static GtkTreeViewColumn	*treeview_column_text;
+static GtkCellRenderer		*render_icon, *render_text;
 
-static GtkWidget 			*btn_proj_path;
+static GtkWidget			*btn_proj_path;
 
 /* ------------------
  * FLAGS
  * ------------------ */
 
-static gboolean 			flag_on_expand_refresh 		= FALSE;
+static gboolean				flag_on_expand_refresh		= FALSE;
 
 /* ------------------
  *  CONFIG VARS
@@ -66,28 +66,31 @@ static gboolean 			flag_on_expand_refresh 		= FALSE;
 # define CONFIG_OPEN_TERMINAL_DEFAULT "cmd"
 #endif
 
-# define CONFIG_MASK_OBJECT_FILES_DEFAULT \
+# define CONFIG_OBJECT_FILES_MASK_DEFAULT \
 	".o .obj .so .dll .a .lib .la .lo .pyc .class .beam"
 
-static gchar 				*CONFIG_FILE 				= NULL;
-static gchar 				*CONFIG_OPEN_EXTERNAL_CMD 	= NULL;
-static gchar 				*CONFIG_OPEN_TERMINAL 		= NULL;
-static gboolean 			CONFIG_REVERSE_FILTER 		= FALSE;
-static gboolean 			CONFIG_ONE_CLICK_CHDOC 		= FALSE;
-static gboolean 			CONFIG_SHOW_HIDDEN_FILES 	= FALSE;
-static gboolean 			CONFIG_HIDE_OBJECT_FILES 	= FALSE;
-static gchar 				*CONFIG_MASK_OBJECT_FILES 	= NULL;
-static gint 				CONFIG_SHOW_BARS			= 1;
-static gboolean 			CONFIG_CHROOT_ON_DCLICK		= FALSE;
-static gboolean 			CONFIG_FOLLOW_CURRENT_DOC 	= TRUE;
-static gboolean 			CONFIG_ON_DELETE_CLOSE_FILE = TRUE;
-static gboolean 			CONFIG_ON_OPEN_FOCUS_EDITOR = FALSE;
-static gboolean 			CONFIG_SHOW_TREE_LINES 		= TRUE;
-static gboolean 			CONFIG_SHOW_BOOKMARKS 		= FALSE;
-static gint 				CONFIG_SHOW_ICONS 			= 2;
-static gboolean				CONFIG_OPEN_NEW_FILES 		= TRUE;
+static gchar				*CONFIG_FILE				= NULL;
+static gchar				*CONFIG_OPEN_EXTERNAL_CMD	= NULL;
+static gchar				*CONFIG_OPEN_TERMINAL		= NULL;
+static gboolean				CONFIG_REVERSE_FILTER		= FALSE;
+static gboolean				CONFIG_ONE_CLICK_CHDOC		= FALSE;
+static gboolean				CONFIG_SHOW_HIDDEN_FILES	= FALSE;
+static gboolean				CONFIG_HIDE_OBJECT_FILES	= FALSE;
+static gchar				*CONFIG_OBJECT_FILES_MASK	= NULL;
+static gboolean				CONFIG_HIDE_IGNORED_DIRS	= FALSE;
+static gchar				*CONFIG_IGNORED_DIRS_MASK	= NULL;
+static gint					CONFIG_SHOW_BARS			= 1;
+static gboolean				CONFIG_CHROOT_ON_DCLICK		= FALSE;
+static gboolean				CONFIG_FOLLOW_CURRENT_DOC	= TRUE;
+static gboolean				CONFIG_ON_DELETE_CLOSE_FILE	= TRUE;
+static gboolean				CONFIG_ON_OPEN_FOCUS_EDITOR	= FALSE;
+static gboolean				CONFIG_SHOW_TREE_LINES		= TRUE;
+static gboolean				CONFIG_SHOW_BOOKMARKS		= FALSE;
+static gint					CONFIG_SHOW_ICONS			= 2;
+static gboolean				CONFIG_OPEN_NEW_FILES		= TRUE;
 
-static gchar **EXT_OBJECT_FILES = NULL;
+static gchar **OBJECT_FILE_EXTS = NULL;
+static gchar **IGNORED_DIR_NAMES = NULL;
 
 /* ------------------
  * TREEVIEW STRUCT
@@ -95,17 +98,17 @@ static gchar **EXT_OBJECT_FILES = NULL;
 
 enum
 {
-	TREEBROWSER_COLUMNC 								= 4,
+	TREEBROWSER_COLUMNC									= 4,
 	
-	TREEBROWSER_COLUMN_ICON 							= 0,
-	TREEBROWSER_COLUMN_NAME 							= 1,
-	TREEBROWSER_COLUMN_URI 								= 2,
-	TREEBROWSER_COLUMN_FLAG 							= 3,
+	TREEBROWSER_COLUMN_ICON								= 0,
+	TREEBROWSER_COLUMN_NAME								= 1,
+	TREEBROWSER_COLUMN_URI								= 2,
+	TREEBROWSER_COLUMN_FLAG								= 3,
 	
-	TREEBROWSER_RENDER_ICON 							= 0,
-	TREEBROWSER_RENDER_TEXT 							= 1,
+	TREEBROWSER_RENDER_ICON								= 0,
+	TREEBROWSER_RENDER_TEXT								= 1,
 	
-	TREEBROWSER_FLAGS_SEPARATOR 						= -1
+	TREEBROWSER_FLAGS_SEPARATOR							= -1
 };
 
 
@@ -125,7 +128,7 @@ enum
 };
 
 
-/* SearchFilter (for check_filter) */
+/* SearchFilter (for is_passed_filter) */
 typedef struct {
 	gchar **filters;
 	gboolean reverse;
@@ -348,13 +351,13 @@ static void free_filter(SearchFilter *fobj)
 
 /* Return: FALSE - if the file has not passed the filter and should not be shown
  *         TRUE  - if the file passed the filter and should be shown */
-static gboolean check_filter(const gchar *base_name,
-							 const SearchFilter *fobj)
+static gboolean is_passed_filter(const gchar *base_name,
+								 const SearchFilter *fobj)
 {
 	if (CONFIG_HIDE_OBJECT_FILES)
 	{
 		gchar **ext;
-		foreach_strv(ext, EXT_OBJECT_FILES)
+		foreach_strv(ext, OBJECT_FILE_EXTS)
 		{
 			if (**ext && g_str_has_suffix(base_name, *ext))
 				return FALSE; // not passed
@@ -364,18 +367,24 @@ static gboolean check_filter(const gchar *base_name,
 	if (!fobj->filters || !(*fobj->filters))
 		return TRUE; // passed
 	
-	gboolean passed = fobj->reverse;
 	gchar **filt;
 	foreach_strv(filt, fobj->filters)
 	{
-		if (utils_str_equal(base_name, "*") ||
-			g_pattern_match_simple(*filt, base_name))
-		{
-			passed = !fobj->reverse;
-			break;
-		}
+		if (**filt && g_pattern_match_simple(*filt, base_name))
+			return !fobj->reverse;
 	}
-	return passed;
+	return fobj->reverse;
+}
+
+static gboolean is_ignored_dir(const gchar *base_name)
+{
+	gchar **dir;
+	foreach_strv(dir, IGNORED_DIR_NAMES)
+	{
+		if (**dir && g_pattern_match_simple(*dir, base_name))
+			return TRUE;
+	}
+	return FALSE;
 }
 
 #ifndef G_OS_WIN32
@@ -392,36 +401,61 @@ static GString *generate_find_cmd(void)
 	GString *gstr = g_string_new("find -L . -type f");
 	
 	if (!CONFIG_SHOW_HIDDEN_FILES)
-		g_string_append(gstr, " -not -path '*/.*' -not -name \".*\"");
+		g_string_append(gstr, " -not -path '*/.*' -not -name '.*'");
 	
 	if (CONFIG_HIDE_OBJECT_FILES)
 	{
 		gchar **ext;
-		foreach_strv(ext, EXT_OBJECT_FILES)
+		foreach_strv(ext, OBJECT_FILE_EXTS)
 		{
 			if (**ext)
 			{
-				g_string_append(gstr, " -not -name \"");
+				g_string_append(gstr, " -not -name '");
 				g_string_append_c(gstr, '*');
 				g_string_append(gstr, *ext);
-				g_string_append_c(gstr, '\"');
+				g_string_append_c(gstr, '\'');
 			}
 		}
 	}
 	
-	g_string_append(gstr, fobj->reverse ? " \\( -not -name \""
-										: " \\( -name \"");
-	g_string_append(gstr, fobj->filters[0]);
-	g_string_append_c(gstr, '\"');
-	
-	for (guint i = 1; fobj->filters[i]; i++)
+	if (CONFIG_HIDE_IGNORED_DIRS)
 	{
-		g_string_append(gstr, fobj->reverse ? " -not -name \""
-											: " -o -name \"");
-		g_string_append(gstr, fobj->filters[i]);
-		g_string_append_c(gstr, '\"');
+		gchar **dir;
+		foreach_strv(dir, IGNORED_DIR_NAMES)
+		{
+			if (**dir)
+			{
+				g_string_append(gstr, " -not -path '*/");
+				g_string_append(gstr, *dir);
+				g_string_append(gstr, "/*'");
+			}
+		}
 	}
-	g_string_append(gstr, " \\)");
+	
+	gboolean set_filter = FALSE;
+	gboolean first = TRUE;
+	gchar **filt;
+	foreach_strv(filt, fobj->filters)
+	{
+		if (**filt)
+		{
+			if (first)
+			{
+				first = FALSE;
+				g_string_append(gstr, fobj->reverse ? " \\( -not -name '"
+													: " \\( -name '");
+			}
+			else
+				g_string_append(gstr, fobj->reverse ? " -not -name '"
+													: " -o -name '");
+			g_string_append(gstr, *filt);
+			g_string_append_c(gstr, '\'');
+			
+			if (!set_filter) set_filter = TRUE;
+		}
+	}
+	if (set_filter)
+		g_string_append(gstr, " \\)");
 	
 	g_string_append(gstr, " -exec dirname {} \\; | sort -u");
 	
@@ -461,7 +495,7 @@ static void find_and_expand_to_paths(void)
 #endif
 
 #ifdef G_OS_WIN32
-static gboolean win32_check_hidden(const gchar *filename)
+static gboolean win32_is_hidden(const gchar *filename)
 {
 	static wchar_t w_filename[MAX_PATH];
 	MultiByteToWideChar(CP_UTF8, 0, filename, -1,
@@ -474,7 +508,7 @@ static gboolean win32_check_hidden(const gchar *filename)
 #endif
 
 /* Returns: whether name should be hidden. */
-static gboolean check_hidden(const gchar *filename)
+static gboolean is_hidden(const gchar *filename)
 {
 	gchar *base_name = g_path_get_basename(filename);
 	if (EMPTY(base_name))
@@ -486,7 +520,7 @@ static gboolean check_hidden(const gchar *filename)
 	gboolean result;
 	
 #ifdef G_OS_WIN32
-	result = win32_check_hidden(filename);
+	result = win32_is_hidden(filename);
 #else
 	result = base_name[0] == '.';
 #endif
@@ -631,47 +665,50 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 		GSList *node;
 		foreach_slist_free(node, list)
 		{
-			gchar *fname = node->data;
+			gchar *fname = node->data; // esh: locale encoding
 			gchar *uri   = g_strconcat(directory, fname, NULL);
 			
-			if (CONFIG_SHOW_HIDDEN_FILES || !check_hidden(uri))
+			if (CONFIG_SHOW_HIDDEN_FILES || !is_hidden(uri))
 			{
 				GdkPixbuf *icon = NULL;
+				gchar *utf8_name = utils_get_utf8_from_locale(fname);
 				
 				if (g_file_test(uri, G_FILE_TEST_IS_DIR))
 				{
-					if (last_dir_iter == NULL)
-						gtk_tree_store_prepend(treestore, &iter, parent);
-					else
+					if (!CONFIG_HIDE_IGNORED_DIRS || !is_ignored_dir(utf8_name))
 					{
-						gtk_tree_store_insert_after(treestore, &iter,
-													parent, last_dir_iter);
-						gtk_tree_iter_free(last_dir_iter);
-					}
-					last_dir_iter = gtk_tree_iter_copy(&iter);
+						if (last_dir_iter == NULL)
+							gtk_tree_store_prepend(treestore, &iter, parent);
+						else
+						{
+							gtk_tree_store_insert_after(treestore, &iter,
+														parent, last_dir_iter);
+							gtk_tree_iter_free(last_dir_iter);
+						}
+						last_dir_iter = gtk_tree_iter_copy(&iter);
 #if GTK_CHECK_VERSION(3, 10, 0)
-					icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_name("folder")
-											 : NULL;
+						icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_name("folder")
+												 : NULL;
 #else
-					icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_stock(GTK_STOCK_DIRECTORY)
-											 : NULL;
+						icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_stock(GTK_STOCK_DIRECTORY)
+												 : NULL;
 #endif
-					gtk_tree_store_set(treestore, &iter,
-									   TREEBROWSER_COLUMN_ICON, icon,
-									   TREEBROWSER_COLUMN_NAME, fname,
-									   TREEBROWSER_COLUMN_URI,  uri, -1);
-					
-					gtk_tree_store_prepend(treestore, &iter_empty, &iter);
-					
-					gtk_tree_store_set(treestore, &iter_empty,
-									   TREEBROWSER_COLUMN_ICON, NULL,
-									   TREEBROWSER_COLUMN_NAME, _("(Empty)"),
-									   TREEBROWSER_COLUMN_URI,  NULL, -1);
+						gtk_tree_store_set(treestore, &iter,
+										   TREEBROWSER_COLUMN_ICON, icon,
+										   TREEBROWSER_COLUMN_NAME, fname,
+										   TREEBROWSER_COLUMN_URI,  uri, -1);
+						
+						gtk_tree_store_prepend(treestore, &iter_empty, &iter);
+						
+						gtk_tree_store_set(treestore, &iter_empty,
+										   TREEBROWSER_COLUMN_ICON, NULL,
+										   TREEBROWSER_COLUMN_NAME, _("(Empty)"),
+										   TREEBROWSER_COLUMN_URI,  NULL, -1);
+					}
 				}
 				else
 				{
-					gchar *utf8_name = utils_get_utf8_from_locale(fname);
-					if (check_filter(utf8_name, fobj))
+					if (is_passed_filter(utf8_name, fobj))
 					{
 						icon = CONFIG_SHOW_ICONS == 2
 										? utils_pixbuf_from_path(uri)
@@ -690,8 +727,8 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 										   TREEBROWSER_COLUMN_NAME, fname,
 										   TREEBROWSER_COLUMN_URI,  uri, -1);
 					}
-					g_free(utf8_name);
 				}
+				g_free(utf8_name);
 				if (icon)
 					g_object_unref(icon);
 			}
@@ -2167,7 +2204,9 @@ static struct
 	GtkWidget *ONE_CLICK_CHDOC;
 	GtkWidget *SHOW_HIDDEN_FILES;
 	GtkWidget *HIDE_OBJECT_FILES;
-	GtkWidget *MASK_OBJECT_FILES;
+	GtkWidget *OBJECT_FILES_MASK;
+	GtkWidget *HIDE_IGNORED_DIRS;
+	GtkWidget *IGNORED_DIRS_MASK;
 	GtkWidget *SHOW_BARS;
 	GtkWidget *CHROOT_ON_DCLICK;
 	GtkWidget *FOLLOW_CURRENT_DOC;
@@ -2179,9 +2218,11 @@ static struct
 	GtkWidget *OPEN_NEW_FILES;
 } configure_widgets;
 
-#define LOAD_EXT_OBJECT_FILES		\
-	g_strfreev(EXT_OBJECT_FILES);	\
-	EXT_OBJECT_FILES = g_strsplit(CONFIG_MASK_OBJECT_FILES, " ", 0);
+#define LOAD_IGNORE_LISTS												\
+	g_strfreev(OBJECT_FILE_EXTS);										\
+	OBJECT_FILE_EXTS = g_strsplit(CONFIG_OBJECT_FILES_MASK, " ", 0);	\
+	g_strfreev(IGNORED_DIR_NAMES);										\
+	IGNORED_DIR_NAMES = g_strsplit(CONFIG_IGNORED_DIRS_MASK, " ", 0);
 
 static void load_settings(void)
 {
@@ -2189,24 +2230,26 @@ static void load_settings(void)
 	
 	g_key_file_load_from_file(config, CONFIG_FILE, G_KEY_FILE_NONE, NULL);
 	
-	CONFIG_OPEN_EXTERNAL_CMD 	= utils_get_setting_string(config, "treebrowser", "open_external_cmd", 		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
-	CONFIG_OPEN_TERMINAL 		= utils_get_setting_string(config, "treebrowser", "open_terminal", 			CONFIG_OPEN_TERMINAL_DEFAULT);
-	CONFIG_REVERSE_FILTER 		= utils_get_setting_boolean(config, "treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
-	CONFIG_ONE_CLICK_CHDOC 		= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
-	CONFIG_SHOW_HIDDEN_FILES 	= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
-	CONFIG_HIDE_OBJECT_FILES 	= utils_get_setting_boolean(config, "treebrowser", "hide_object_files", 	CONFIG_HIDE_OBJECT_FILES);
-	CONFIG_MASK_OBJECT_FILES 	= utils_get_setting_string(config, "treebrowser", "mask_object_files", 		CONFIG_MASK_OBJECT_FILES_DEFAULT);
-	CONFIG_SHOW_BARS 			= utils_get_setting_integer(config, "treebrowser", "show_bars", 			CONFIG_SHOW_BARS);
-	CONFIG_CHROOT_ON_DCLICK 	= utils_get_setting_boolean(config, "treebrowser", "chroot_on_dclick", 		CONFIG_CHROOT_ON_DCLICK);
-	CONFIG_FOLLOW_CURRENT_DOC 	= utils_get_setting_boolean(config, "treebrowser", "follow_current_doc", 	CONFIG_FOLLOW_CURRENT_DOC);
-	CONFIG_ON_DELETE_CLOSE_FILE	= utils_get_setting_boolean(config, "treebrowser", "on_delete_close_file", 	CONFIG_ON_DELETE_CLOSE_FILE);
-	CONFIG_ON_OPEN_FOCUS_EDITOR	= utils_get_setting_boolean(config, "treebrowser", "on_open_focus_editor", 	CONFIG_ON_OPEN_FOCUS_EDITOR);
-	CONFIG_SHOW_TREE_LINES 		= utils_get_setting_boolean(config, "treebrowser", "show_tree_lines", 		CONFIG_SHOW_TREE_LINES);
-	CONFIG_SHOW_BOOKMARKS 		= utils_get_setting_boolean(config, "treebrowser", "show_bookmarks", 		CONFIG_SHOW_BOOKMARKS);
-	CONFIG_SHOW_ICONS 			= utils_get_setting_integer(config, "treebrowser", "show_icons", 			CONFIG_SHOW_ICONS);
+	CONFIG_OPEN_EXTERNAL_CMD	= utils_get_setting_string(config, "treebrowser", "open_external_cmd",		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
+	CONFIG_OPEN_TERMINAL		= utils_get_setting_string(config, "treebrowser", "open_terminal",			CONFIG_OPEN_TERMINAL_DEFAULT);
+	CONFIG_REVERSE_FILTER		= utils_get_setting_boolean(config, "treebrowser", "reverse_filter",		CONFIG_REVERSE_FILTER);
+	CONFIG_ONE_CLICK_CHDOC		= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc",		CONFIG_ONE_CLICK_CHDOC);
+	CONFIG_SHOW_HIDDEN_FILES	= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files",		CONFIG_SHOW_HIDDEN_FILES);
+	CONFIG_HIDE_OBJECT_FILES	= utils_get_setting_boolean(config, "treebrowser", "hide_object_files",		CONFIG_HIDE_OBJECT_FILES);
+	CONFIG_OBJECT_FILES_MASK	= utils_get_setting_string(config, "treebrowser", "object_files_mask",		CONFIG_OBJECT_FILES_MASK_DEFAULT);
+	CONFIG_HIDE_IGNORED_DIRS	= utils_get_setting_boolean(config, "treebrowser", "hide_ignored_dirs",		CONFIG_HIDE_IGNORED_DIRS);
+	CONFIG_IGNORED_DIRS_MASK	= utils_get_setting_string(config, "treebrowser", "ignored_dirs_mask",		"");
+	CONFIG_SHOW_BARS			= utils_get_setting_integer(config, "treebrowser", "show_bars",				CONFIG_SHOW_BARS);
+	CONFIG_CHROOT_ON_DCLICK		= utils_get_setting_boolean(config, "treebrowser", "chroot_on_dclick",		CONFIG_CHROOT_ON_DCLICK);
+	CONFIG_FOLLOW_CURRENT_DOC	= utils_get_setting_boolean(config, "treebrowser", "follow_current_doc",	CONFIG_FOLLOW_CURRENT_DOC);
+	CONFIG_ON_DELETE_CLOSE_FILE	= utils_get_setting_boolean(config, "treebrowser", "on_delete_close_file",	CONFIG_ON_DELETE_CLOSE_FILE);
+	CONFIG_ON_OPEN_FOCUS_EDITOR	= utils_get_setting_boolean(config, "treebrowser", "on_open_focus_editor",	CONFIG_ON_OPEN_FOCUS_EDITOR);
+	CONFIG_SHOW_TREE_LINES		= utils_get_setting_boolean(config, "treebrowser", "show_tree_lines",		CONFIG_SHOW_TREE_LINES);
+	CONFIG_SHOW_BOOKMARKS		= utils_get_setting_boolean(config, "treebrowser", "show_bookmarks",		CONFIG_SHOW_BOOKMARKS);
+	CONFIG_SHOW_ICONS			= utils_get_setting_integer(config, "treebrowser", "show_icons",			CONFIG_SHOW_ICONS);
 	CONFIG_OPEN_NEW_FILES		= utils_get_setting_boolean(config, "treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
 	
-	LOAD_EXT_OBJECT_FILES;
+	LOAD_IGNORE_LISTS;
 	
 	g_key_file_free(config);
 }
@@ -2225,22 +2268,24 @@ static gboolean save_settings(void)
 		return FALSE;
 	}
 	
-	g_key_file_set_string(config, 	"treebrowser", "open_external_cmd", 	CONFIG_OPEN_EXTERNAL_CMD);
-	g_key_file_set_string(config, 	"treebrowser", "open_terminal", 		CONFIG_OPEN_TERMINAL);
-	g_key_file_set_boolean(config, 	"treebrowser", "reverse_filter", 		CONFIG_REVERSE_FILTER);
-	g_key_file_set_boolean(config, 	"treebrowser", "one_click_chdoc", 		CONFIG_ONE_CLICK_CHDOC);
-	g_key_file_set_boolean(config, 	"treebrowser", "show_hidden_files", 	CONFIG_SHOW_HIDDEN_FILES);
-	g_key_file_set_boolean(config, 	"treebrowser", "hide_object_files", 	CONFIG_HIDE_OBJECT_FILES);
-	g_key_file_set_string(config, 	"treebrowser", "mask_object_files", 	CONFIG_MASK_OBJECT_FILES);
-	g_key_file_set_integer(config, 	"treebrowser", "show_bars", 			CONFIG_SHOW_BARS);
-	g_key_file_set_boolean(config, 	"treebrowser", "chroot_on_dclick", 		CONFIG_CHROOT_ON_DCLICK);
-	g_key_file_set_boolean(config, 	"treebrowser", "follow_current_doc", 	CONFIG_FOLLOW_CURRENT_DOC);
-	g_key_file_set_boolean(config, 	"treebrowser", "on_delete_close_file", 	CONFIG_ON_DELETE_CLOSE_FILE);
-	g_key_file_set_boolean(config, 	"treebrowser", "on_open_focus_editor", 	CONFIG_ON_OPEN_FOCUS_EDITOR);
-	g_key_file_set_boolean(config, 	"treebrowser", "show_tree_lines", 		CONFIG_SHOW_TREE_LINES);
-	g_key_file_set_boolean(config, 	"treebrowser", "show_bookmarks", 		CONFIG_SHOW_BOOKMARKS);
-	g_key_file_set_integer(config, 	"treebrowser", "show_icons", 			CONFIG_SHOW_ICONS);
-	g_key_file_set_boolean(config, 	"treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
+	g_key_file_set_string(config,	"treebrowser", "open_external_cmd",		CONFIG_OPEN_EXTERNAL_CMD);
+	g_key_file_set_string(config,	"treebrowser", "open_terminal",			CONFIG_OPEN_TERMINAL);
+	g_key_file_set_boolean(config,	"treebrowser", "reverse_filter",		CONFIG_REVERSE_FILTER);
+	g_key_file_set_boolean(config,	"treebrowser", "one_click_chdoc",		CONFIG_ONE_CLICK_CHDOC);
+	g_key_file_set_boolean(config,	"treebrowser", "show_hidden_files",		CONFIG_SHOW_HIDDEN_FILES);
+	g_key_file_set_boolean(config,	"treebrowser", "hide_object_files",		CONFIG_HIDE_OBJECT_FILES);
+	g_key_file_set_string(config,	"treebrowser", "object_files_mask",		CONFIG_OBJECT_FILES_MASK);
+	g_key_file_set_boolean(config,	"treebrowser", "hide_ignored_dirs",		CONFIG_HIDE_IGNORED_DIRS);
+	g_key_file_set_string(config,	"treebrowser", "ignored_dirs_mask",		CONFIG_IGNORED_DIRS_MASK);
+	g_key_file_set_integer(config,	"treebrowser", "show_bars",				CONFIG_SHOW_BARS);
+	g_key_file_set_boolean(config,	"treebrowser", "chroot_on_dclick",		CONFIG_CHROOT_ON_DCLICK);
+	g_key_file_set_boolean(config,	"treebrowser", "follow_current_doc",	CONFIG_FOLLOW_CURRENT_DOC);
+	g_key_file_set_boolean(config,	"treebrowser", "on_delete_close_file",	CONFIG_ON_DELETE_CLOSE_FILE);
+	g_key_file_set_boolean(config,	"treebrowser", "on_open_focus_editor",	CONFIG_ON_OPEN_FOCUS_EDITOR);
+	g_key_file_set_boolean(config,	"treebrowser", "show_tree_lines",		CONFIG_SHOW_TREE_LINES);
+	g_key_file_set_boolean(config,	"treebrowser", "show_bookmarks",		CONFIG_SHOW_BOOKMARKS);
+	g_key_file_set_integer(config,	"treebrowser", "show_icons",			CONFIG_SHOW_ICONS);
+	g_key_file_set_boolean(config,	"treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
 	
 	gchar *data = g_key_file_to_data(config, NULL, NULL);
 	utils_write_file(CONFIG_FILE, data);
@@ -2258,24 +2303,26 @@ static void on_configure_response(GtkDialog *dialog, gint response,
 	if (!(response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY))
 		return;
 	
-	CONFIG_OPEN_EXTERNAL_CMD 	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_EXTERNAL_CMD), 0, -1);
-	CONFIG_OPEN_TERMINAL 		= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_TERMINAL), 0, -1);
-	CONFIG_REVERSE_FILTER 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.REVERSE_FILTER));
-	CONFIG_ONE_CLICK_CHDOC 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ONE_CLICK_CHDOC));
-	CONFIG_SHOW_HIDDEN_FILES 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_HIDDEN_FILES));
-	CONFIG_HIDE_OBJECT_FILES 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.HIDE_OBJECT_FILES));
-	CONFIG_MASK_OBJECT_FILES 	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.MASK_OBJECT_FILES), 0, -1);
-	CONFIG_SHOW_BARS 			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_BARS));
-	CONFIG_CHROOT_ON_DCLICK 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.CHROOT_ON_DCLICK));
-	CONFIG_FOLLOW_CURRENT_DOC 	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.FOLLOW_CURRENT_DOC));
+	CONFIG_OPEN_EXTERNAL_CMD	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_EXTERNAL_CMD), 0, -1);
+	CONFIG_OPEN_TERMINAL		= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_TERMINAL), 0, -1);
+	CONFIG_REVERSE_FILTER		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.REVERSE_FILTER));
+	CONFIG_ONE_CLICK_CHDOC		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ONE_CLICK_CHDOC));
+	CONFIG_SHOW_HIDDEN_FILES	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_HIDDEN_FILES));
+	CONFIG_HIDE_OBJECT_FILES	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.HIDE_OBJECT_FILES));
+	CONFIG_OBJECT_FILES_MASK	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OBJECT_FILES_MASK), 0, -1);
+	CONFIG_HIDE_IGNORED_DIRS	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.HIDE_IGNORED_DIRS));
+	CONFIG_IGNORED_DIRS_MASK	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.IGNORED_DIRS_MASK), 0, -1);
+	CONFIG_SHOW_BARS			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_BARS));
+	CONFIG_CHROOT_ON_DCLICK		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.CHROOT_ON_DCLICK));
+	CONFIG_FOLLOW_CURRENT_DOC	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.FOLLOW_CURRENT_DOC));
 	CONFIG_ON_DELETE_CLOSE_FILE	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ON_DELETE_CLOSE_FILE));
 	CONFIG_ON_OPEN_FOCUS_EDITOR	= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.ON_OPEN_FOCUS_EDITOR));
-	CONFIG_SHOW_TREE_LINES 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_TREE_LINES));
-	CONFIG_SHOW_BOOKMARKS 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_BOOKMARKS));
-	CONFIG_SHOW_ICONS 			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_ICONS));
-	CONFIG_OPEN_NEW_FILES 		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.OPEN_NEW_FILES));
+	CONFIG_SHOW_TREE_LINES		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_TREE_LINES));
+	CONFIG_SHOW_BOOKMARKS		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.SHOW_BOOKMARKS));
+	CONFIG_SHOW_ICONS			= gtk_combo_box_get_active(GTK_COMBO_BOX(configure_widgets.SHOW_ICONS));
+	CONFIG_OPEN_NEW_FILES		= gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(configure_widgets.OPEN_NEW_FILES));
 	
-	LOAD_EXT_OBJECT_FILES;
+	LOAD_IGNORE_LISTS;
 	
 	if (save_settings())
 	{
@@ -2295,10 +2342,12 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 {
 	GtkWidget *label;
 	GtkWidget *vbox, *hbox;
+	const gchar *tooltip;
 	
 	vbox = gtk_vbox_new(FALSE, 0);
-	hbox = gtk_hbox_new(FALSE, 0);
 	
+	//----------------------------------------------------------------
+	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("External open command"));
 	configure_widgets.OPEN_EXTERNAL_CMD = gtk_entry_new();
 	gtk_widget_set_size_request(configure_widgets.OPEN_EXTERNAL_CMD,
@@ -2322,6 +2371,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 					   FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);
 	
+	//----------------------------------------------------------------
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Terminal"));
 	configure_widgets.OPEN_TERMINAL = gtk_entry_new();
@@ -2341,6 +2391,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 					   FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);
 	
+	//----------------------------------------------------------------
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Toolbar"));
 	configure_widgets.SHOW_BARS = gtk_combo_box_text_new();
@@ -2363,6 +2414,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(configure_widgets.SHOW_BARS),
 							 CONFIG_SHOW_BARS);
 	
+	//----------------------------------------------------------------
 	hbox = gtk_hbox_new(FALSE, 0);
 	label = gtk_label_new(_("Show icons"));
 	configure_widgets.SHOW_ICONS = gtk_combo_box_text_new();
@@ -2382,6 +2434,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(configure_widgets.SHOW_ICONS),
 							 CONFIG_SHOW_ICONS);
 	
+	//----------------------------------------------------------------
 	configure_widgets.SHOW_HIDDEN_FILES =
 			gtk_check_button_new_with_label(_("Show hidden files"));
 	
@@ -2400,7 +2453,11 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_widget_set_tooltip_text(configure_widgets.SHOW_HIDDEN_FILES,
 		_("On Windows, this just hide files that are prefixed with '.' (dot)"));
 	
+	//----------------------------------------------------------------
 	hbox = gtk_hbox_new(FALSE, 0);
+	tooltip = _("Don't show generated object files in the file browser, "
+				"this includes *.o, *.obj, *.so, *.dll, *.a, *.lib");
+	
 	configure_widgets.HIDE_OBJECT_FILES =
 			gtk_check_button_new_with_label(_("Hide object files:"));
 	
@@ -2414,21 +2471,50 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_toggle_button_set_active(
 						GTK_TOGGLE_BUTTON(configure_widgets.HIDE_OBJECT_FILES),
 						CONFIG_HIDE_OBJECT_FILES);
-	gtk_widget_set_tooltip_text(configure_widgets.HIDE_OBJECT_FILES,
-		_("Don't show generated object files in the file browser, "
-		  "this includes *.o, *.obj, *.so, *.dll, *.a, *.lib"));
+	gtk_widget_set_tooltip_text(configure_widgets.HIDE_OBJECT_FILES, tooltip);
 	
-	configure_widgets.MASK_OBJECT_FILES = gtk_entry_new();
-	gtk_entry_set_text(GTK_ENTRY(configure_widgets.MASK_OBJECT_FILES),
-					   CONFIG_MASK_OBJECT_FILES);
+	configure_widgets.OBJECT_FILES_MASK = gtk_entry_new();
+	gtk_entry_set_text(GTK_ENTRY(configure_widgets.OBJECT_FILES_MASK),
+					   CONFIG_OBJECT_FILES_MASK);
+	gtk_widget_set_tooltip_text(configure_widgets.OBJECT_FILES_MASK, tooltip);
 	
 	gtk_box_pack_start(GTK_BOX(hbox), configure_widgets.HIDE_OBJECT_FILES,
 					   FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox), configure_widgets.MASK_OBJECT_FILES,
+	gtk_box_pack_start(GTK_BOX(hbox), configure_widgets.OBJECT_FILES_MASK,
 					   TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);
 	
+	//----------------------------------------------------------------
+	hbox = gtk_hbox_new(FALSE, 0);
+	tooltip = _("Don't show specified dirs in the file browser");
 	
+	configure_widgets.HIDE_IGNORED_DIRS =
+			gtk_check_button_new_with_label(_("Hide specified dirs:"));
+	
+#if GTK_CHECK_VERSION(3, 20, 0)
+	gtk_widget_set_focus_on_click(configure_widgets.HIDE_IGNORED_DIRS, FALSE);
+#else
+	gtk_button_set_focus_on_click(
+						GTK_BUTTON(configure_widgets.HIDE_IGNORED_DIRS),
+						FALSE);
+#endif
+	gtk_toggle_button_set_active(
+						GTK_TOGGLE_BUTTON(configure_widgets.HIDE_IGNORED_DIRS),
+						CONFIG_HIDE_IGNORED_DIRS);
+	gtk_widget_set_tooltip_text(configure_widgets.HIDE_IGNORED_DIRS, tooltip);
+	
+	configure_widgets.IGNORED_DIRS_MASK = gtk_entry_new();
+	gtk_entry_set_text(GTK_ENTRY(configure_widgets.IGNORED_DIRS_MASK),
+					   CONFIG_IGNORED_DIRS_MASK);
+	gtk_widget_set_tooltip_text(configure_widgets.IGNORED_DIRS_MASK, tooltip);
+	
+	gtk_box_pack_start(GTK_BOX(hbox), configure_widgets.HIDE_IGNORED_DIRS,
+					   FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), configure_widgets.IGNORED_DIRS_MASK,
+					   TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);
+	
+	//----------------------------------------------------------------
 	configure_widgets.REVERSE_FILTER =
 			gtk_check_button_new_with_label(_("Reverse filter"));
 	
@@ -2444,6 +2530,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.REVERSE_FILTER,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.FOLLOW_CURRENT_DOC =
 			gtk_check_button_new_with_label(_("Follow current document"));
 	
@@ -2460,6 +2547,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.FOLLOW_CURRENT_DOC,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.ONE_CLICK_CHDOC =
 			gtk_check_button_new_with_label(
 					_("Single click, open document and focus it"));
@@ -2476,6 +2564,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.ONE_CLICK_CHDOC,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.CHROOT_ON_DCLICK =
 			gtk_check_button_new_with_label(_("Double click open directory"));
 	
@@ -2492,6 +2581,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.CHROOT_ON_DCLICK,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.ON_DELETE_CLOSE_FILE =
 			gtk_check_button_new_with_label(
 					_("On delete file, close it if is opened"));
@@ -2510,6 +2600,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.ON_DELETE_CLOSE_FILE,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.ON_OPEN_FOCUS_EDITOR =
 			gtk_check_button_new_with_label(_("Focus editor on file open"));
 	
@@ -2527,6 +2618,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.ON_OPEN_FOCUS_EDITOR,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.SHOW_TREE_LINES =
 			gtk_check_button_new_with_label(_("Show tree lines"));
 	
@@ -2542,6 +2634,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.SHOW_TREE_LINES,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.SHOW_BOOKMARKS =
 			gtk_check_button_new_with_label(_("Show bookmarks"));
 #if GTK_CHECK_VERSION(3, 20, 0)
@@ -2556,6 +2649,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.SHOW_BOOKMARKS,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	configure_widgets.OPEN_NEW_FILES =
 			gtk_check_button_new_with_label(_("Open new files"));
 	
@@ -2571,6 +2665,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), configure_widgets.OPEN_NEW_FILES,
 					   FALSE, FALSE, 0);
 	
+	//----------------------------------------------------------------
 	gtk_widget_show_all(vbox);
 	
 	g_signal_connect(dialog, "response",
@@ -2687,9 +2782,11 @@ void plugin_cleanup(void)
 {
 	g_free(addressbar_last_address);
 	g_free(CONFIG_FILE);
-	g_free(CONFIG_MASK_OBJECT_FILES);
+	g_free(CONFIG_OBJECT_FILES_MASK);
+	g_free(CONFIG_IGNORED_DIRS_MASK);
 	g_free(CONFIG_OPEN_EXTERNAL_CMD);
 	g_free(CONFIG_OPEN_TERMINAL);
-	g_strfreev(EXT_OBJECT_FILES);
+	g_strfreev(OBJECT_FILE_EXTS);
+	g_strfreev(IGNORED_DIR_NAMES);
 	gtk_widget_destroy(sidebar_vbox);
 }
