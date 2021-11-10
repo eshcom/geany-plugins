@@ -8,11 +8,14 @@
  *
  */
 
-#include "config.h"
-#include <geanyplugin.h>
-#include <string.h>
-#include "Scintilla.h"  /* for the SCNotification struct */
+#ifdef HAVE_CONFIG_H
+	#include "config.h"		// for the gettext domain
+#endif
+
+#include <geanyplugin.h>	// includes geany.h
+#include "Scintilla.h"		// for the SCNotification struct
 #include "SciLexer.h"
+
 
 #define INDICATOR_TAGMATCH 9
 #define MAX_TAG_NAME 64
@@ -21,6 +24,7 @@
 #define NONMATCHING_PAIR_COLOR  0xff0000    /* red */
 #define EMPTY_TAG_COLOR         0xffff00    /* yellow */
 
+
 /* Keyboard Shortcut */
 enum {
 	KB_MATCH_TAG,
@@ -28,8 +32,8 @@ enum {
 };
 
 /* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin		*geany_plugin;
-GeanyData		*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;
 
 /* Is needed for clearing highlighting after moving cursor out
  * from the tag */
@@ -41,7 +45,6 @@ PLUGIN_SET_TRANSLATABLE_INFO(LOCALEDIR, GETTEXT_PACKAGE,
 							 _("Pair Tag Highlighter"),
 							 _("Finds and highlights matching opening/closing HTML tag"),
 							 "1.1", "Volodymyr Kononenko <vm@kononenko.ws>")
-
 
 /* Searches tag brackets.
  * direction variable shows sets search direction:

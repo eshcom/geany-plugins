@@ -16,15 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <glib.h>
-#include <glib/gstdio.h>
-
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
 #include "spawn.h"
-#include <geanyplugin.h>
 
 
 SpawnResult *call_spawn_sync(const gchar *locale_cmd,

@@ -16,35 +16,15 @@
  *	  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <sys/time.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-#include <../../utils/src/spawn.h>
+#include <geanyplugin.h>	// includes geany.h
 
 #include "readtags.h"
-
-#include <errno.h>
-#include <glib/gstdio.h>
-
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <signal.h>
-
-
-/* Pre-GTK 2.24 compatibility */
-#ifndef GTK_COMBO_BOX_TEXT
-#	define GTK_COMBO_BOX_TEXT GTK_COMBO_BOX
-#	define gtk_combo_box_text_new gtk_combo_box_new_text
-#	define gtk_combo_box_text_append_text gtk_combo_box_append_text
-#endif
+#include "../../utils/src/spawn.h"
+#include "../../utils/src/ui_plugins.h"
 
 
 static GeanyPlugin *geany_plugin = NULL;
@@ -559,6 +539,7 @@ static void create_dialog_find_file(void)
 	
 	gtk_container_add(GTK_CONTAINER(vbox), s_ft_dialog.case_sensitive);
 	gtk_container_add(GTK_CONTAINER(vbox), s_ft_dialog.declaration);
+	
 	gtk_widget_show_all(vbox);
 }
 
@@ -748,22 +729,14 @@ static GtkWidget *plugin_geanyctags_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 											  GtkDialog *dialog,
 											  G_GNUC_UNUSED gpointer pdata)
 {
-	GtkWidget *vbox, *hbox, *label, *entry;
+	GtkWidget *vbox, *entry;
 	
 	vbox = gtk_vbox_new(FALSE, 0);
 	
-#define WIDGET_CONF_TEXT(name, description) G_STMT_START {				\
-	label = gtk_label_new(description);									\
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
-	entry = gtk_entry_new();											\
-	gtk_entry_set_text(GTK_ENTRY(entry), gtags_info->name);				\
-	gtk_widget_set_tooltip_text(entry,									\
-								_("Other options to pass to Find"));	\
-	hbox = gtk_hbox_new(FALSE, 0);										\
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 6);			\
-	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);			\
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);			\
-	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
+#define WIDGET_CONF_TEXT(name, label_text) G_STMT_START {					\
+	entry = add_inputbox(vbox, label_text, gtags_info->name, -1,			\
+						 _("Other options to pass to Find"), FALSE, FALSE);	\
+	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);				\
 } G_STMT_END
 	
 	WIDGET_CONF_TEXT(extra_options_1, _("Extra options 1:"));
@@ -773,6 +746,7 @@ static GtkWidget *plugin_geanyctags_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 	
 	g_signal_connect(dialog, "response",
 					 G_CALLBACK(configure_response_cb), NULL);
+	
 	gtk_widget_show_all(vbox);
 	return vbox;
 }

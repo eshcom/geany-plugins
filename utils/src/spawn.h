@@ -19,7 +19,8 @@
 #ifndef GP_UTILS_SPAWN_H
 #define GP_UTILS_SPAWN_H
 
-#include <glib.h>
+#include <geanyplugin.h>
+
 
 G_BEGIN_DECLS
 

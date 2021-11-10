@@ -23,7 +23,6 @@
 #define LO_PREFS_H
 
 #include <geanyplugin.h>
-#include "lo_prefs.h"
 
 
 typedef struct
@@ -38,22 +37,18 @@ extern LineOpsInfo *lo_info;
 
 
 /* handle button presses in the preferences dialog box */
-void
-lo_configure_response_cb(GtkDialog *dialog, gint response, gpointer user_data);
-
+void lo_configure_response_cb(GtkDialog *dialog, gint response,
+							  gpointer user_data);
 
 /* Configure the preferences GUI and callbacks */
-GtkWidget *
-lo_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog, G_GNUC_UNUSED gpointer pdata);
-
+GtkWidget *lo_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
+						G_GNUC_UNUSED gpointer pdata);
 
 /* Initialize preferences */
-void
-lo_init_prefs(GeanyPlugin *plugin);
+void lo_init_prefs(GeanyPlugin *plugin);
 
 
 /* Free config */
-void
-lo_free_info();
+void lo_free_info();
 
 #endif

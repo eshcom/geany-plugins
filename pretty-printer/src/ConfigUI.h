@@ -19,26 +19,27 @@
 #ifndef PP_CONFIG_UI_H
 #define PP_CONFIG_UI_H
 
-/*========================================== INCLUDES =========================================================*/
+/*===================================== INCLUDES =====================================*/
 
 #include <gtk/gtk.h>
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"			// for the gettext domain
 #endif
+
 #include <geanyplugin.h>
 
 #include "PrettyPrinter.h"
 
-/*========================================== VARIABLES ========================================================*/
+/*===================================== VARIABLES ====================================*/
 
 extern PrettyPrintingOptions* prettyPrintingOptions;
 
-/*========================================== FUNCTIONS ========================================================*/
+/*===================================== FUNCTIONS ====================================*/
 
-GtkWidget* createPrettyPrinterConfigUI(GtkDialog* dialog);
-gboolean prefsLoad (const gchar* filename, GError** error);
-gboolean prefsSave (const gchar* filename, GError** error);
-gchar *getDefaultPrefs (GError** error);
+GtkWidget *createPrettyPrinterConfigUI(GtkDialog *dialog);
+gboolean prefsLoad(const gchar *filename, GError **error);
+gboolean prefsSave(const gchar *filename, GError **error);
+gchar *getDefaultPrefs(GError **error);
 
 #endif

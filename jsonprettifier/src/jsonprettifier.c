@@ -20,28 +20,28 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"			// for the gettext domain
 #endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/stat.h>
-
-#include <geanyplugin.h>
-#include <gdk/gdkkeysyms.h> /* for the key bindings */
-
-#include <yajl/yajl_parse.h> /*"lloyd-yajl-66cb08c/src/api/yajl_parse.h"*/
-#include <yajl/yajl_gen.h> /*"lloyd-yajl-66cb08c/src/api/yajl_gen.h"*/
 
 #ifdef HAVE_LOCALE_H
 	#include <locale.h>
 #endif
 
-GeanyPlugin *geany_plugin;
+#include <sys/stat.h>
+#include <gdk/gdkkeysyms.h>		// for the key bindings
+
+#include <geanyplugin.h>		// includes geany.h
+
+#include <yajl/yajl_parse.h>	// "lloyd-yajl-66cb08c/src/api/yajl_parse.h"
+#include <yajl/yajl_gen.h>		// "lloyd-yajl-66cb08c/src/api/yajl_gen.h"
+
+#include "../../utils/src/ui_plugins.h"
+
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;
+
 struct GeanyKeyGroup *geany_key_group;
-GeanyData *geany_data;
 
 static gchar *plugin_config_path = NULL;
 static GKeyFile *keyfile_plugin = NULL;
@@ -61,38 +61,33 @@ static const gchar *fcfg_e_escForwardSlashed = "escape_forward_slashes";
 static const gchar *fcfg_e_allowInvalUtf8TextStr =
 									"allow_invalid_utf8_text_strings";
 static const gchar *fcfg_e_reformatMultJsonEntities =
-									"reformat_multiple_json_entities_at_once";
+									"reformat_multiple_json_entities";
 static const gchar *fcfg_e_showErrsInWindow = "show_errors_in_window";
-static const gchar *fcfg_e_useTabsForIndent = "use_tabs_for_indentation";
-static const gchar *fcfg_e_useTabsForIndentAlias = "use_tabs_for_identation";
-static const gchar *fcfg_e_indentSymbolsCnt = "indentation_symbols_count";
-static const gchar *fcfg_e_indentSymbolsCntAlias = "identation_symbols_count";
 static const gchar *fcfg_e_logMsgOnFormattingSuccess =
 									"log_formatting_success_messages";
 static const gchar *fcfg_e_allowComments = "allow_comments";
+static const gchar *fcfg_e_indentChar = "indent_char";
+static const gchar *fcfg_e_indentLength = "indent_length";
 
-static GtkWidget *main_menu_item = NULL;
-static GtkWidget *main_menu_item2 = NULL;
+static GtkWidget *menu_item_minify = NULL;
+static GtkWidget *menu_item_prettify = NULL;
 static GtkWidget *escape_forward_slashes_btn = NULL;
 static GtkWidget *allow_invalid_utf8_text_strings_btn = NULL;
-static GtkWidget *reformat_multiple_json_entities_at_once_btn = NULL;
+static GtkWidget *reformat_multiple_json_entities_btn = NULL;
 static GtkWidget *show_errors_in_window_btn = NULL;
-static GtkWidget *values_indentation_tabs_rbtn = NULL;
-static GtkWidget *values_indentation_spaces_rbtn = NULL;
-static GtkWidget *values_indentation_symbols_count_lbl = NULL;
-static GtkWidget *values_indentation_symbols_count_sbtn = NULL;
 static GtkWidget *log_formatting_success_messages_btn = NULL;
 static GtkWidget *allow_comments_btn = NULL;
+static GtkWidget *indent_char_combo = NULL;
+static GtkWidget *indent_length_spin = NULL;
 
 static gboolean escapeForwardSlashes = FALSE;
 static gboolean allowInvalidStringsInUtf8 = TRUE;
 static gboolean reformatMultipleJsonEntities = FALSE;
 static gboolean showErrorsInPopupWindow = TRUE;
-static gboolean textIndentationWithTabs = FALSE;
-static guint textIndentationSymbolsCount = 4;
-static gchar textIndentationString[1025] = "    ";
 static gboolean logFormattingSuccessMessages = TRUE;
 static gboolean allowComments = TRUE;
+static gchar indentChar = '\t';
+static guint indentLength = 1;
 
 /* JSON Prettifier Code - yajl example used as a basis */
 
@@ -229,13 +224,15 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 			timeNow[0] = '\0';
 	}
 	
+	gchar *textIndentString = g_strnfill(indentLength, indentChar);
+	
 	/* yajl generator config */
 	
 	yajl_gen g = yajl_gen_alloc(NULL);
 	yajl_gen_config(g, yajl_gen_beautify, beautify);
 	yajl_gen_config(g, yajl_gen_validate_utf8, 1);
 	yajl_gen_config(g, yajl_gen_escape_solidus, escapeForwardSlashes);
-	yajl_gen_config(g, yajl_gen_indent_string, textIndentationString);
+	yajl_gen_config(g, yajl_gen_indent_string, textIndentString);
 	
 	yajl_handle hand = yajl_alloc(&callbacks, NULL, (void *)g);
 	yajl_config(hand, yajl_dont_validate_strings, allowInvalidStringsInUtf8);
@@ -277,8 +274,7 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 		if (logFormattingSuccessMessages)
 			msgwin_msg_add(COLOR_BLUE, -1, doc,
 						   "[%s] %s of %s succeeded! (%s)",
-						   timeNow,
-						   chosenActionString,
+						   timeNow, chosenActionString,
 						   document_get_basename_for_display(doc, -1),
 						   DOC_FILENAME(doc));
 	}
@@ -288,13 +284,11 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 												(unsigned char *)text_string,
 												(size_t)text_len - 1);
 		msgwin_msg_add(COLOR_RED, -1, doc,
-					   "[%s] %s of %s failed!\n%s\nProbably improper "
-					   "format or odd symbols! (%s)",
-					   timeNow,
-					   chosenActionString,
+					   "[%s] %s of %s failed!\n%s\n"
+					   "Probably improper format or odd symbols! (%s)",
+					   timeNow, chosenActionString,
 					   document_get_basename_for_display(doc, -1),
-					   err_str,
-					   DOC_FILENAME(doc));
+					   err_str, DOC_FILENAME(doc));
 		
 		if (showErrorsInPopupWindow)
 			dialogs_show_msgbox(GTK_MESSAGE_ERROR, "%s", err_str);
@@ -304,81 +298,74 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 	
 	yajl_gen_free(g);
 	yajl_free(hand);
+	
+	g_free(textIndentString);
 	g_free(text_string);
 }
 
 /* Plugin settings */
 
-static void config_save_setting(GKeyFile *keyfile,
-								const gchar *filePath)
+static void config_save_setting(GKeyFile *keyfile, const gchar *filePath)
 {
 	if (keyfile && filePath)
 		g_key_file_save_to_file(keyfile, filePath, NULL);
 }
 
-static gboolean config_get_setting(GKeyFile *keyfile, const gchar *name,
-								   const gchar *alt_name)
+static gboolean config_get_bool(GKeyFile *keyfile, const gchar *name)
 {
-	gboolean result = FALSE;
+	gboolean value = FALSE;
 	
 	if (keyfile)
 	{
-		GError *gerr = NULL;
-		result = g_key_file_get_boolean(keyfile, fcfg_g_settings, name,
-										&gerr);
-		if (gerr != NULL && alt_name != NULL)
-			result = g_key_file_get_boolean(keyfile, fcfg_g_settings,
-											alt_name, &gerr);
+		GError *error = NULL;
+		value = g_key_file_get_boolean(keyfile, fcfg_g_settings,
+									   name, &error);
+		if (error != NULL)
+			g_error_free(error);
 	}
-	return result;
-}
-
-static gint config_get_uint_setting(GKeyFile *keyfile,
-									const gchar *name,
-									const gchar *alt_name,
-									guint maxVal)
-{
-	gint value = 0;
-	
-	if (!keyfile) return value;
-	
-	GError *gerr = NULL;
-	value = g_key_file_get_integer(keyfile, fcfg_g_settings, name, &gerr);
-	
-	if (gerr != NULL && alt_name != NULL)
-		value = g_key_file_get_integer(keyfile, fcfg_g_settings,
-									   alt_name, &gerr);
-	if (value < 0 || value > maxVal)
-		value = 0;
-	
 	return value;
 }
 
-static void config_set_setting(GKeyFile *keyfile, const gchar *name,
-							   const gchar *obsolete_name,
-							   gboolean value)
+static gint config_get_uint(GKeyFile *keyfile, const gchar *name, guint maxVal)
+{
+	gint value = 0;
+	
+	if (keyfile)
+	{
+		GError *error = NULL;
+		value = g_key_file_get_integer(keyfile, fcfg_g_settings,
+									   name, &error);
+		if (error != NULL)
+			g_error_free(error);
+		else
+		{
+			if (value < 0)
+				value = 0;
+			else if (value > maxVal)
+				value = maxVal;
+		}
+	}
+	return value;
+}
+
+static void config_set_bool(GKeyFile *keyfile, const gchar *name,
+							gboolean value)
 {
 	if (!keyfile) return;
 	
-	if (obsolete_name)
-		g_key_file_remove_key(keyfile, fcfg_g_settings,
-							  obsolete_name, NULL);
 	g_key_file_set_boolean(keyfile, fcfg_g_settings, name, value);
 }
 
-static void config_set_uint_setting(GKeyFile *keyfile,
-									const gchar *name,
-									const gchar *obsolete_name,
-									gint value, guint maxVal)
+static void config_set_uint(GKeyFile *keyfile, const gchar *name,
+							gint value, guint maxVal)
 {
 	if (!keyfile) return;
 	
-	if (value < 0 || value > maxVal)
+	if (value < 0)
 		value = 0;
+	else if (value > maxVal)
+		value = maxVal;
 	
-	if (obsolete_name)
-		g_key_file_remove_key(keyfile, fcfg_g_settings,
-							  obsolete_name, NULL);
 	g_key_file_set_integer(keyfile, fcfg_g_settings, name, value);
 }
 
@@ -388,59 +375,42 @@ static void on_configure_response(GtkDialog* dialog, gint response,
 	if (keyfile_plugin &&
 		(response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY))
 	{
-		gboolean value = FALSE;
-		
-		value = gtk_toggle_button_get_active(
+		escapeForwardSlashes = gtk_toggle_button_get_active(
 						GTK_TOGGLE_BUTTON(escape_forward_slashes_btn));
-		escapeForwardSlashes = value;
-		config_set_setting(keyfile_plugin, fcfg_e_escForwardSlashed,
-						   NULL, value);
+		config_set_bool(keyfile_plugin, fcfg_e_escForwardSlashed,
+						escapeForwardSlashes);
 		
-		value = gtk_toggle_button_get_active(
+		allowInvalidStringsInUtf8 = gtk_toggle_button_get_active(
 						GTK_TOGGLE_BUTTON(allow_invalid_utf8_text_strings_btn));
-		allowInvalidStringsInUtf8 = value;
-		config_set_setting(keyfile_plugin, fcfg_e_allowInvalUtf8TextStr,
-						   NULL, value);
+		config_set_bool(keyfile_plugin, fcfg_e_allowInvalUtf8TextStr,
+						allowInvalidStringsInUtf8);
 		
-		value = gtk_toggle_button_get_active(
-						GTK_TOGGLE_BUTTON(reformat_multiple_json_entities_at_once_btn));
-		reformatMultipleJsonEntities = value;
-		config_set_setting(keyfile_plugin, fcfg_e_reformatMultJsonEntities,
-						   NULL, value);
+		reformatMultipleJsonEntities = gtk_toggle_button_get_active(
+						GTK_TOGGLE_BUTTON(reformat_multiple_json_entities_btn));
+		config_set_bool(keyfile_plugin, fcfg_e_reformatMultJsonEntities,
+						reformatMultipleJsonEntities);
 		
-		value = gtk_toggle_button_get_active(
+		showErrorsInPopupWindow = gtk_toggle_button_get_active(
 						GTK_TOGGLE_BUTTON(show_errors_in_window_btn));
-		showErrorsInPopupWindow = value;
-		config_set_setting(keyfile_plugin, fcfg_e_showErrsInWindow,
-						   NULL, value);
+		config_set_bool(keyfile_plugin, fcfg_e_showErrsInWindow,
+						showErrorsInPopupWindow);
 		
-		value = gtk_toggle_button_get_active(
+		logFormattingSuccessMessages = gtk_toggle_button_get_active(
 						GTK_TOGGLE_BUTTON(log_formatting_success_messages_btn));
-		logFormattingSuccessMessages = value;
-		config_set_setting(keyfile_plugin, fcfg_e_logMsgOnFormattingSuccess,
-						   NULL, value);
+		config_set_bool(keyfile_plugin, fcfg_e_logMsgOnFormattingSuccess,
+						logFormattingSuccessMessages);
 		
-		value = gtk_toggle_button_get_active(
-						GTK_TOGGLE_BUTTON(values_indentation_tabs_rbtn));
-		textIndentationWithTabs = value;
-		config_set_setting(keyfile_plugin, fcfg_e_useTabsForIndent,
-						   fcfg_e_useTabsForIndentAlias, value);
-		
-		gint i = gtk_spin_button_get_value_as_int(
-						GTK_SPIN_BUTTON(values_indentation_symbols_count_sbtn));
-		textIndentationSymbolsCount = i;
-		
-		for (i = 0; i < textIndentationSymbolsCount; ++i)
-			textIndentationString[i] = textIndentationWithTabs ? '\t' : ' ';
-		textIndentationString[i] = '\0';
-		
-		config_set_uint_setting(keyfile_plugin, fcfg_e_indentSymbolsCnt,
-								fcfg_e_indentSymbolsCntAlias, i, 1024);
-		
-		value = gtk_toggle_button_get_active(
+		allowComments = gtk_toggle_button_get_active(
 						GTK_TOGGLE_BUTTON(allow_comments_btn));
-		allowComments = value;
-		config_set_setting(keyfile_plugin, fcfg_e_allowComments, NULL, value);
+		config_set_bool(keyfile_plugin, fcfg_e_allowComments, allowComments);
+		
+		indentChar = gtk_combo_box_get_active(
+						GTK_COMBO_BOX(indent_char_combo)) == 0 ? '\t' : ' ';
+		config_set_uint(keyfile_plugin, fcfg_e_indentChar, indentChar, 255);
+		
+		indentLength = gtk_spin_button_get_value_as_int(
+						GTK_SPIN_BUTTON(indent_length_spin));
+		config_set_uint(keyfile_plugin, fcfg_e_indentLength, indentLength, 10);
 		
 		config_save_setting(keyfile_plugin, plugin_config_path);
 	}
@@ -450,152 +420,78 @@ static void config_set_defaults(GKeyFile *keyfile)
 {
 	if (!keyfile) return;
 	
-	config_set_setting(keyfile, fcfg_e_escForwardSlashed,
-					   NULL, escapeForwardSlashes = FALSE);
+	config_set_bool(keyfile, fcfg_e_escForwardSlashed,
+					escapeForwardSlashes = FALSE);
 	
-	config_set_setting(keyfile, fcfg_e_allowInvalUtf8TextStr,
-					   NULL, allowInvalidStringsInUtf8 = TRUE);
+	config_set_bool(keyfile, fcfg_e_allowInvalUtf8TextStr,
+					allowInvalidStringsInUtf8 = TRUE);
 	
-	config_set_setting(keyfile, fcfg_e_reformatMultJsonEntities,
-					   NULL, reformatMultipleJsonEntities = FALSE);
+	config_set_bool(keyfile, fcfg_e_reformatMultJsonEntities,
+					reformatMultipleJsonEntities = FALSE);
 	
-	config_set_setting(keyfile, fcfg_e_showErrsInWindow,
-					   NULL, showErrorsInPopupWindow = TRUE);
+	config_set_bool(keyfile, fcfg_e_showErrsInWindow,
+					showErrorsInPopupWindow = TRUE);
 	
-	config_set_setting(keyfile, fcfg_e_useTabsForIndent,
-					   fcfg_e_useTabsForIndentAlias,
-					   textIndentationWithTabs = FALSE);
+	config_set_bool(keyfile, fcfg_e_logMsgOnFormattingSuccess,
+					logFormattingSuccessMessages = TRUE);
 	
-	config_set_uint_setting(keyfile, fcfg_e_indentSymbolsCnt,
-							fcfg_e_indentSymbolsCntAlias,
-							textIndentationSymbolsCount = 4, 1024);
+	config_set_bool(keyfile, fcfg_e_allowComments, allowComments = TRUE);
 	
-	config_set_setting(keyfile, fcfg_e_logMsgOnFormattingSuccess,
-					   NULL, logFormattingSuccessMessages = TRUE);
+	config_set_uint(keyfile, fcfg_e_indentChar, indentChar = '\t', 255);
 	
-	config_set_setting(keyfile, fcfg_e_allowComments,
-					   NULL, allowComments = TRUE);
+	config_set_uint(keyfile, fcfg_e_indentLength, indentLength = 1, 10);
 }
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
 {
-	gboolean isSet = FALSE;
+	GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
 	
-	GtkWidget *vbox = gtk_vbox_new(FALSE, 7);
-	GtkWidget *_hbox1 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox2 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox3 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox4 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox5 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox6 = gtk_hbox_new(FALSE, 7);
-	GtkWidget *_hbox7 = gtk_hbox_new(FALSE, 7);
+	//----------------------------------------------------------------
+	escape_forward_slashes_btn = add_checkbox(vbox,
+		_("Escape any forward slashes"),
+		escapeForwardSlashes, NULL, FALSE);
 	
-	escape_forward_slashes_btn = gtk_check_button_new_with_label(
-										_("Escape any forward slashes."));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(escape_forward_slashes_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_escForwardSlashed, NULL));
+	//----------------------------------------------------------------
+	allow_invalid_utf8_text_strings_btn = add_checkbox(vbox,
+		_("Allow invalid UTF-8 in the strings"),
+		allowInvalidStringsInUtf8, NULL, FALSE);
 	
-	allow_invalid_utf8_text_strings_btn =
-		gtk_check_button_new_with_label(
-				_("Allow invalid UTF-8 in the strings."));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(allow_invalid_utf8_text_strings_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_allowInvalUtf8TextStr, NULL));
+	//----------------------------------------------------------------
+	reformat_multiple_json_entities_btn = add_checkbox(vbox,
+		_("Reformat multiple JSON entities at once"),
+		reformatMultipleJsonEntities, NULL, FALSE);
 	
-	reformat_multiple_json_entities_at_once_btn =
-		gtk_check_button_new_with_label(
-				_("Reformat multiple JSON entities at once."));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(reformat_multiple_json_entities_at_once_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_reformatMultJsonEntities, NULL));
+	//----------------------------------------------------------------
+	allow_comments_btn = add_checkbox(vbox,
+		_("Allow (effectively strip and ignore) multiline "
+		  "comments like for e.g. /* comment */"),
+		allowComments, NULL, FALSE);
 	
-	isSet = config_get_setting(keyfile_plugin, fcfg_e_useTabsForIndent,
-							   fcfg_e_useTabsForIndentAlias);
+	//----------------------------------------------------------------
+	GtkWidget *container = add_unnamed_hbox(vbox);
 	
-	values_indentation_spaces_rbtn = gtk_radio_button_new_with_label(NULL,
-										_("Indent values with spaces"));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(values_indentation_spaces_rbtn), isSet);
+	const gchar *INDENT_TEXTS[] = {_("Tab"), _("Space")};
+	indent_char_combo = add_combobox(container, _("Indentation:"), INDENT_TEXTS, 2,
+									 indentChar == ' ' ? 1 : 0, NULL, FALSE);
 	
-	values_indentation_tabs_rbtn = gtk_radio_button_new_with_label(
-										gtk_radio_button_get_group(GTK_RADIO_BUTTON(
-													values_indentation_spaces_rbtn)),
-										_("Indent values with tabs"));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(values_indentation_tabs_rbtn), isSet);
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(values_indentation_spaces_rbtn), !isSet);
+	indent_length_spin = add_spinbox(container, _("Symbols count:"), 0, 10, 1,
+									 indentLength, NULL, TRUE);
 	
-	values_indentation_symbols_count_lbl = gtk_label_new(_("Symbols count:"));
-	values_indentation_symbols_count_sbtn =
-		gtk_spin_button_new_with_range(1,1024, 1);
+	//----------------------------------------------------------------
+	show_errors_in_window_btn = add_checkbox(vbox,
+		_("Show errors in a message window"),
+		showErrorsInPopupWindow, NULL, FALSE);
 	
-	gint i = config_get_uint_setting(keyfile_plugin, fcfg_e_indentSymbolsCnt,
-									 fcfg_e_indentSymbolsCntAlias, 1024);
-	if (i == 0)
-		i = isSet ? 1 : 4;
+	//----------------------------------------------------------------
+	log_formatting_success_messages_btn = add_checkbox(vbox,
+		_("Log successful formatting messages"),
+		logFormattingSuccessMessages, NULL, FALSE);
 	
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(
-		values_indentation_symbols_count_sbtn), i);
-	
-	show_errors_in_window_btn = gtk_check_button_new_with_label(
-										_("Show errors in a message window."));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(show_errors_in_window_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_showErrsInWindow, NULL));
-	
-	log_formatting_success_messages_btn = gtk_check_button_new_with_label(
-											_("Log successful formatting messages."));
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(log_formatting_success_messages_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_logMsgOnFormattingSuccess, NULL));
-	
-	allow_comments_btn = gtk_check_button_new_with_label(
-							_("Allow (effectively strip and ignore) multiline "
-							  "comments like for e.g. /* comment */."));
-	
-	gtk_toggle_button_set_active(
-		GTK_TOGGLE_BUTTON(allow_comments_btn),
-		config_get_setting(keyfile_plugin, fcfg_e_allowComments, NULL));
-	
-	gtk_box_pack_start(GTK_BOX(_hbox1), escape_forward_slashes_btn,
-					   TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(_hbox2), allow_invalid_utf8_text_strings_btn,
-					   TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(_hbox3), reformat_multiple_json_entities_at_once_btn,
-					   TRUE, TRUE, 0);
-	
-	gtk_box_pack_start(GTK_BOX(_hbox4), values_indentation_spaces_rbtn,
-					   TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(_hbox4), values_indentation_tabs_rbtn,
-					   TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(_hbox4), values_indentation_symbols_count_lbl,
-					   TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(_hbox4), values_indentation_symbols_count_sbtn,
-					   TRUE, TRUE, 0);
-	
-	gtk_box_pack_start(GTK_BOX(_hbox5), show_errors_in_window_btn,
-					   TRUE, TRUE, 0);
-	
-	gtk_box_pack_start(GTK_BOX(_hbox6), log_formatting_success_messages_btn,
-					   TRUE, TRUE, 0);
-	
-	gtk_box_pack_start(GTK_BOX(_hbox7), allow_comments_btn, TRUE, TRUE, 0);
-	
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox1, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox2, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox3, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox4, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox5, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox6, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), _hbox7, FALSE, FALSE, 0);
-	
-	gtk_widget_show_all(vbox);
-	
+	//----------------------------------------------------------------
 	g_signal_connect(dialog, "response",
 					 G_CALLBACK(on_configure_response), NULL);
 	
+	gtk_widget_show_all(vbox);
 	return vbox;
 }
 
@@ -603,16 +499,14 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 /* Geany plugin EP code */
 
 static void item_activate_cb(GtkMenuItem *menuitem, gpointer gdata)
-{ my_json_prettify(document_get_current(), TRUE); }
+{
+	my_json_prettify(document_get_current(), GPOINTER_TO_INT(gdata));
+}
 
-static void kb_run_json_prettifier(G_GNUC_UNUSED guint key_id)
-{ my_json_prettify(document_get_current(), TRUE); }
-
-static void item_activate_cb2(GtkMenuItem *menuitem, gpointer gdata)
-{ my_json_prettify(document_get_current(), FALSE); }
-
-static void kb_run_json_minifier(G_GNUC_UNUSED guint key_id)
-{ my_json_prettify(document_get_current(), FALSE); }
+static void kb_activate(G_GNUC_UNUSED guint key_id)
+{
+	my_json_prettify(document_get_current(), key_id);
+}
 
 void plugin_init(GeanyData *data)
 {
@@ -637,84 +531,63 @@ void plugin_init(GeanyData *data)
 	}
 	else
 	{
-		escapeForwardSlashes = config_get_setting(keyfile_plugin,
-									fcfg_e_escForwardSlashed, NULL);
+		escapeForwardSlashes = config_get_bool(keyfile_plugin,
+											fcfg_e_escForwardSlashed);
 		
-		allowInvalidStringsInUtf8 = config_get_setting(keyfile_plugin,
-									fcfg_e_allowInvalUtf8TextStr, NULL);
+		allowInvalidStringsInUtf8 = config_get_bool(keyfile_plugin,
+											fcfg_e_allowInvalUtf8TextStr);
 		
-		reformatMultipleJsonEntities = config_get_setting(keyfile_plugin,
-											fcfg_e_reformatMultJsonEntities,
-											NULL);
+		reformatMultipleJsonEntities = config_get_bool(keyfile_plugin,
+											fcfg_e_reformatMultJsonEntities);
 		
-		showErrorsInPopupWindow = config_get_setting(keyfile_plugin,
-													 fcfg_e_showErrsInWindow,
-													 NULL);
+		showErrorsInPopupWindow = config_get_bool(keyfile_plugin,
+											fcfg_e_showErrsInWindow);
 		
-		textIndentationWithTabs = config_get_setting(
-												keyfile_plugin,
-												fcfg_e_useTabsForIndent,
-												fcfg_e_useTabsForIndentAlias);
+		logFormattingSuccessMessages = config_get_bool(keyfile_plugin,
+											fcfg_e_logMsgOnFormattingSuccess);
 		
-		textIndentationSymbolsCount = config_get_uint_setting(
-												keyfile_plugin,
-												fcfg_e_indentSymbolsCnt,
-												fcfg_e_indentSymbolsCntAlias,
-												1024);
+		allowComments = config_get_bool(keyfile_plugin, fcfg_e_allowComments);
 		
-		if (textIndentationSymbolsCount == 0)
-			textIndentationSymbolsCount = textIndentationWithTabs ? 1 : 4;
+		indentChar = config_get_uint(keyfile_plugin, fcfg_e_indentChar, 255);
 		
-		guint i = 0;
-		for (; i < textIndentationSymbolsCount; ++i)
-			textIndentationString[i] = textIndentationWithTabs ? '\t' : ' ';
-		textIndentationString[i] = '\0';
-		
-		logFormattingSuccessMessages = config_get_setting(keyfile_plugin,
-											fcfg_e_logMsgOnFormattingSuccess,
-											NULL);
-		
-		allowComments = config_get_setting(keyfile_plugin,
-										   fcfg_e_allowComments, NULL);
+		indentLength = config_get_uint(keyfile_plugin, fcfg_e_indentLength, 10);
 	}
 	
 	/* ---------------------------- */
 	
-	main_menu_item = gtk_menu_item_new_with_mnemonic(_("JSON Prettify"));
-	gtk_widget_show(main_menu_item);
+	menu_item_minify = gtk_menu_item_new_with_mnemonic(_("JSON Minify"));
+	gtk_widget_show(menu_item_minify);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
-					  main_menu_item);
-	g_signal_connect(main_menu_item, "activate",
-					 G_CALLBACK(item_activate_cb), NULL);
+					  menu_item_minify);
+	g_signal_connect(menu_item_minify, "activate",
+					 G_CALLBACK(item_activate_cb), GINT_TO_POINTER(0));
 	
-	main_menu_item2 = gtk_menu_item_new_with_mnemonic(_("JSON Minify"));
-	gtk_widget_show(main_menu_item2);
+	menu_item_prettify = gtk_menu_item_new_with_mnemonic(_("JSON Prettify"));
+	gtk_widget_show(menu_item_prettify);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
-					  main_menu_item2);
-	g_signal_connect(main_menu_item2, "activate",
-					 G_CALLBACK(item_activate_cb2), NULL);
+					  menu_item_prettify);
+	g_signal_connect(menu_item_prettify, "activate",
+					 G_CALLBACK(item_activate_cb), GINT_TO_POINTER(1));
 	
 	/* do not activate if there are do documents opened */
-	ui_add_document_sensitive(main_menu_item);
-	ui_add_document_sensitive(main_menu_item2);
+	ui_add_document_sensitive(menu_item_minify);
+	ui_add_document_sensitive(menu_item_prettify);
 	
 	/* Register shortcut key group */
 	geany_key_group = plugin_set_key_group(geany_plugin,
-										   _("json_prettifier"), 2, NULL);
-	
-	/* Ctrl + Alt + j to pretify */
-	keybindings_set_item(geany_key_group, 0, kb_run_json_prettifier,
-						 GDK_j, GDK_CONTROL_MASK | GDK_MOD1_MASK,
-						 "run_json_prettifier",
-						 _("Run the JSON Prettifier"),
-						 main_menu_item);
+										   "json_prettifier", 2, NULL);
 	
 	/* Ctrl + Alt + m to minify */
-	keybindings_set_item(geany_key_group, 1, kb_run_json_minifier,
+	keybindings_set_item(geany_key_group, 0, kb_activate,
 						 GDK_m, GDK_CONTROL_MASK | GDK_MOD1_MASK,
-						 "run_json_minifier",
-						 _("Run the JSON Minifier"),
-						 main_menu_item2);
+						 "run_json_minifier", _("Run the JSON Minifier"),
+						 menu_item_minify);
+	
+	/* Ctrl + Alt + j to pretify */
+	keybindings_set_item(geany_key_group, 1, kb_activate,
+						 GDK_j, GDK_CONTROL_MASK | GDK_MOD1_MASK,
+						 "run_json_prettifier", _("Run the JSON Prettifier"),
+						 menu_item_prettify);
 }
 
 
@@ -722,6 +595,6 @@ void plugin_cleanup(void)
 {
 	g_free(plugin_config_path);
 	g_key_file_free(keyfile_plugin);
-	gtk_widget_destroy(main_menu_item2);
-	gtk_widget_destroy(main_menu_item);
+	gtk_widget_destroy(menu_item_minify);
+	gtk_widget_destroy(menu_item_prettify);
 }

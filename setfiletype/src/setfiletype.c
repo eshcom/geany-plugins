@@ -19,21 +19,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <string.h>
-#ifdef HAVE_LOCALE_H
-	#include <locale.h>
-#endif
+#include <geanyplugin.h>	// includes geany.h
 
-#include <gdk/gdkkeysyms.h>
+#include "../../utils/src/ui_plugins.h"
 
-#include <geanyplugin.h>
-#include <geany.h>
-
-#include "Scintilla.h"
-#include "SciLexer.h"
 
 GeanyPlugin	*geany_plugin;
 GeanyData	*geany_data;
@@ -210,22 +202,13 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 											   GtkDialog *dialog,
 											   G_GNUC_UNUSED gpointer pdata)
 {
-	GtkWidget *vbox, *hbox, *label, *entry;
+	GtkWidget *vbox, *entry;
 	
 	vbox = gtk_vbox_new(FALSE, 0);
 	
-#define WIDGET_CONF_TEXT(name, description) G_STMT_START {				\
-	label = gtk_label_new(description);									\
-	gtk_widget_set_size_request(label, 210, -1);						\
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);					\
-	entry = gtk_entry_new();											\
-	gtk_widget_set_size_request(entry, 400, -1);						\
-	gtk_entry_set_text(GTK_ENTRY(entry), sft_info->name);				\
-	gtk_widget_set_tooltip_text(entry, _("XML, JSON, Erlang, ..."));	\
-	hbox = gtk_hbox_new(FALSE, 0);										\
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 6);			\
-	gtk_box_pack_start(GTK_BOX(hbox), entry, FALSE, FALSE, 0);			\
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 6);			\
+#define WIDGET_CONF_TEXT(name, label_text) G_STMT_START {				\
+	entry = add_inputbox(vbox, label_text, sft_info->name, 400,			\
+						 _("XML, JSON, Erlang, ..."), FALSE, FALSE);	\
 	g_object_set_data(G_OBJECT(dialog), "entry_" #name, entry);			\
 } G_STMT_END
 	
@@ -245,6 +228,7 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	
 	g_signal_connect(dialog, "response",
 					 G_CALLBACK(configure_response_cb), NULL);
+	
 	gtk_widget_show_all(vbox);
 	return vbox;
 }

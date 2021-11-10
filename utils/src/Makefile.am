@@ -7,6 +7,8 @@ libgeanypluginutils_la_SOURCES = \
 	filelist.c \
 	spawn.h \
 	spawn.c \
+	ui_plugins.h \
+	ui_plugins.c \
 	gp_gtkcompat.h
 
 if ENABLE_UTILSLIB_VTECOMPAT
