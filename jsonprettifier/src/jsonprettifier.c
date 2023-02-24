@@ -177,6 +177,9 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 {
 	if (!doc) return;
 	
+	GeanyEditor *editor = doc->editor;
+	ScintillaObject *sci = editor->sci;
+	
 	gint text_len = 0;
 	gchar *text_string = NULL;
 	
@@ -185,21 +188,21 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 	gboolean workWithTextSelection = FALSE;
 	
 	/* first try to work only with a text selection (if any) */
-	if (sci_has_selection(doc->editor->sci))
+	if (sci_has_selection(sci))
 	{
-		text_string = sci_get_selection_contents(doc->editor->sci);
+		text_string = sci_get_selection_contents(sci);
 		if (text_string != NULL)
 		{
 			workWithTextSelection = TRUE;
-			text_len = sci_get_selected_text_length(doc->editor->sci) + 1;
+			text_len = sci_get_selected_text_length(sci) + 1;
 		}
 	}
 	else
 	{	/* Work with the entire file */
-		text_len = sci_get_length(doc->editor->sci);
+		text_len = sci_get_length(sci);
 		if (text_len == 0) return;
 		++text_len;
-		text_string = sci_get_contents(doc->editor->sci, -1);
+		text_string = sci_get_contents(sci, -1);
 	}
 	
 	if (text_string == NULL) return;
@@ -250,24 +253,23 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 		yajl_gen_get_buf(g, &buf, &len);
 		
 		if (!workWithTextSelection)
-			sci_set_text(doc->editor->sci, (const gchar *)buf);
+			sci_set_text(sci, (const gchar *)buf);
 		else
 		{
-			gint spos = sci_get_selection_start(doc->editor->sci);
+			gint spos = sci_get_selection_start(sci);
 			
-			sci_replace_sel(doc->editor->sci, (const gchar *)buf);
+			sci_replace_sel(sci, (const gchar *)buf);
 			
 			/* Insert additional new lines for user's ease */
 			if (beautify && spos > 0)
-				sci_insert_text(doc->editor->sci, spos,
-								editor_get_eol_char(doc->editor));
+				sci_insert_text(sci, spos, editor_get_eol_char(editor));
 		}
 		
 		// Change the cursor position to the start of the line
 		// and scroll to there
-		gint cursPos = sci_get_current_position(doc->editor->sci);
-		gint colPos = sci_get_col_from_position(doc->editor->sci, cursPos);
-		sci_set_current_position(doc->editor->sci, cursPos - colPos, TRUE);
+		gint cursPos = sci_get_current_position(sci);
+		gint colPos = sci_get_col_from_position(sci, cursPos);
+		sci_set_current_position(sci, cursPos - colPos, TRUE);
 		
 		yajl_gen_clear(g);
 		
@@ -574,8 +576,7 @@ void plugin_init(GeanyData *data)
 	ui_add_document_sensitive(menu_item_prettify);
 	
 	/* Register shortcut key group */
-	geany_key_group = plugin_set_key_group(geany_plugin,
-										   "json_prettifier", 2, NULL);
+	geany_key_group = plugin_set_key_group(geany_plugin, "json_prettifier", 2, NULL);
 	
 	/* Ctrl + Alt + m to minify */
 	keybindings_set_item(geany_key_group, 0, kb_activate,
