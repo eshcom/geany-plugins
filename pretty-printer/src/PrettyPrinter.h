@@ -63,8 +63,9 @@ typedef unsigned int bool;
 typedef struct
 {
 	const char* newLineChars;		/* char used to generate a new line (generally \r\n) */
-	char indentChar;				/* char used for indentation */
-	int indentLength;				/* number of char to use for indentation (by default 2 spaces) */
+	char indentChar;				/* char used for indentation (tab or space) */
+	int indentCharCount;			/* esh: count of chars to indent (for tab always 1) */
+	int indentWidth;				/* indentation width, for tab char - tab width (by default 4 spaces) */
 	bool oneLineText;				/* text is put on one line */
 	bool inlineText;				/* if possible text are inline (no return after the opening node and before closing node) */
 	bool oneLineComment;			/* comments are put on one line */

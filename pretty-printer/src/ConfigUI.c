@@ -35,7 +35,7 @@ static GtkWidget *emptyNodeStripping;
 static GtkWidget *emptyNodeStrippingSpace;
 static GtkWidget *emptyNodeSplit;
 static GtkWidget *indentChar;
-static GtkWidget *indentCount;
+static GtkWidget *indentWidth;
 static GtkWidget *lineBreak;
 
 /*================================= PUBLIC FUNCTIONS =================================*/
@@ -103,10 +103,10 @@ GtkWidget *createPrettyPrinterConfigUI(GtkDialog *dialog)
 	
 	const gchar *INDENT_TEXTS[] = {_("Tab"), _("Space")};
 	indentChar = add_combobox(container, _("Indentation:"), INDENT_TEXTS, 2,
-							  ppo->indentChar == ' ' ? 1 : 0, NULL, FALSE);
+							  ppo->indentChar == '\t' ? 0 : 1, NULL, FALSE);
 	
-	indentCount = add_spinbox(container, _("Symbols count:"), 0, 10, 1,
-							  ppo->indentLength, NULL, TRUE);
+	indentWidth = add_spinbox(container, _("Indent width:"), 0, 10, 1,
+							  ppo->indentWidth, NULL, TRUE);
 	
 	//--------------------------------------------
 	container = add_unnamed_hbox(child_vbox);
@@ -125,6 +125,12 @@ GtkWidget *createPrettyPrinterConfigUI(GtkDialog *dialog)
 	//----------------------------------------------------------------
 	gtk_widget_show_all(vbox);
 	return vbox;
+}
+
+static void setIndentCharCount(PrettyPrintingOptions *ppo)
+{
+	ppo->indentCharCount = ppo->indentChar == '\t' && ppo->indentWidth > 0 ?
+														1 : ppo->indentWidth;
 }
 
 static void fetchSettingsFromConfigUI(PrettyPrintingOptions *ppo)
@@ -159,9 +165,10 @@ static void fetchSettingsFromConfigUI(PrettyPrintingOptions *ppo)
 	ppo->forceEmptyNodeSplit = gtk_toggle_button_get_active(
 										GTK_TOGGLE_BUTTON(emptyNodeSplit));
 	
-	ppo->indentLength = gtk_spin_button_get_value(GTK_SPIN_BUTTON(indentCount));
+	ppo->indentWidth = gtk_spin_button_get_value(GTK_SPIN_BUTTON(indentWidth));
 	ppo->indentChar = gtk_combo_box_get_active(GTK_COMBO_BOX(indentChar)) == 0 ?
 																	'\t' : ' ';
+	setIndentCharCount(ppo);
 	
 	int breakStyle = gtk_combo_box_get_active(GTK_COMBO_BOX(lineBreak));
 	
@@ -181,7 +188,7 @@ static gchar *prefsToData(PrettyPrintingOptions *ppo, gsize* size, GError **erro
 	
 	g_key_file_set_string(kf, "pretty-printer", "newLineChars", ppo->newLineChars);
 	g_key_file_set_integer(kf, "pretty-printer", "indentChar", (int)ppo->indentChar);
-	g_key_file_set_integer(kf, "pretty-printer", "indentLength", ppo->indentLength);
+	g_key_file_set_integer(kf, "pretty-printer", "indentWidth", ppo->indentWidth);
 	g_key_file_set_boolean(kf, "pretty-printer", "oneLineText", ppo->oneLineText);
 	g_key_file_set_boolean(kf, "pretty-printer", "inlineText", ppo->inlineText);
 	g_key_file_set_boolean(kf, "pretty-printer", "oneLineComment", ppo->oneLineComment);
@@ -227,9 +234,10 @@ static gboolean prefsFromData(PrettyPrintingOptions *ppo, const gchar *contents,
 		ppo->indentChar = (char)g_key_file_get_integer(kf, "pretty-printer",
 													   "indentChar", error);
 	
-	if (g_key_file_has_key(kf, "pretty-printer", "indentLength", NULL))
-		ppo->indentLength = g_key_file_get_integer(kf, "pretty-printer",
-												   "indentLength", error);
+	if (g_key_file_has_key(kf, "pretty-printer", "indentWidth", NULL))
+		ppo->indentWidth = g_key_file_get_integer(kf, "pretty-printer",
+												  "indentWidth", error);
+	setIndentCharCount(ppo);
 	
 	if (g_key_file_has_key(kf, "pretty-printer", "oneLineText", NULL))
 		ppo->oneLineText = g_key_file_get_boolean(kf, "pretty-printer",

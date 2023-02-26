@@ -5261,8 +5261,8 @@ msgstr "Отступы:"
 
 #: ../jsonprettifier/src/jsonprettifier.c:477
 #: ../pretty-printer/src/ConfigUI.c:108
-msgid "Symbols count:"
-msgstr "Кол-во символов для отступа:"
+msgid "Indent width:"
+msgstr "Ширина отступа:"
 
 #: ../jsonprettifier/src/jsonprettifier.c:482
 msgid "Show errors in a message window"

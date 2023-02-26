@@ -5319,7 +5319,7 @@ msgstr "Sangría:"
 
 #: ../jsonprettifier/src/jsonprettifier.c:477
 #: ../pretty-printer/src/ConfigUI.c:108
-msgid "Symbols count:"
+msgid "Indent width:"
 msgstr ""
 
 #: ../jsonprettifier/src/jsonprettifier.c:482

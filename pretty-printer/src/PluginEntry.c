@@ -213,9 +213,10 @@ void xml_format(GtkMenuItem *menuitem, gpointer gdata)
 	int output_length;
 	int result = processXMLPrettyPrinting(input_buffer, input_length, &output_buffer,
 										  &output_length, prettyPrintingOptions);
+	g_free(input_buffer);
+	
 	if (result != PRETTY_PRINTING_SUCCESS)
 	{
-		g_free(input_buffer);
 		dialogs_show_msgbox(GTK_MESSAGE_ERROR, _("Unable to process PrettyPrinting on the specified XML "
 												 "because some features are not supported.\n\n"
 												 "See Help > Debug messages for more details..."));
@@ -236,9 +237,12 @@ void xml_format(GtkMenuItem *menuitem, gpointer gdata)
 	scintilla_send_message(sci, SCI_LINESCROLL, -xOffset, 0);
 	
 	/* sets the type */
-	if (!has_selection && (doc->file_type->id != GEANY_FILETYPES_HTML))
+	if (!has_selection)
 	{
-		GeanyFiletype* fileType = filetypes_index(GEANY_FILETYPES_XML);
-		document_set_filetype(doc, fileType);
+		GeanyIndentType indentType = prettyPrintingOptions->indentChar == '\t' ?
+														GEANY_INDENT_TYPE_TABS :
+														GEANY_INDENT_TYPE_SPACES;
+		document_set_filetype_and_indent(doc, filetypes_index(GEANY_FILETYPES_XML),
+										 indentType, prettyPrintingOptions->indentWidth);
 	}
 }

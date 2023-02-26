@@ -179,8 +179,9 @@ PrettyPrintingOptions *createDefaultPrettyPrintingOptions(void)
 	}
 	
 	defaultOptions->newLineChars = g_strdup("\r\n");
-	defaultOptions->indentChar = ' ';
-	defaultOptions->indentLength = 2;
+	defaultOptions->indentChar = '\t';
+	defaultOptions->indentCharCount = 1; // esh: for tab always 1
+	defaultOptions->indentWidth = 4;
 	defaultOptions->oneLineText = FALSE;
 	defaultOptions->inlineText = TRUE;
 	defaultOptions->oneLineComment = FALSE;
@@ -252,7 +253,7 @@ int putNewLine(void)
 {
 	putCharsInBuffer(options->newLineChars);
 	
-	int spaces = currentDepth * options->indentLength;
+	int spaces = currentDepth * options->indentCharCount;
 	
 	for (int i = 0; i < spaces; ++i)
 		putCharInBuffer(options->indentChar);
@@ -418,7 +419,7 @@ bool isOnSingleLine(int skip, char stop1, char stop2)
 
 void resetBackwardIndentation(bool resetLineBreak)
 {
-	xmlPrettyPrintedIndex -= (currentDepth * options->indentLength);
+	xmlPrettyPrintedIndex -= (currentDepth * options->indentCharCount);
 	if (resetLineBreak)
 	{
 		int len = strlen(options->newLineChars);
@@ -491,7 +492,7 @@ int processElements(void)
 				if (indentBackward)
 				{
 					/* INDEX HACKING */
-					xmlPrettyPrintedIndex -= options->indentLength;
+					xmlPrettyPrintedIndex -= options->indentCharCount;
 				}
 			}
 			else if (nextChar == '?')

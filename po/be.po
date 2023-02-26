@@ -1,4 +1,4 @@
-# Belarussian translation for geany-plugins
+	# Belarussian translation for geany-plugins
 # Copyright (C) 2009 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the geany-plugins package.
 # Yura Siamshka <yurand2@gmail.com>
@@ -5075,7 +5075,7 @@ msgstr ""
 
 #: ../jsonprettifier/src/jsonprettifier.c:477
 #: ../pretty-printer/src/ConfigUI.c:108
-msgid "Symbols count:"
+msgid "Indent width:"
 msgstr ""
 
 #: ../jsonprettifier/src/jsonprettifier.c:482

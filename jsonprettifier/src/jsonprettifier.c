@@ -67,7 +67,7 @@ static const gchar *fcfg_e_logMsgOnFormattingSuccess =
 									"log_formatting_success_messages";
 static const gchar *fcfg_e_allowComments = "allow_comments";
 static const gchar *fcfg_e_indentChar = "indent_char";
-static const gchar *fcfg_e_indentLength = "indent_length";
+static const gchar *fcfg_e_indentWidth = "indent_width";
 
 static GtkWidget *menu_item_minify = NULL;
 static GtkWidget *menu_item_prettify = NULL;
@@ -78,7 +78,7 @@ static GtkWidget *show_errors_in_window_btn = NULL;
 static GtkWidget *log_formatting_success_messages_btn = NULL;
 static GtkWidget *allow_comments_btn = NULL;
 static GtkWidget *indent_char_combo = NULL;
-static GtkWidget *indent_length_spin = NULL;
+static GtkWidget *indent_width_spin = NULL;
 
 static gboolean escapeForwardSlashes = FALSE;
 static gboolean allowInvalidStringsInUtf8 = TRUE;
@@ -87,7 +87,7 @@ static gboolean showErrorsInPopupWindow = TRUE;
 static gboolean logFormattingSuccessMessages = TRUE;
 static gboolean allowComments = TRUE;
 static gchar indentChar = '\t';
-static guint indentLength = 1;
+static guint indentWidth = 4;
 
 /* JSON Prettifier Code - yajl example used as a basis */
 
@@ -227,7 +227,8 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 			timeNow[0] = '\0';
 	}
 	
-	gchar *textIndentString = g_strnfill(indentLength, indentChar);
+	gchar *textIndentString = g_strnfill(indentChar == '\t' && indentWidth > 0 ?
+										 1 : indentWidth, indentChar);
 	
 	/* yajl generator config */
 	
@@ -279,6 +280,14 @@ static void my_json_prettify(GeanyDocument *doc, gboolean beautify)
 						   timeNow, chosenActionString,
 						   document_get_basename_for_display(doc, -1),
 						   DOC_FILENAME(doc));
+		
+		if (!workWithTextSelection)
+		{
+			GeanyIndentType indentType = indentChar == '\t' ? GEANY_INDENT_TYPE_TABS
+															: GEANY_INDENT_TYPE_SPACES;
+			document_set_filetype_and_indent(doc, filetypes_lookup_by_name("JSON"),
+											 indentType, indentWidth);
+		}
 	}
 	else
 	{
@@ -410,9 +419,9 @@ static void on_configure_response(GtkDialog* dialog, gint response,
 						GTK_COMBO_BOX(indent_char_combo)) == 0 ? '\t' : ' ';
 		config_set_uint(keyfile_plugin, fcfg_e_indentChar, indentChar, 255);
 		
-		indentLength = gtk_spin_button_get_value_as_int(
-						GTK_SPIN_BUTTON(indent_length_spin));
-		config_set_uint(keyfile_plugin, fcfg_e_indentLength, indentLength, 10);
+		indentWidth = gtk_spin_button_get_value_as_int(
+						GTK_SPIN_BUTTON(indent_width_spin));
+		config_set_uint(keyfile_plugin, fcfg_e_indentWidth, indentWidth, 10);
 		
 		config_save_setting(keyfile_plugin, plugin_config_path);
 	}
@@ -441,7 +450,7 @@ static void config_set_defaults(GKeyFile *keyfile)
 	
 	config_set_uint(keyfile, fcfg_e_indentChar, indentChar = '\t', 255);
 	
-	config_set_uint(keyfile, fcfg_e_indentLength, indentLength = 1, 10);
+	config_set_uint(keyfile, fcfg_e_indentWidth, indentWidth = 4, 10);
 }
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
@@ -474,10 +483,10 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	
 	const gchar *INDENT_TEXTS[] = {_("Tab"), _("Space")};
 	indent_char_combo = add_combobox(container, _("Indentation:"), INDENT_TEXTS, 2,
-									 indentChar == ' ' ? 1 : 0, NULL, FALSE);
+									 indentChar == '\t' ? 0 : 1, NULL, FALSE);
 	
-	indent_length_spin = add_spinbox(container, _("Symbols count:"), 0, 10, 1,
-									 indentLength, NULL, TRUE);
+	indent_width_spin = add_spinbox(container, _("Indent width:"), 0, 10, 1,
+									indentWidth, NULL, TRUE);
 	
 	//----------------------------------------------------------------
 	show_errors_in_window_btn = add_checkbox(vbox,
@@ -552,7 +561,7 @@ void plugin_init(GeanyData *data)
 		
 		indentChar = config_get_uint(keyfile_plugin, fcfg_e_indentChar, 255);
 		
-		indentLength = config_get_uint(keyfile_plugin, fcfg_e_indentLength, 10);
+		indentWidth = config_get_uint(keyfile_plugin, fcfg_e_indentWidth, 10);
 	}
 	
 	/* ---------------------------- */
