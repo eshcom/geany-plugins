@@ -28,6 +28,8 @@
 #include "PluginEntry.h"
 #include <errno.h>
 
+#include "ctype.h"
+
 
 GeanyPlugin	*geany_plugin;
 GeanyData	*geany_data;
@@ -45,11 +47,13 @@ PLUGIN_SET_TRANSLATABLE_INFO(
 
 /*========================================== DECLARATIONS ================================================================*/
 
-static GtkWidget *main_menu_item = NULL; /*the main menu of the plugin*/
+/* the main menu of the plugin */
+static GtkWidget *menu_item_minify = NULL;
+static GtkWidget *menu_item_prettify = NULL;
 
 /* declaration of the functions */
-static void xml_format(GtkMenuItem *menuitem, gpointer gdata);
-static void kb_run_xml_pretty_print(G_GNUC_UNUSED guint key_id);
+static void item_activate_cb(GtkMenuItem *menuitem, gpointer gdata);
+static void kb_activate(G_GNUC_UNUSED guint key_id);
 static void config_closed(GtkWidget *configWidget, gint response, gpointer data);
 
 /*========================================== FUNCTIONS ===================================================================*/
@@ -116,27 +120,43 @@ void plugin_init(GeanyData *data)
 	LIBXML_TEST_VERSION
 	
 	/* put the menu into the Tools */
-	main_menu_item = gtk_menu_item_new_with_mnemonic(_("PrettyPrinter XML"));
-	ui_add_document_sensitive(main_menu_item);
+	menu_item_minify = gtk_menu_item_new_with_mnemonic(_("XML Minify"));
+	gtk_widget_show(menu_item_minify);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
+					  menu_item_minify);
+	/* add activation callback */
+	g_signal_connect(menu_item_minify, "activate",
+					 G_CALLBACK(item_activate_cb), GINT_TO_POINTER(0));
 	
-	gtk_widget_show(main_menu_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), main_menu_item);
+	/* put the menu into the Tools */
+	menu_item_prettify = gtk_menu_item_new_with_mnemonic(_("XML Prettify"));
+	gtk_widget_show(menu_item_prettify);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
+					  menu_item_prettify);
+	/* add activation callback */
+	g_signal_connect(menu_item_prettify, "activate",
+					 G_CALLBACK(item_activate_cb), GINT_TO_POINTER(1));
+	
+	/* do not activate if there are do documents opened */
+	ui_add_document_sensitive(menu_item_minify);
+	ui_add_document_sensitive(menu_item_prettify);
 	
 	/* init keybindings */
-	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, "prettyprinter",
-													1, NULL);
-	keybindings_set_item(key_group, 0, kb_run_xml_pretty_print,
-						 0, 0, "run_pretty_printer_xml", _("Run the PrettyPrinter XML"),
-						 main_menu_item);
-	
-	/* add activation callback */
-	g_signal_connect(main_menu_item, "activate", G_CALLBACK(xml_format), NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, "xml_prettifier",
+													2, NULL);
+	keybindings_set_item(key_group, 0, kb_activate, 0, 0,
+						 "run_xml_minifier", _("Run the XML Minifier"),
+						 menu_item_minify);
+	keybindings_set_item(key_group, 1, kb_activate, 0, 0,
+						 "run_xml_prettifier", _("Run the XML Prettifier"),
+						 menu_item_prettify);
 }
 
 void plugin_cleanup(void)
 {
 	/* destroys the plugin */
-	gtk_widget_destroy(main_menu_item);
+	gtk_widget_destroy(menu_item_minify);
+	gtk_widget_destroy(menu_item_prettify);
 }
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
@@ -168,16 +188,8 @@ void config_closed(GtkWidget *configWidget, gint response, gpointer gdata)
 	}
 }
 
-void kb_run_xml_pretty_print(G_GNUC_UNUSED guint key_id)
+void my_xml_prettify(GeanyDocument *doc, gboolean beautify)
 {
-	xml_format(NULL, NULL);
-}
-
-void xml_format(GtkMenuItem *menuitem, gpointer gdata)
-{
-	/* retrieves the current document */
-	GeanyDocument *doc = document_get_current();
-	
 	g_return_if_fail(doc != NULL);
 	
 	GeanyEditor *editor = doc->editor;
@@ -206,21 +218,54 @@ void xml_format(GtkMenuItem *menuitem, gpointer gdata)
 	/* free all */
 	xmlFreeDoc(parsedDocument);
 	
-	/* process pretty-printing */
-	int input_length = has_selection ? sci_get_selected_text_length(sci)
-									 : sci_get_length(sci);
 	gchar *output_buffer;
-	int output_length;
-	int result = processXMLPrettyPrinting(input_buffer, input_length, &output_buffer,
-										  &output_length, prettyPrintingOptions);
-	g_free(input_buffer);
 	
-	if (result != PRETTY_PRINTING_SUCCESS)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR, _("Unable to process PrettyPrinting on the specified XML "
-												 "because some features are not supported.\n\n"
-												 "See Help > Debug messages for more details..."));
-		return;
+	if (beautify)
+	{	/* process XML Prettifier */
+		int input_length = has_selection ? sci_get_selected_text_length(sci)
+										 : sci_get_length(sci);
+		int output_length;
+		int result = processXMLPrettyPrinting(input_buffer, input_length, &output_buffer,
+											  &output_length, prettyPrintingOptions);
+		g_free(input_buffer);
+		
+		if (result != PRETTY_PRINTING_SUCCESS)
+		{
+			dialogs_show_msgbox(GTK_MESSAGE_ERROR, _("Unable to process PrettyPrinting on the specified XML "
+													 "because some features are not supported.\n\n"
+													 "See Help > Debug messages for more details..."));
+			return;
+		}
+	}
+	else
+	{	/* process XML Minifier */
+		output_buffer = input_buffer;
+		
+		const gchar *r;
+		gchar *w = output_buffer;
+		
+		gboolean is_payload = FALSE;
+		foreach_str(r, output_buffer)
+		{
+			if (is_payload)
+			{
+				if (isspace(*r))
+				{
+					*w++ = ' ';
+					is_payload = FALSE;
+				}
+				else
+					*w++ = *r;
+			}
+			else if (!isspace(*r))
+			{
+				*w++ = *r;
+				is_payload = TRUE;
+			}
+		}
+		if (*(w-1) == ' ')
+			w--;
+		*w = 0x0; // null terminated
 	}
 	
 	/* updates the document */
@@ -245,4 +290,14 @@ void xml_format(GtkMenuItem *menuitem, gpointer gdata)
 		document_set_filetype_and_indent(doc, filetypes_index(GEANY_FILETYPES_XML),
 										 indentType, prettyPrintingOptions->indentWidth);
 	}
+}
+
+void item_activate_cb(GtkMenuItem *menuitem, gpointer gdata)
+{
+	my_xml_prettify(document_get_current(), GPOINTER_TO_INT(gdata));
+}
+
+void kb_activate(G_GNUC_UNUSED guint key_id)
+{
+	my_xml_prettify(document_get_current(), key_id);
 }

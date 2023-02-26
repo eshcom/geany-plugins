@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-25 17:34+0300\n"
+"POT-Creation-Date: 2023-02-26 22:50+0300\n"
 "PO-Revision-Date: 2011-09-13 20:24+0100\n"
 "Last-Translator: Peter Scholtens <peter.scholtens@xs4all.nl>\n"
 "Language-Team: Dutch\n"
@@ -3431,7 +3431,7 @@ msgid "Toggle Insert/Overwrite mode"
 msgstr ""
 
 #: ../geanymacro/src/geanymacro.c:137
-#: ../jsonprettifier/src/jsonprettifier.c:473
+#: ../jsonprettifier/src/jsonprettifier.c:484
 #: ../pretty-printer/src/ConfigUI.c:104
 msgid "Tab"
 msgstr ""
@@ -5024,62 +5024,62 @@ msgid ""
 "https://github.com/zhgzhg/Geany-JSON-Prettifier"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:451
+#: ../jsonprettifier/src/jsonprettifier.c:462
 msgid "Escape any forward slashes"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:456
+#: ../jsonprettifier/src/jsonprettifier.c:467
 msgid "Allow invalid UTF-8 in the strings"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:461
+#: ../jsonprettifier/src/jsonprettifier.c:472
 msgid "Reformat multiple JSON entities at once"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:466
+#: ../jsonprettifier/src/jsonprettifier.c:477
 msgid ""
 "Allow (effectively strip and ignore) multiline comments like for e.g. /* "
 "comment */"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:473
+#: ../jsonprettifier/src/jsonprettifier.c:484
 #: ../pretty-printer/src/ConfigUI.c:104
 msgid "Space"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:474
+#: ../jsonprettifier/src/jsonprettifier.c:485
 #: ../pretty-printer/src/ConfigUI.c:105
 msgid "Indentation:"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:477
+#: ../jsonprettifier/src/jsonprettifier.c:488
 #: ../pretty-printer/src/ConfigUI.c:108
 msgid "Indent width:"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:482
+#: ../jsonprettifier/src/jsonprettifier.c:493
 #, fuzzy
 msgid "Show errors in a message window"
 msgstr "_Verberg berichtenvenster"
 
-#: ../jsonprettifier/src/jsonprettifier.c:487
+#: ../jsonprettifier/src/jsonprettifier.c:498
 msgid "Log successful formatting messages"
 msgstr ""
 
 #. ----------------------------
-#: ../jsonprettifier/src/jsonprettifier.c:558
+#: ../jsonprettifier/src/jsonprettifier.c:569
 msgid "JSON Minify"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:565
+#: ../jsonprettifier/src/jsonprettifier.c:576
 msgid "JSON Prettify"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:583
+#: ../jsonprettifier/src/jsonprettifier.c:593
 msgid "Run the JSON Minifier"
 msgstr ""
 
-#: ../jsonprettifier/src/jsonprettifier.c:589
+#: ../jsonprettifier/src/jsonprettifier.c:599
 msgid "Run the JSON Prettifier"
 msgstr ""
 
@@ -5746,11 +5746,11 @@ msgstr ""
 "Kon widget '%s' niet vinden in grafische interface definitie. Controleer de "
 "installatie."
 
-#: ../pretty-printer/src/PluginEntry.c:41
+#: ../pretty-printer/src/PluginEntry.c:43
 msgid "XML PrettyPrinter"
 msgstr ""
 
-#: ../pretty-printer/src/PluginEntry.c:42
+#: ../pretty-printer/src/PluginEntry.c:44
 msgid ""
 "Formats an XML and makes it human-readable. \n"
 "This plugin currently has no maintainer. Would you like to help by "
@@ -5758,19 +5758,28 @@ msgid ""
 msgstr ""
 
 #. put the menu into the Tools
-#: ../pretty-printer/src/PluginEntry.c:125
-msgid "PrettyPrinter XML"
+#: ../pretty-printer/src/PluginEntry.c:123
+msgid "XML Minify"
 msgstr ""
 
-#: ../pretty-printer/src/PluginEntry.c:134
-msgid "Run the PrettyPrinter XML"
+#. put the menu into the Tools
+#: ../pretty-printer/src/PluginEntry.c:132
+msgid "XML Prettify"
 msgstr ""
 
-#: ../pretty-printer/src/PluginEntry.c:217
+#: ../pretty-printer/src/PluginEntry.c:148
+msgid "Run the XML Minifier"
+msgstr ""
+
+#: ../pretty-printer/src/PluginEntry.c:151
+msgid "Run the XML Prettifier"
+msgstr ""
+
+#: ../pretty-printer/src/PluginEntry.c:214
 msgid "Unable to parse the content as XML."
 msgstr "Kon de inhoud niet als XML interpreteren."
 
-#: ../pretty-printer/src/PluginEntry.c:230
+#: ../pretty-printer/src/PluginEntry.c:234
 msgid ""
 "Unable to process PrettyPrinting on the specified XML because some features "
 "are not supported.\n"

@@ -32,7 +32,7 @@ Usage
 -----
 
 After installed successfully, load the plugin in Geany's plugin manager.
-If the current file is an XML file simply choose "PrettyPrinter XML" to
+If the current file is an XML file simply choose "XML Prettify" to
 format the file according to the plugin's preferences. The plugin's
 preferences can be set under "Edit/Plugin Preferences", see the "XML
 PrettyPrinter" tab.

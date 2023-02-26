@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-25 17:34+0300\n"
+"POT-Creation-Date: 2023-02-26 22:50+0300\n"
 "PO-Revision-Date: 2020-05-01 16:20+1000\n"
 "Last-Translator: Dmitry Unruh <dmitryunruh@googlemail.com>\n"
 "Language-Team: Russian <geany-i18n@uvena.de>\n"
@@ -3536,7 +3536,7 @@ msgid "Toggle Insert/Overwrite mode"
 msgstr "Переключить режим вставки/замены"
 
 #: ../geanymacro/src/geanymacro.c:137
-#: ../jsonprettifier/src/jsonprettifier.c:473
+#: ../jsonprettifier/src/jsonprettifier.c:484
 #: ../pretty-printer/src/ConfigUI.c:104
 msgid "Tab"
 msgstr "Табуляция"
@@ -5229,19 +5229,19 @@ msgstr ""
 "Форматтер/валидатор/минификатор (в одну строку) JSON.\n"
 "https://github.com/zhgzhg/Geany-JSON-Prettifier"
 
-#: ../jsonprettifier/src/jsonprettifier.c:451
+#: ../jsonprettifier/src/jsonprettifier.c:462
 msgid "Escape any forward slashes"
 msgstr "Экранировать любые косые черты (слеши)"
 
-#: ../jsonprettifier/src/jsonprettifier.c:456
+#: ../jsonprettifier/src/jsonprettifier.c:467
 msgid "Allow invalid UTF-8 in the strings"
 msgstr "Разрешить недопустимые UTF-8 символы в строках"
 
-#: ../jsonprettifier/src/jsonprettifier.c:461
+#: ../jsonprettifier/src/jsonprettifier.c:472
 msgid "Reformat multiple JSON entities at once"
 msgstr "Переформатировать сразу несколько объектов JSON"
 
-#: ../jsonprettifier/src/jsonprettifier.c:466
+#: ../jsonprettifier/src/jsonprettifier.c:477
 msgid ""
 "Allow (effectively strip and ignore) multiline comments like for e.g. /* "
 "comment */"
@@ -5249,43 +5249,43 @@ msgstr ""
 "Разрешить (эффективно удалять и игнорировать) многострочные комментарии, "
 "например, /* комментарий */"
 
-#: ../jsonprettifier/src/jsonprettifier.c:473
+#: ../jsonprettifier/src/jsonprettifier.c:484
 #: ../pretty-printer/src/ConfigUI.c:104
 msgid "Space"
 msgstr "Пробелы"
 
-#: ../jsonprettifier/src/jsonprettifier.c:474
+#: ../jsonprettifier/src/jsonprettifier.c:485
 #: ../pretty-printer/src/ConfigUI.c:105
 msgid "Indentation:"
 msgstr "Отступы:"
 
-#: ../jsonprettifier/src/jsonprettifier.c:477
+#: ../jsonprettifier/src/jsonprettifier.c:488
 #: ../pretty-printer/src/ConfigUI.c:108
 msgid "Indent width:"
 msgstr "Ширина отступа:"
 
-#: ../jsonprettifier/src/jsonprettifier.c:482
+#: ../jsonprettifier/src/jsonprettifier.c:493
 msgid "Show errors in a message window"
 msgstr "Показать ошибки в отдельном окне"
 
-#: ../jsonprettifier/src/jsonprettifier.c:487
+#: ../jsonprettifier/src/jsonprettifier.c:498
 msgid "Log successful formatting messages"
 msgstr "Логировать об успешном форматировании"
 
 #. ----------------------------
-#: ../jsonprettifier/src/jsonprettifier.c:558
+#: ../jsonprettifier/src/jsonprettifier.c:569
 msgid "JSON Minify"
 msgstr "Уменьшить JSON (в одну строку)"
 
-#: ../jsonprettifier/src/jsonprettifier.c:565
+#: ../jsonprettifier/src/jsonprettifier.c:576
 msgid "JSON Prettify"
 msgstr "Форматировать JSON"
 
-#: ../jsonprettifier/src/jsonprettifier.c:583
+#: ../jsonprettifier/src/jsonprettifier.c:593
 msgid "Run the JSON Minifier"
 msgstr "Запустить уменьшение JSON (в одну строку)"
 
-#: ../jsonprettifier/src/jsonprettifier.c:589
+#: ../jsonprettifier/src/jsonprettifier.c:599
 msgid "Run the JSON Prettifier"
 msgstr "Запустить форматирование JSON"
 
@@ -5957,11 +5957,11 @@ msgstr ""
 "Невозможно найти виджет \"%s\" в файле интерфейса, проверьте правильность "
 "установки."
 
-#: ../pretty-printer/src/PluginEntry.c:41
+#: ../pretty-printer/src/PluginEntry.c:43
 msgid "XML PrettyPrinter"
 msgstr "Форматирование XML"
 
-#: ../pretty-printer/src/PluginEntry.c:42
+#: ../pretty-printer/src/PluginEntry.c:44
 msgid ""
 "Formats an XML and makes it human-readable. \n"
 "This plugin currently has no maintainer. Would you like to help by "
@@ -5969,19 +5969,28 @@ msgid ""
 msgstr ""
 
 #. put the menu into the Tools
-#: ../pretty-printer/src/PluginEntry.c:125
-msgid "PrettyPrinter XML"
+#: ../pretty-printer/src/PluginEntry.c:123
+msgid "XML Minify"
+msgstr "Уменьшить XML (в одну строку)"
+
+#. put the menu into the Tools
+#: ../pretty-printer/src/PluginEntry.c:132
+msgid "XML Prettify"
 msgstr "Форматировать XML"
 
-#: ../pretty-printer/src/PluginEntry.c:134
-msgid "Run the PrettyPrinter XML"
+#: ../pretty-printer/src/PluginEntry.c:148
+msgid "Run the XML Minifier"
+msgstr "Запустить уменьшение XML (в одну строку)"
+
+#: ../pretty-printer/src/PluginEntry.c:151
+msgid "Run the XML Prettifier"
 msgstr "Запустить форматирование XML"
 
-#: ../pretty-printer/src/PluginEntry.c:217
+#: ../pretty-printer/src/PluginEntry.c:214
 msgid "Unable to parse the content as XML."
 msgstr "Содержимое документа не соответствует формату XML"
 
-#: ../pretty-printer/src/PluginEntry.c:230
+#: ../pretty-printer/src/PluginEntry.c:234
 msgid ""
 "Unable to process PrettyPrinting on the specified XML because some features "
 "are not supported.\n"
