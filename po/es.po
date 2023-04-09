@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.36\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-26 22:50+0300\n"
+"POT-Creation-Date: 2023-04-11 18:58+0300\n"
 "PO-Revision-Date: 2019-09-22 15:44+0200\n"
 "Last-Translator: Lucas Vieites Fariña <lucas@codexion.com>\n"
 "Language-Team: Español <geany-i18n@uvena.de>\n"
@@ -178,7 +178,7 @@ msgid "Copy the file path of the current document to the clipboard"
 msgstr "Copia la ruta de archivo del documento actual al portapapeles. "
 
 #: ../addons/src/addons.c:379 ../autoclose/src/autoclose.c:843
-#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:715
+#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:792
 #: ../latex/src/latex.c:208 ../latex/src/latex.c:293
 #: ../geanyprj/src/geanyprj.c:176 ../geanyvc/src/geanyvc.c:1973
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:64
@@ -1313,100 +1313,113 @@ msgstr "Sensible _a mayúsculas"
 msgid "Toggle case sensitive search"
 msgstr "Intercambiar búsqueda sensible a mayúsculas"
 
-#: ../geanyctags/src/geanyctags.c:111
+#: ../geanyctags/src/geanyctags.c:119
 #, c-format
 msgid "%s (in directory: %s)"
 msgstr "%s (en el directorio: %s)"
 
-#: ../geanyctags/src/geanyctags.c:127
+#: ../geanyctags/src/geanyctags.c:147
 #, c-format
 msgid "Process execution failed (%s)"
 msgstr "Ha fallado la ejecución del proceso (%s)"
 
-#: ../geanyctags/src/geanyctags.c:476
+#: ../geanyctags/src/geanyctags.c:524
 msgid "Find Tag"
 msgstr "Buscar etiqueta"
 
-#: ../geanyctags/src/geanyctags.c:491
+#: ../geanyctags/src/geanyctags.c:539
 msgid "_Search for:"
 msgstr "Bu_scar:"
 
-#: ../geanyctags/src/geanyctags.c:509
+#: ../geanyctags/src/geanyctags.c:557
 msgid "_Match type:"
 msgstr "_Tipo de coincidencia:"
 
-#: ../geanyctags/src/geanyctags.c:515
+#: ../geanyctags/src/geanyctags.c:563
 #: ../projectorganizer/src/prjorg-sidebar.c:651
 msgid "exact"
 msgstr "exacto"
 
-#: ../geanyctags/src/geanyctags.c:517
+#: ../geanyctags/src/geanyctags.c:565
 #: ../projectorganizer/src/prjorg-sidebar.c:652
 msgid "prefix"
 msgstr "prefijo"
 
-#: ../geanyctags/src/geanyctags.c:519
+#: ../geanyctags/src/geanyctags.c:567
 #: ../projectorganizer/src/prjorg-sidebar.c:653
 msgid "pattern"
 msgstr "patrón"
 
-#: ../geanyctags/src/geanyctags.c:529
+#: ../geanyctags/src/geanyctags.c:577
 #: ../projectorganizer/src/prjorg-sidebar.c:167
 #: ../projectorganizer/src/prjorg-sidebar.c:674
 msgid "C_ase sensitive"
 msgstr "Sensible _a mayúsculas"
 
-#: ../geanyctags/src/geanyctags.c:534
+#: ../geanyctags/src/geanyctags.c:582
 #: ../projectorganizer/src/prjorg-sidebar.c:677
 msgid "_Declaration"
 msgstr "_Declaración"
 
-#: ../geanyctags/src/geanyctags.c:639
+#: ../geanyctags/src/geanyctags.c:698
 msgid "Find Tag Declaration (geanyctags)"
 msgstr "Buscar declaración de etiqueta (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:647
+#: ../geanyctags/src/geanyctags.c:706
 msgid "Find Tag Definition (geanyctags)"
 msgstr "Buscar definición de etiqueta (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:655
+#: ../geanyctags/src/geanyctags.c:714
 msgid "Find tag"
 msgstr "Buscar etiqueta"
 
-#: ../geanyctags/src/geanyctags.c:662 ../geanyctags/src/geanyctags.c:669
+#: ../geanyctags/src/geanyctags.c:721 ../geanyctags/src/geanyctags.c:728
 msgid "Generate tags"
 msgstr "Generar etiquetas"
 
-#: ../geanyctags/src/geanyctags.c:671
+#: ../geanyctags/src/geanyctags.c:730
 msgid "Find tag..."
 msgstr "Buscar etiqueta..."
 
-#: ../geanyctags/src/geanyctags.c:738
+#: ../geanyctags/src/geanyctags.c:825
 msgid "Other options to pass to Find"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:742
+#: ../geanyctags/src/geanyctags.c:829
 #, fuzzy
-msgid "Extra options 1:"
-msgstr "Selección e_xtra"
+msgid "Extra find options"
+msgstr "Selección extra"
 
-#: ../geanyctags/src/geanyctags.c:743
+#: ../geanyctags/src/geanyctags.c:835
 #, fuzzy
-msgid "Extra options 2:"
-msgstr "Selección e_xtra"
+msgid "Ctags options:"
+msgstr "Opciones del paquete:"
 
-#: ../geanyctags/src/geanyctags.c:744
+#: ../geanyctags/src/geanyctags.c:836
+msgid "Options to pass to Ctags"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:851
+msgid "Print tags generation results"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:852
 #, fuzzy
-msgid "Extra options 3:"
-msgstr "Selección e_xtra"
+msgid "To the status window"
+msgstr "Mover a la ventana de mensajes"
+
+#: ../geanyctags/src/geanyctags.c:853
+#, fuzzy
+msgid "To the messages window"
+msgstr "Mover a la ventana de mensajes"
 
 #. Set metadata
-#: ../geanyctags/src/geanyctags.c:785
+#: ../geanyctags/src/geanyctags.c:894
 #, fuzzy
 msgid "Geany Ctags"
 msgstr "GeanyVC"
 
-#: ../geanyctags/src/geanyctags.c:786
+#: ../geanyctags/src/geanyctags.c:895
 msgid "Ctags generation and search plugin for geany projects"
 msgstr "Complemento de generación y búsqueda de ctags para proyectos geany"
 
