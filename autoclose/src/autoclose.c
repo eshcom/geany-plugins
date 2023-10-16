@@ -205,9 +205,12 @@ static gboolean lexer_html_like(gint lexer)
 	return lexer == SCLEX_HTML || lexer == SCLEX_XML;
 }
 
-static gboolean lexer_cpp_like(gint lexer, gint style)
+static gboolean lexer_cpp_like(gint lexer, gint style, gint filetype)
 {
-	return lexer == SCLEX_CPP && style == SCE_C_IDENTIFIER;
+	// esh: not only C/C++ lexers are based on the SCLEX_CPP lexer,
+	//		so let's also check the filetype
+	return lexer == SCLEX_CPP && style == SCE_C_IDENTIFIER &&
+			filetype != GEANY_FILETYPES_GO;
 }
 
 static gboolean filetype_c_or_cpp(gint type)
@@ -672,7 +675,7 @@ static gboolean auto_close_chars(AutocloseUserData *data, GdkEventKey *event)
 	if (!has_sel &&
 		ac_info->close_functions &&
 		chars_left[0] == '(' &&
-		lexer_cpp_like(lexer, style) &&
+		lexer_cpp_like(lexer, style, filetype) &&
 		pos == get_end_pos(sci, line) &&
 		sci_get_line_indentation(sci, line) != 0 &&
 		!check_define(sci, line))
