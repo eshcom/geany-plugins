@@ -43,6 +43,8 @@ static GtkCellRenderer		*render_icon, *render_text;
 
 static GtkWidget			*btn_proj_path;
 
+static GtkWidget			*last_focused_widget		= NULL;
+
 /* ------------------
  * FLAGS
  * ------------------ */
@@ -1623,6 +1625,11 @@ static void on_addressbar_activate(GtkEntry *entry, gpointer user_data)
 	treebrowser_chroot(directory);
 }
 
+static void on_addressbar_grabfocus(GtkEntry *entry, gpointer user_data)
+{
+	last_focused_widget = GTK_WIDGET(entry);
+}
+
 static void on_filter_activate(GtkEntry *entry, gpointer user_data)
 {
 	treebrowser_chroot(addressbar_last_address);
@@ -1639,10 +1646,31 @@ static void on_filter_clear(GtkEntry *entry, gint icon_pos,
 	treebrowser_chroot(addressbar_last_address);
 }
 
+static gboolean on_filter_focus(GtkEntry *entry, GtkDirectionType direction,
+								gpointer user_data)
+{
+	if (last_focused_widget && last_focused_widget != GTK_WIDGET(entry))
+	{
+		gtk_widget_grab_focus(last_focused_widget);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+static void on_filter_grabfocus(GtkEntry *entry, gpointer user_data)
+{
+	last_focused_widget = GTK_WIDGET(entry);
+}
+
 
 /* ------------------
  * TREEVIEW EVENTS
  * ------------------ */
+
+static void on_treeview_grabfocus(GtkWidget *widget, gpointer user_data)
+{
+	last_focused_widget = widget;
+}
 
 static gboolean on_treeview_mouseclick(GtkWidget *widget,
 									   GdkEventButton *event,
@@ -2172,8 +2200,12 @@ static void create_sidebar(void)
 	g_signal_connect(treeview,   "row-collapsed", 		G_CALLBACK(on_treeview_row_collapsed), 	NULL);
 	g_signal_connect(treeview,   "row-expanded", 		G_CALLBACK(on_treeview_row_expanded), 	NULL);
 	g_signal_connect(treeview,   "key-press-event", 	G_CALLBACK(on_treeview_keypress), 		NULL);
+	g_signal_connect(treeview,   "grab-focus", 			G_CALLBACK(on_treeview_grabfocus), 		NULL);
 	g_signal_connect(addressbar, "activate", 			G_CALLBACK(on_addressbar_activate), 	NULL);
+	g_signal_connect(addressbar, "grab-focus", 			G_CALLBACK(on_addressbar_grabfocus), 	NULL);
 	g_signal_connect(filter,     "activate", 			G_CALLBACK(on_filter_activate), 		NULL);
+	g_signal_connect(filter,     "focus", 				G_CALLBACK(on_filter_focus), 			NULL);
+	g_signal_connect(filter,     "grab-focus", 			G_CALLBACK(on_filter_grabfocus), 		NULL);
 	
 	gtk_widget_show_all(sidebar_vbox);
 	
