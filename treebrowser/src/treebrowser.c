@@ -45,6 +45,8 @@ static GtkWidget			*btn_proj_path;
 
 static GtkWidget			*last_focused_widget		= NULL;
 
+static GdkColor				color_parent = {0, 0xFFFF, 0, 0};
+
 /* ------------------
  * FLAGS
  * ------------------ */
@@ -95,15 +97,13 @@ static gchar **IGNORED_DIR_NAMES = NULL;
 
 enum
 {
-	TREEBROWSER_COLUMNC									= 4,
+	TREEBROWSER_COLUMNC									= 5,
 	
 	TREEBROWSER_COLUMN_ICON								= 0,
 	TREEBROWSER_COLUMN_NAME								= 1,
 	TREEBROWSER_COLUMN_URI								= 2,
 	TREEBROWSER_COLUMN_FLAG								= 3,
-	
-	TREEBROWSER_RENDER_ICON								= 0,
-	TREEBROWSER_RENDER_TEXT								= 1,
+	TREEBROWSER_COLUMN_COLOR							= 4,
 	
 	TREEBROWSER_FLAGS_SEPARATOR							= -1
 };
@@ -691,6 +691,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 												 : NULL;
 #endif
 						gtk_tree_store_set(treestore, &iter,
+										   TREEBROWSER_COLUMN_COLOR, &color_parent,
 										   TREEBROWSER_COLUMN_ICON, icon,
 										   TREEBROWSER_COLUMN_NAME, fname,
 										   TREEBROWSER_COLUMN_URI,  uri, -1);
@@ -838,6 +839,7 @@ static void treebrowser_load_bookmarks(void)
 											 : NULL;
 #endif
 					gtk_tree_store_set(treestore, &iter,
+									   TREEBROWSER_COLUMN_COLOR, &color_parent,
 									   TREEBROWSER_COLUMN_ICON, icon,
 									   TREEBROWSER_COLUMN_NAME, file_name,
 									   TREEBROWSER_COLUMN_URI,  path_full, -1);
@@ -1050,7 +1052,7 @@ static gboolean treebrowser_iter_rename(gpointer iter)
 			GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
 			
 			GtkCellRenderer *renderer = g_list_nth_data(renderers,
-												TREEBROWSER_RENDER_TEXT);
+												TREEBROWSER_COLUMN_NAME);
 			
 			g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 			gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(treeview), path,
@@ -1932,7 +1934,7 @@ static void on_treeview_renamed(GtkCellRenderer *renderer,
 											GTK_TREE_VIEW(treeview), 0);
 	
 	GList *renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
-	renderer = g_list_nth_data(renderers, TREEBROWSER_RENDER_TEXT);
+	renderer = g_list_nth_data(renderers, TREEBROWSER_COLUMN_NAME);
 	g_list_free(renderers);
 	
 	g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
@@ -2020,11 +2022,13 @@ static GtkWidget *create_view_and_model(void)
 	
 	gtk_tree_view_column_pack_start(treeview_column_text, render_icon, FALSE);
 	gtk_tree_view_column_set_attributes(treeview_column_text, render_icon,
-										"pixbuf", TREEBROWSER_RENDER_ICON, NULL);
+										"pixbuf", TREEBROWSER_COLUMN_ICON, NULL);
 	
 	gtk_tree_view_column_pack_start(treeview_column_text, render_text, TRUE);
-	gtk_tree_view_column_add_attribute(treeview_column_text, render_text,
-									   "text", TREEBROWSER_RENDER_TEXT);
+	gtk_tree_view_column_set_attributes(treeview_column_text, render_text,
+										"text", TREEBROWSER_COLUMN_NAME,
+										"foreground-gdk", TREEBROWSER_COLUMN_COLOR,
+										NULL);
 	
 	gtk_tree_view_set_enable_search(GTK_TREE_VIEW(view), TRUE);
 	gtk_tree_view_set_search_column(GTK_TREE_VIEW(view),
@@ -2046,7 +2050,8 @@ static GtkWidget *create_view_and_model(void)
 										CONFIG_SHOW_TREE_LINES);
 	
 	treestore = gtk_tree_store_new(TREEBROWSER_COLUMNC, GDK_TYPE_PIXBUF,
-								   G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT);
+								   G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+								   GDK_TYPE_COLOR);
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(view), GTK_TREE_MODEL(treestore));
 	g_signal_connect(G_OBJECT(render_text), "edited",
@@ -2542,6 +2547,8 @@ void plugin_init(GeanyData *data)
 	
 	load_settings();
 	create_sidebar();
+	
+	ui_load_color("geany-sidebar-parent", &color_parent);
 	
 	on_button_current_path();
 	
