@@ -91,6 +91,8 @@ static gboolean				CONFIG_OPEN_NEW_FILES		= TRUE;
 static gchar **OBJECT_FILE_EXTS = NULL;
 static gchar **IGNORED_DIR_NAMES = NULL;
 
+static void treebrowser_track_current_cb(void);
+
 /* ------------------
  * TREEVIEW STRUCT
  * ------------------ */
@@ -460,7 +462,7 @@ static GString *generate_find_cmd(void)
 	return gstr;
 }
 
-static void find_and_expand_to_paths(void)
+static gboolean find_and_expand_to_paths(void)
 {
 	GString *findcmd = generate_find_cmd();
 	if (findcmd)
@@ -487,7 +489,10 @@ static void find_and_expand_to_paths(void)
 		g_strfreev(dirs);
 		free_spawn_result(result);
 		g_string_free(findcmd, TRUE);
+		
+		return TRUE;
 	}
+	return FALSE;
 }
 #endif
 
@@ -1584,18 +1589,21 @@ static void on_button_go_up(void)
 {
 	gchar *uri = g_path_get_dirname(addressbar_last_address);
 	treebrowser_chroot(uri);
+	treebrowser_track_current_cb();
 	g_free(uri);
 }
 
 static void on_button_refresh(void)
 {
 	treebrowser_chroot(addressbar_last_address);
+	treebrowser_track_current_cb();
 }
 
 static void on_button_go_home(void)
 {
 	gchar *uri = g_strdup(g_get_home_dir());
 	treebrowser_chroot(uri);
+	treebrowser_track_current_cb();
 	g_free(uri);
 }
 
@@ -1605,6 +1613,7 @@ static void on_button_project_path(void)
 	if (uri)
 	{
 		treebrowser_chroot(uri);
+		treebrowser_track_current_cb();
 		g_free(uri);
 	}
 }
@@ -1613,6 +1622,7 @@ static void on_button_current_path(void)
 {
 	gchar *uri = get_default_dir();
 	treebrowser_chroot(uri);
+	treebrowser_track_current_cb();
 	g_free(uri);
 }
 
@@ -1636,9 +1646,12 @@ static void on_filter_activate(GtkEntry *entry, gpointer user_data)
 {
 	treebrowser_chroot(addressbar_last_address);
 	
+	gboolean result = FALSE;
 #ifndef G_OS_WIN32
-	find_and_expand_to_paths();
+	result = find_and_expand_to_paths();
 #endif
+	if (!result)
+		treebrowser_track_current_cb();
 }
 
 static void on_filter_clear(GtkEntry *entry, gint icon_pos,
@@ -1646,6 +1659,7 @@ static void on_filter_clear(GtkEntry *entry, gint icon_pos,
 {
 	gtk_entry_set_text(entry, "");
 	treebrowser_chroot(addressbar_last_address);
+	treebrowser_track_current_cb();
 }
 
 static gboolean on_filter_focus(GtkEntry *entry, GtkDirectionType direction,
@@ -2158,7 +2172,7 @@ static void create_sidebar(void)
 #else
 	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_DIRECTORY));
 #endif
-	gtk_widget_set_tooltip_text(wid, _("Track path"));
+	gtk_widget_set_tooltip_text(wid, _("Track Current"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(treebrowser_track_current), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
