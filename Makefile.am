@@ -148,6 +148,10 @@ if ENABLE_PROJECTORGANIZER
 SUBDIRS += projectorganizer
 endif
 
+if ENABLE_RUNSCRIPT
+SUBDIRS += runscript
+endif
+
 if ENABLE_SCOPE
 SUBDIRS += scope
 endif

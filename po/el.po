@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: geany-plugins 1.31\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-23 20:13+0300\n"
+"POT-Creation-Date: 2024-07-29 19:43+0300\n"
 "PO-Revision-Date: 2017-06-28 22:25+0200\n"
 "Last-Translator: Frank Lanitz <frank@frank.uvena.de>\n"
 "Language-Team: Greek\n"
@@ -176,9 +176,9 @@ msgstr ""
 #: ../latex/src/latex.c:208 ../latex/src/latex.c:293
 #: ../geanyprj/src/geanyprj.c:176 ../geanyvc/src/geanyvc.c:1973
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:64
-#: ../sendmail/src/sendmail.c:128 ../sendmail/src/sendmail.c:293
-#: ../setfiletype/src/setfiletype.c:109 ../spellcheck/src/scplugin.c:124
-#: ../treebrowser/src/treebrowser.c:2384
+#: ../runscript/src/runscript.c:121 ../sendmail/src/sendmail.c:128
+#: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:109
+#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2384
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr ""
@@ -6008,6 +6008,88 @@ msgstr ""
 
 #: ../projectorganizer/src/prjorg-sidebar.c:1695
 msgid "Delete"
+msgstr ""
+
+#: ../runscript/src/runscript.c:146
+#, c-format
+msgid "Unable to execute script '%s' (%s)."
+msgstr ""
+
+#: ../runscript/src/runscript.c:223 ../runscript/src/runscript.c:259
+msgid "Script 1"
+msgstr ""
+
+#: ../runscript/src/runscript.c:224 ../runscript/src/runscript.c:260
+msgid "Script 2"
+msgstr ""
+
+#: ../runscript/src/runscript.c:225 ../runscript/src/runscript.c:261
+msgid "Script 3"
+msgstr ""
+
+#: ../runscript/src/runscript.c:226 ../runscript/src/runscript.c:262
+msgid "Script 4"
+msgstr ""
+
+#: ../runscript/src/runscript.c:227 ../runscript/src/runscript.c:263
+msgid "Script 5"
+msgstr ""
+
+#: ../runscript/src/runscript.c:228 ../runscript/src/runscript.c:264
+msgid "Script 6"
+msgstr ""
+
+#: ../runscript/src/runscript.c:229 ../runscript/src/runscript.c:265
+msgid "Script 7"
+msgstr ""
+
+#: ../runscript/src/runscript.c:230 ../runscript/src/runscript.c:266
+msgid "Script 8"
+msgstr ""
+
+#: ../runscript/src/runscript.c:231 ../runscript/src/runscript.c:267
+msgid "Script 9"
+msgstr ""
+
+#: ../runscript/src/runscript.c:232 ../runscript/src/runscript.c:268
+msgid "Script 10"
+msgstr ""
+
+#: ../runscript/src/runscript.c:233 ../runscript/src/runscript.c:269
+msgid "Script 11"
+msgstr ""
+
+#: ../runscript/src/runscript.c:234 ../runscript/src/runscript.c:270
+msgid "Script 12"
+msgstr ""
+
+#: ../runscript/src/runscript.c:235 ../runscript/src/runscript.c:271
+msgid "Script 13"
+msgstr ""
+
+#: ../runscript/src/runscript.c:236 ../runscript/src/runscript.c:272
+msgid "Script 14"
+msgstr ""
+
+#: ../runscript/src/runscript.c:237 ../runscript/src/runscript.c:273
+msgid "Script 15"
+msgstr ""
+
+#: ../runscript/src/runscript.c:238 ../runscript/src/runscript.c:274
+msgid "Script 16"
+msgstr ""
+
+#: ../runscript/src/runscript.c:255
+msgid "rabbitvcs-diff, rabbitvcs-log, ..."
+msgstr ""
+
+#. Set metadata
+#: ../runscript/src/runscript.c:317
+msgid "Run Script"
+msgstr ""
+
+#: ../runscript/src/runscript.c:318
+msgid "Run a script (bash, python, ...) on the current doc using a hotkey"
 msgstr ""
 
 #: ../scope/data/scope.glade.h:1 ../scope/data/scope_gtk3.glade.h:1

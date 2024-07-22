@@ -1,10 +1,10 @@
-Set File Type by HotKey
+Run script with hotkey
 ===================
 
 About
 -----
 
-This plugin sets the file type by hotkey.
+This plugin runs a script on the current doc using a hotkey.
 
 Features
 --------

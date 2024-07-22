@@ -271,6 +271,9 @@ projectorganizer/src/prjorg-menu.c
 projectorganizer/src/prjorg-project.c
 projectorganizer/src/prjorg-sidebar.c
 
+# runscript
+runscript/src/runscript.c
+
 # Scope
 scope/data/scope.glade
 scope/data/scope_gtk3.glade

@@ -88,6 +88,7 @@ Available plugins are:
 * ``pohelper`` -- the PoHelper plugin
 * ``pretty_printer`` -- the pretty-printer plugin
 * ``projectorganizer`` -- the ProjectOrganizer plugin
+* ``runscript`` -- the RunScript plugin
 * ``scope`` -- the Scope plugin
 * ``sendmail`` -- the GeanySendmail plugin
 * ``setfiletype`` -- the SetFileType plugin

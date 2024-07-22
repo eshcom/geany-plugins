@@ -197,6 +197,7 @@ Section Uninstall
 	Delete "$INSTDIR\lib\geany\pohelper.dll"
 	Delete "$INSTDIR\lib\geany\pretty-printer.dll"
 	Delete "$INSTDIR\lib\geany\projectorganizer.dll"
+	Delete "$INSTDIR\lib\geany\runscript.dll"
 	Delete "$INSTDIR\lib\geany\scope.dll"
 	Delete "$INSTDIR\lib\geany\sendmail.dll"
 	Delete "$INSTDIR\lib\geany\setfiletype.dll"

@@ -264,6 +264,13 @@ M: Colomban Wendling <ban@herbesfolles.org>
 W: http://plugins.geany.org/pohelper.html
 S: Maintained
 
+runscript
+P: Egor Shinkarev <esh.eburg@gmail.com>
+g: @eshcom
+M: Egor Shinkarev <esh.eburg@gmail.com>
+W:
+S: Maintained
+
 scope
 P:
 g: @LarsGit223
