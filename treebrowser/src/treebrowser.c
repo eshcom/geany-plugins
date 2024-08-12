@@ -45,7 +45,7 @@ static GtkWidget			*btn_proj_path;
 
 static GtkWidget			*last_focused_widget		= NULL;
 
-static GdkColor				color_parent = {0, 0xFFFF, 0, 0};
+static GdkColor				parent_color = {0, 0xFFFF, 0, 0};
 
 /* ------------------
  * FLAGS
@@ -696,7 +696,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 												 : NULL;
 #endif
 						gtk_tree_store_set(treestore, &iter,
-										   TREEBROWSER_COLUMN_COLOR, &color_parent,
+										   TREEBROWSER_COLUMN_COLOR, &parent_color,
 										   TREEBROWSER_COLUMN_ICON, icon,
 										   TREEBROWSER_COLUMN_NAME, fname,
 										   TREEBROWSER_COLUMN_URI,  uri, -1);
@@ -844,7 +844,7 @@ static void treebrowser_load_bookmarks(void)
 											 : NULL;
 #endif
 					gtk_tree_store_set(treestore, &iter,
-									   TREEBROWSER_COLUMN_COLOR, &color_parent,
+									   TREEBROWSER_COLUMN_COLOR, &parent_color,
 									   TREEBROWSER_COLUMN_ICON, icon,
 									   TREEBROWSER_COLUMN_NAME, file_name,
 									   TREEBROWSER_COLUMN_URI,  path_full, -1);
@@ -2562,7 +2562,7 @@ void plugin_init(GeanyData *data)
 	load_settings();
 	create_sidebar();
 	
-	ui_load_color("geany-sidebar-parent", &color_parent);
+	utils_parse_color(data->gui_prefs->sidebar_parent_color, &parent_color);
 	
 	on_button_current_path();
 	
