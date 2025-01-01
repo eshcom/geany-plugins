@@ -845,8 +845,8 @@ gboolean sc_speller_is_text(GeanyDocument *doc, gint pos)
 				case SCE_ERLANG_CHARACTER:
 				case SCE_ERLANG_COMMENT_FUNCTION:
 				case SCE_ERLANG_COMMENT_MODULE:
-				case SCE_ERLANG_COMMENT_DOC:
-				case SCE_ERLANG_COMMENT_DOC_MACRO:
+				case SCE_ERLANG_COMMENT_TAG:
+				case SCE_ERLANG_COMMENT_MACRO_TAG:
 					return TRUE;
 				default:
 					return FALSE;
@@ -1133,13 +1133,13 @@ gboolean sc_speller_is_text(GeanyDocument *doc, gint pos)
 			switch (style)
 			{
 				case SCE_P_DEFAULT:
-				case SCE_P_COMMENTLINE:
 				case SCE_P_STRING:
-				case SCE_P_CHARACTER:
-				case SCE_P_TRIPLE:
-				case SCE_P_TRIPLEDOUBLE:
-				case SCE_P_COMMENTBLOCK:
+				case SCE_P_STRINGTRIPLE:
+				case SCE_P_CHARSTR:
+				case SCE_P_CHARSTRTRIPLE:
 				case SCE_P_STRINGEOL:
+				case SCE_P_COMMENTLINE:
+				case SCE_P_COMMENTBLOCK:
 					return TRUE;
 				default:
 					return FALSE;
