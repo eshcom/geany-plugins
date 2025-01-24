@@ -25,6 +25,7 @@
 #include "cmds/changemode.h"
 #include "cmds/edit.h"
 #include "cmds/special.h"
+#include "cmds/fold.h"
 
 #include <gdk/gdkkeysyms.h>
 
@@ -167,6 +168,21 @@ typedef struct {
 	/* END */
 
 
+/* From the above commands, these commands also include the character
+ * where the destionation movement ends for motion commands (e.g. 'de' will
+ * delete the word including the last character) */
+CmdDef include_dest_char_movement_cmds[] = {
+	{cmd_goto_next_char, GDK_KEY_f, 0, 0, 0, TRUE, FALSE},
+	{cmd_goto_next_char_before, GDK_KEY_t, 0, 0, 0, TRUE, FALSE},
+	{cmd_goto_next_word_end, GDK_KEY_e, 0, 0, 0, FALSE, FALSE},
+	{cmd_goto_next_word_end_space, GDK_KEY_E, 0, 0, 0, FALSE, FALSE},
+	{cmd_goto_previous_word, GDK_KEY_b, 0, 0, 0, FALSE, FALSE},
+	{cmd_goto_previous_word_space, GDK_KEY_B, 0, 0, 0, FALSE, FALSE},
+	{cmd_goto_matching_brace, GDK_KEY_percent, 0, 0, 0, FALSE, FALSE},
+	{NULL, 0, 0, 0, 0, FALSE, FALSE}
+};
+
+
 CmdDef movement_cmds[] = {
 	MOVEMENT_CMDS
 	{NULL, 0, 0, 0, 0, FALSE, FALSE}
@@ -207,6 +223,8 @@ CmdDef operator_cmds[] = {
 	{cmd_select_less, GDK_KEY_a, GDK_KEY_greater, 0, 0, FALSE, FALSE}, \
 	{cmd_select_bracket, GDK_KEY_a, GDK_KEY_bracketleft, 0, 0, FALSE, FALSE}, \
 	{cmd_select_bracket, GDK_KEY_a, GDK_KEY_bracketright, 0, 0, FALSE, FALSE}, \
+	{cmd_select_word, GDK_KEY_a, GDK_KEY_w, 0, 0, FALSE, FALSE}, \
+	{cmd_select_word_space, GDK_KEY_a, GDK_KEY_W, 0, 0, FALSE, FALSE}, \
 	/* inner */ \
 	{cmd_select_quotedbl_inner, GDK_KEY_i, GDK_KEY_quotedbl, 0, 0, FALSE, FALSE}, \
 	{cmd_select_quoteleft_inner, GDK_KEY_i, GDK_KEY_quoteleft, 0, 0, FALSE, FALSE}, \
@@ -221,6 +239,8 @@ CmdDef operator_cmds[] = {
 	{cmd_select_less_inner, GDK_KEY_i, GDK_KEY_greater, 0, 0, FALSE, FALSE}, \
 	{cmd_select_bracket_inner, GDK_KEY_i, GDK_KEY_bracketleft, 0, 0, FALSE, FALSE}, \
 	{cmd_select_bracket_inner, GDK_KEY_i, GDK_KEY_bracketright, 0, 0, FALSE, FALSE}, \
+	{cmd_select_word_inner, GDK_KEY_i, GDK_KEY_w, 0, 0, FALSE, FALSE}, \
+	{cmd_select_word_space_inner, GDK_KEY_i, GDK_KEY_W, 0, 0, FALSE, FALSE}, \
 	/* END */
 
 
@@ -243,6 +263,15 @@ CmdDef text_object_cmds[] = {
 	{cmd_copy_line, GDK_KEY_Y, 0, 0, 0, FALSE, FALSE}, \
 	{cmd_paste_after, GDK_KEY_p, 0, 0, 0, FALSE, FALSE}, \
 	{cmd_paste_before, GDK_KEY_P, 0, 0, 0, FALSE, FALSE}, \
+	/* fold */ \
+	{cmd_toggle_fold, GDK_KEY_z, GDK_KEY_a, 0, 0, FALSE, FALSE}, \
+	{cmd_open_fold, GDK_KEY_z, GDK_KEY_o, 0, 0, FALSE, FALSE}, \
+	{cmd_close_fold, GDK_KEY_z, GDK_KEY_c, 0, 0, FALSE, FALSE}, \
+	{cmd_toggle_fold_child, GDK_KEY_z, GDK_KEY_A, 0, 0, FALSE, FALSE}, \
+	{cmd_open_fold_child, GDK_KEY_z, GDK_KEY_O, 0, 0, FALSE, FALSE}, \
+	{cmd_close_fold_child, GDK_KEY_z, GDK_KEY_C, 0, 0, FALSE, FALSE}, \
+	{cmd_open_fold_all, GDK_KEY_z, GDK_KEY_R, 0, 0, FALSE, FALSE}, \
+	{cmd_close_fold_all, GDK_KEY_z, GDK_KEY_M, 0, 0, FALSE, FALSE}, \
 	/* changing text */ \
 	{cmd_enter_insert_cut_line, GDK_KEY_c, GDK_KEY_c, 0, 0, FALSE, FALSE}, \
 	{cmd_enter_insert_cut_line, GDK_KEY_S, 0, 0, 0, FALSE, FALSE}, \
@@ -507,7 +536,7 @@ static CmdDef *get_cmd_to_run(GSList *kpl, CmdDef *cmds, gboolean have_selection
 				if (cmd->cmd == c)
 					return cmd;
 			}
-			else if (prev && prev->key == GDK_KEY_g)
+			else if (prev && prev->key == GDK_KEY_g && !VI_IS_INSERT(mode))
 			{
 				// takes care of operator commands like g~, gu, gU where we
 				// have no selection yet so the 2-letter command isn't found
@@ -515,7 +544,7 @@ static CmdDef *get_cmd_to_run(GSList *kpl, CmdDef *cmds, gboolean have_selection
 				// would be used instead of waiting for the full command
 			}
 			else if (is_cmdpart(kpl, text_object_cmds) &&
-					get_cmd_to_run(below, operator_cmds, TRUE))
+					get_cmd_to_run(below, operator_cmds, TRUE) && !VI_IS_INSERT(mode))
 			{
 				// if we received "a" or "i", we have to check if there's not
 				// an operator command below because these can be part of
@@ -567,7 +596,8 @@ static void perform_cmd(CmdDef *def, CmdContext *ctx)
 	if (VI_IS_COMMAND(vi_get_mode()))
 	{
 		gboolean is_text_object_cmd = is_in_cmd_group(text_object_cmds, def);
-		if (is_text_object_cmd ||is_in_cmd_group(movement_cmds, def))
+		gboolean is_include_dest_char_movement_cmd = is_in_cmd_group(include_dest_char_movement_cmds, def);
+		if (is_text_object_cmd || is_in_cmd_group(movement_cmds, def))
 		{
 			def = get_cmd_to_run(top, operator_cmds, TRUE);
 			if (def)
@@ -585,6 +615,12 @@ static void perform_cmd(CmdDef *def, CmdContext *ctx)
 				{
 					sel_start = MIN(new_pos, orig_pos);
 					sel_len = ABS(new_pos - orig_pos);
+					if (sel_len > 0 && is_include_dest_char_movement_cmd)
+					{
+						sel_len++;
+						if (new_pos < orig_pos)
+							sel_start--;
+					}
 				}
 				cmd_params_init(&param, ctx->sci,
 					1, FALSE, top, TRUE,
@@ -611,14 +647,25 @@ static gboolean perform_repeat_cmd(CmdContext *ctx)
 	gint i;
 
 	def = get_cmd_to_run(ctx->repeat_kpl, edit_cmds, FALSE);
-	if (!def)
-		return FALSE;
-
 	num = num == -1 ? 1 : num;
-	for (i = 0; i < num; i++)
-		perform_cmd(def, ctx);
+	if (def) {
+		for (i = 0; i < num; i++)
+			perform_cmd(def, ctx);
+		return TRUE;
+	}
+	else if (ctx->insert_buf_len > 0) {
+		gint pos;
 
-	return TRUE;
+		SSM(ctx->sci, SCI_BEGINUNDOACTION, 0, 0);
+		for (i = 0; i < num; i++)
+			SSM(ctx->sci, SCI_ADDTEXT, ctx->insert_buf_len, (sptr_t) ctx->insert_buf);
+		pos = SSM(ctx->sci, SCI_GETCURRENTPOS, 0, 0);
+		SET_POS(ctx->sci, PREV(ctx->sci, pos), FALSE);
+		SSM(ctx->sci, SCI_ENDUNDOACTION, 0, 0);
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 
@@ -667,9 +714,12 @@ static gboolean process_cmd(CmdDef *cmds, CmdContext *ctx, gboolean ins_mode)
 	{
 		if (orig_mode == VI_MODE_COMMAND_SINGLE)
 			vi_set_mode(VI_MODE_INSERT);
+		ensure_current_line_expanded(ctx->sci);
 	}
 	else if (!consumed && ctx->kpl)
 	{
+		/* cppcheck-suppress deallocuse symbolName=kpl
+		 * Not sure how cppcheck gets this wrong here, but all seem OK */
 		g_free(ctx->kpl->data);
 		ctx->kpl = g_slist_delete_link(ctx->kpl, ctx->kpl);
 	}

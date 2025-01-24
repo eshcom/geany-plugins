@@ -22,7 +22,7 @@
 #include "vi.h"
 #include "sci.h"
 
-#define INSERT_BUF_LEN 4096
+#define INSERT_BUF_LEN 131072
 
 typedef struct
 {
@@ -54,9 +54,12 @@ typedef struct
 	gint num;
 
 	/* buffer used in insert/replace mode to record entered text so it can be
-	 * copied N times when e.g. 'i' is preceded by a number */
+	 * copied N times when e.g. 'i' is preceded by a number or when using '.' */
 	gchar insert_buf[INSERT_BUF_LEN];
 	gint insert_buf_len;
+
+	/* cursor position to restore after undo */
+	gint undo_pos;
 } CmdContext;
 
 #endif

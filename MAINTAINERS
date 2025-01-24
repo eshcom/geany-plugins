@@ -61,13 +61,6 @@ M: Pavel Roschin <rpg89(at)post(dot)ru>
 W: http://plugins.geany.org/defineformat.html
 S: Maintained
 
-devhelp
-P: Matthew Brush <matt@geany.org>
-g: @codebrainz
-M: Matthew Brush <matt@geany.org>
-W: http://plugins.geany.org/devhelp.html
-S: Maintained
-
 geanyctags
 P: Jiří Techet <techet@gmail.com>
 g: @techee
@@ -110,13 +103,12 @@ M: Frank Lanitz <frank@frank.uvena.de>
 W: http://frank.uvena.de/en/Geany/geanylatex/
 S: Maintained
 
-
 geanylua
-P:
-g:
+P: xiota
+g: @xiota
 M:
 W:
-S: Orphaned
+S: Odd Fixes
 
 geanymacro
 P: William Fraser <william.fraser@virgin.net>
@@ -152,13 +144,6 @@ g:
 M: Donjan Rodic <bryonak@freenet.de>
 W: http://plugins.geany.org/geanyprj.html
 S: Odd Fixes
-
-geanypy
-P: Thomas Martitz <kugel@rockbox.org>
-g: @kugel-
-M: Thomas Martitz <kugel@rockbox.org>
-W: http://plugins.geany.org/geanypy.html
-S: Currently diverged from upstream
 
 geanysendmail
 P: Frank Lanitz <frank@frank.uvena.de>
@@ -214,13 +199,6 @@ P: Matthew Brush <matt@geany.org>
 g: @codebrainz
 M: Matthew Brush <matt@geany.org>
 W:
-S: Maintained
-
-multiterm
-P: Matthew Brush <matt@geany.org>
-g: @codebrainz
-M: Matthew Brush <matt@geany.org>
-W: http://plugins.geany.org/multiterm.html
 S: Maintained
 
 overview
@@ -286,11 +264,11 @@ W: http://plugins.geany.org/tableconvert.html
 S: Maintained
 
 treebrowser
-P: Adam Dingle <adam@medovina.org>
-g: @medovina
-M: Adam Dingle <adam@medovina.org>
+P:
+g:
+M:
 W: http://plugins.geany.org/treebrowser.html
-S: Maintained
+S: Orphaned
 
 updatechecker
 P: Frank Lanitz <frank@frank.uvena.de>
@@ -319,7 +297,6 @@ g: @LarsGit223
 M:
 W: http://plugins.geany.org/workbench.html
 S: Maintained
-
 
 xmlsnippets
 P: Eugene Arshinov <earshinov@gmail.com>

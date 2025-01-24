@@ -51,7 +51,8 @@ typedef enum
 typedef struct
 {
 	GeanyProject *project;
-	GPtrArray *expanded_paths;
+	gchar **expanded_paths;
+	gchar *selected_path;
 } ExpandData;
 
 
@@ -137,7 +138,7 @@ static gint show_dialog_find_file(gchar *utf8_path, gchar **pattern, gboolean *c
 		size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 		label = gtk_label_new(_("Search for:"));
-		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_label_set_xalign(GTK_LABEL(label), 0.0);
 		gtk_size_group_add_widget(size_group, label);
 		s_fif_dialog.combo = gtk_combo_box_text_new_with_entry();
 		entry = gtk_bin_get_child(GTK_BIN(s_fif_dialog.combo));
@@ -146,29 +147,29 @@ static gint show_dialog_find_file(gchar *utf8_path, gchar **pattern, gboolean *c
 		ui_entry_add_clear_icon(GTK_ENTRY(entry));
 		gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 
-		ebox = gtk_hbox_new(FALSE, 6);
+		ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 		gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
 		gtk_box_pack_start(GTK_BOX(ebox), s_fif_dialog.combo, TRUE, TRUE, 0);
 
 		gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 
 		label = gtk_label_new(_("Search inside:"));
-		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_label_set_xalign(GTK_LABEL(label), 0.0);
 		gtk_size_group_add_widget(size_group, label);
 		s_fif_dialog.dir_label = gtk_label_new("");
-		gtk_misc_set_alignment(GTK_MISC(s_fif_dialog.dir_label), 0, 0.5);
+		gtk_label_set_xalign(GTK_LABEL(s_fif_dialog.dir_label), 0.0);
 
-		ebox = gtk_hbox_new(FALSE, 6);
+		ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 		gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
 		gtk_box_pack_start(GTK_BOX(ebox), s_fif_dialog.dir_label, TRUE, TRUE, 0);
 
 		gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 
 		s_fif_dialog.case_sensitive = gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
-		gtk_button_set_focus_on_click(GTK_BUTTON(s_fif_dialog.case_sensitive), FALSE);
+		gtk_widget_set_focus_on_click(s_fif_dialog.case_sensitive, FALSE);
 
 		s_fif_dialog.full_path = gtk_check_button_new_with_mnemonic(_("Search in full path"));
-		gtk_button_set_focus_on_click(GTK_BUTTON(s_fif_dialog.full_path), FALSE);
+		gtk_widget_set_focus_on_click(s_fif_dialog.full_path, FALSE);
 
 		gtk_box_pack_start(GTK_BOX(vbox), s_fif_dialog.case_sensitive, TRUE, FALSE, 0);
 		gtk_box_pack_start(GTK_BOX(vbox), s_fif_dialog.full_path, TRUE, FALSE, 0);
@@ -300,21 +301,169 @@ static void on_follow_active(GtkToggleToolButton *button, G_GNUC_UNUSED gpointer
 }
 
 
+// returns path to selection if dir
+// otherwise returns parent
+// returned string must be freed
+static gchar* get_dir_of_selection()
+{
+	GtkTreeSelection *treesel;
+	GtkTreeModel *model;
+	GtkTreeIter iter, parent;
+	gchar *path = NULL;
+
+	treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(s_file_view));
+	if (gtk_tree_selection_get_selected(treesel, &model, &iter))
+	{
+		path = build_path(&iter);
+		if (!g_file_test(path, G_FILE_TEST_IS_DIR))
+		{
+			g_free(path);
+			path = NULL;
+			if (gtk_tree_model_iter_parent(model, &parent, &iter))
+				path = build_path(&parent);
+		}
+	}
+	return path;
+}
+
+
+/* if get_dir_of_selection() fails,
+ * returns parent of current document, project folder, or home folder */
+static gchar *get_fallback_dir_of_selection(void)
+{
+	gchar *locale_path;
+
+	/* get path from treeview selection */
+	locale_path = get_dir_of_selection();
+
+	/* get path from current document */
+	if (!locale_path)
+	{
+		GeanyDocument *doc;
+
+		doc = document_get_current();
+		if (DOC_VALID(doc) && doc->real_path)
+		{
+			locale_path = g_path_get_dirname(doc->real_path);
+
+			if (locale_path && *locale_path == '.')
+			{
+				g_free(locale_path);
+				locale_path = NULL;
+			}
+		}
+	}
+
+	/* get path from project */
+	if (!locale_path && geany_data->app->project)
+	{
+		gchar *utf8_path = NULL;
+		utf8_path = get_project_base_path();
+		locale_path = utils_get_locale_from_utf8(utf8_path);
+		g_free(utf8_path);
+	}
+
+	/* get current directory */
+	if (!locale_path || !g_file_test(locale_path, G_FILE_TEST_IS_DIR))
+		locale_path = g_strdup(g_get_current_dir());
+
+	/* get user home directory */
+	if (!locale_path || !g_file_test(locale_path, G_FILE_TEST_IS_DIR))
+		locale_path = g_strdup(g_get_home_dir());
+
+	return locale_path;
+}
+
+
+void on_open_file_manager(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+{
+	gchar *locale_path;
+	locale_path = get_fallback_dir_of_selection();
+
+	if (locale_path)
+	{
+		const gchar *open_command;
+		gchar *command;
+
+		open_command = PRJORG_COMMAND_OPEN;
+		command = g_strconcat (open_command, " \"", locale_path, "\"", NULL);
+		if (!spawn_async(locale_path, command, NULL, NULL, NULL, NULL))
+			msgwin_status_add(_("Unable to open folder.  Command unavailable: %s"), open_command);
+
+		g_free(command);
+		g_free(locale_path);
+	}
+	else
+	{
+		msgwin_status_add(_("Unable to find folder."));
+	}
+}
+
+
+void on_open_terminal(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+{
+	gchar *locale_path, *open_command;
+
+	if (g_file_test(PRJORG_COMMAND_TERMINAL_ALT, G_FILE_TEST_EXISTS))
+	{
+		gchar *alt_command;
+		alt_command = utils_get_real_path(PRJORG_COMMAND_TERMINAL_ALT);
+		open_command = g_path_get_basename(alt_command);
+		g_free(alt_command);
+	}
+	else
+	{
+		open_command = g_strdup(PRJORG_COMMAND_TERMINAL);
+	}
+
+	locale_path = get_fallback_dir_of_selection();
+	if (!spawn_async(locale_path, open_command, NULL, NULL, NULL, NULL))
+		msgwin_status_add(_("Unable to open terminal: %s"), open_command);
+
+	g_free(locale_path);
+	g_free(open_command);
+}
+
+
+static gint file_chooser_run(GtkFileChooser *dialog)
+{
+	if (GTK_IS_NATIVE_DIALOG(dialog))
+		return gtk_native_dialog_run(GTK_NATIVE_DIALOG(dialog));
+	else
+		return gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
+
+static void file_chooser_destroy(GtkFileChooser *dialog)
+{
+	if (GTK_IS_NATIVE_DIALOG(dialog))
+		g_object_unref(dialog);
+	else
+		gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+
 static void on_add_external(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	gchar *utf8_base_path = get_project_base_path();
 	gchar *locale_path = utils_get_locale_from_utf8(utf8_base_path);
-	GtkWidget *dialog;
+	GtkFileChooser *dialog;
 
-	dialog = gtk_file_chooser_dialog_new(_("Add External Directory"),
-		GTK_WINDOW(geany->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-		_("_Cancel"), GTK_RESPONSE_CANCEL,
-		_("Add"), GTK_RESPONSE_ACCEPT, NULL);
-	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), locale_path);
+	if (geany_data->interface_prefs->use_native_windows_dialogs)
+		dialog = GTK_FILE_CHOOSER(gtk_file_chooser_native_new(_("Add External Directory"),
+			GTK_WINDOW(geany_data->main_widgets->window),
+			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, _("_Add"), NULL));
+	else
+		dialog = GTK_FILE_CHOOSER(gtk_file_chooser_dialog_new(_("Add External Directory"),
+			GTK_WINDOW(geany->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+			_("_Cancel"), GTK_RESPONSE_CANCEL,
+			_("_Add"), GTK_RESPONSE_ACCEPT, NULL));
 
-	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	gtk_file_chooser_set_current_folder(dialog, locale_path);
+
+	if (file_chooser_run(dialog) == GTK_RESPONSE_ACCEPT)
 	{
-		gchar *locale_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		gchar *locale_filename = gtk_file_chooser_get_filename(dialog);
 		gchar *utf8_filename = utils_get_utf8_from_locale(locale_filename);
 
 		prjorg_project_add_external_dir(utf8_filename);
@@ -325,7 +474,7 @@ static void on_add_external(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED 
 		g_free(locale_filename);
 	}
 
-	gtk_widget_destroy(dialog);
+	file_chooser_destroy(dialog);
 
 	g_free(utf8_base_path);
 	g_free(locale_path);
@@ -355,35 +504,11 @@ static void on_remove_external_dir(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_U
 }
 
 
-// returned string must be freed
-static gchar* parent_dir_for_create()
-{
-	GtkTreeSelection *treesel;
-	GtkTreeModel *model;
-	GtkTreeIter iter, parent;
-	gchar *path = NULL;
-
-	treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(s_file_view));
-	if (gtk_tree_selection_get_selected(treesel, &model, &iter))
-	{
-		path = build_path(&iter);
-		if (!g_file_test(path, G_FILE_TEST_IS_DIR))
-		{
-			g_free(path);
-			path = NULL;
-			if (gtk_tree_model_iter_parent(model, &parent, &iter))
-				path = build_path(&parent);
-		}
-	}
-	return path;
-}
-
-
 static void on_create_file(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	gchar *dir, *name;
 
-	dir = parent_dir_for_create();
+	dir = get_dir_of_selection();
 	if (dir == NULL)
 		return;
 
@@ -414,7 +539,7 @@ static void on_create_dir(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpo
 {
 	gchar *dir, *name;
 
-	dir = parent_dir_for_create();
+	dir = get_dir_of_selection();
 	if (dir == NULL)
 		return;
 
@@ -556,7 +681,7 @@ static void find_file_recursive(GtkTreeIter *iter, gboolean case_sensitive, gboo
 		if (!case_sensitive)
 			SETPTR(utf8_name, g_utf8_strdown(utf8_name, -1));
 
-		if (g_pattern_match_string(pattern, utf8_name))
+		if (g_pattern_spec_match_string(pattern, utf8_name))
 		{
 			gchar *utf8_base_path = get_project_base_path();
 			gchar *utf8_path, *rel_path;
@@ -626,7 +751,7 @@ static void create_dialog_find_tag(void)
 	size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 	label = gtk_label_new(_("Search for:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
 	gtk_size_group_add_widget(size_group, label);
 
 	s_ft_dialog.combo = gtk_combo_box_text_new_with_entry();
@@ -638,13 +763,13 @@ static void create_dialog_find_tag(void)
 	ui_entry_add_clear_icon(GTK_ENTRY(entry));
 	gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 
-	ebox = gtk_hbox_new(FALSE, 6);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(ebox), s_ft_dialog.combo, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 
 	label = gtk_label_new(_("Match type:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
 	gtk_size_group_add_widget(size_group, label);
 
 	s_ft_dialog.combo_match = gtk_combo_box_text_new();
@@ -654,28 +779,28 @@ static void create_dialog_find_tag(void)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(s_ft_dialog.combo_match), 1);
 	gtk_label_set_mnemonic_widget(GTK_LABEL(label), s_ft_dialog.combo_match);
 
-	ebox = gtk_hbox_new(FALSE, 6);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(ebox), s_ft_dialog.combo_match, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 
 	label = gtk_label_new(_("Search inside:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
 	gtk_size_group_add_widget(size_group, label);
 	s_ft_dialog.dir_label = gtk_label_new("");
-	gtk_misc_set_alignment(GTK_MISC(s_ft_dialog.dir_label), 0, 0.5);
+	gtk_label_set_xalign(GTK_LABEL(s_ft_dialog.dir_label), 0.0);
 
-	ebox = gtk_hbox_new(FALSE, 6);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
 	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(ebox), s_ft_dialog.dir_label, TRUE, TRUE, 0);
 
 	gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 
 	s_ft_dialog.case_sensitive = gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.case_sensitive), FALSE);
+	gtk_widget_set_focus_on_click(s_ft_dialog.case_sensitive, FALSE);
 
 	s_ft_dialog.declaration = gtk_check_button_new_with_mnemonic(_("_Declaration"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.declaration), FALSE);
+	gtk_widget_set_focus_on_click(s_ft_dialog.declaration, FALSE);
 
 	g_object_unref(G_OBJECT(size_group));   /* auto destroy the size group */
 
@@ -739,7 +864,7 @@ static gboolean match(TMTag *tag, const gchar *name, gboolean declaration, gbool
 				matches = g_strcmp0(name_case, name) == 0;
 				break;
 			case MATCH_PATTERN:
-				matches = g_pattern_match_string(pspec, name_case);
+				matches = g_pattern_spec_match_string(pspec, name_case);
 				break;
 			case MATCH_PREFIX:
 				matches = g_str_has_prefix(name_case, name);
@@ -985,8 +1110,7 @@ static gboolean on_button_release(G_GNUC_UNUSED GtkWidget * widget, GdkEventButt
 
 		gtk_widget_set_sensitive(s_popup_menu.delete, delete_enabled);
 
-		gtk_menu_popup(GTK_MENU(s_popup_menu.widget), NULL, NULL, NULL, NULL,
-						event->button, event->time);
+		gtk_menu_popup_at_pointer(GTK_MENU(s_popup_menu.widget), (GdkEvent *)event);
 		return TRUE;
 	}
 
@@ -1107,7 +1231,7 @@ static void create_branch(gint level, GSList *leaf_list, GtkTreeIter *parent,
 					icon = NULL;
 				}
 				else
-					gtk_icon_info_free(icon_info);
+					g_object_unref(icon_info);
 			}
 			g_free(content_type);
 		}
@@ -1388,6 +1512,7 @@ static gboolean expand_path(gchar *utf8_expanded_path, gboolean select)
 static gboolean expand_on_idle(ExpandData *expand_data)
 {
 	GeanyDocument *doc = document_get_current();
+	gboolean selected = FALSE;
 
 	if (!prj_org)
 		return FALSE;
@@ -1395,17 +1520,22 @@ static gboolean expand_on_idle(ExpandData *expand_data)
 	if (geany_data->app->project == expand_data->project &&
 		expand_data->expanded_paths)
 	{
-		gchar *item;
-		guint i;
+		gchar **item;
+		foreach_strv(item, expand_data->expanded_paths)
+			expand_path(*item, FALSE);
+		g_strfreev(expand_data->expanded_paths);
+	}
 
-		foreach_ptr_array(item, i, expand_data->expanded_paths)
-			expand_path(item, FALSE);
-		g_ptr_array_free(expand_data->expanded_paths, TRUE);
+	if (expand_data->selected_path)
+	{
+		expand_path(expand_data->selected_path, TRUE);
+		g_free(expand_data->selected_path);
+		selected = TRUE;
 	}
 
 	g_free(expand_data);
 
-	if (!s_follow_editor || !doc || !doc->file_name)
+	if (selected || !s_follow_editor || !doc || !doc->file_name)
 		return FALSE;
 
 	expand_path(doc->file_name, TRUE);
@@ -1448,18 +1578,32 @@ static void on_map_expanded(GtkTreeView *tree_view, GtkTreePath *tree_path, GPtr
 }
 
 
-static GPtrArray *get_expanded_paths(void)
+gchar **prjorg_sidebar_get_expanded_paths(void)
 {
-	GPtrArray *expanded_paths = g_ptr_array_new_with_free_func(g_free);
+	GPtrArray *expanded_paths = g_ptr_array_new();
 
 	gtk_tree_view_map_expanded_rows(GTK_TREE_VIEW(s_file_view),
 		(GtkTreeViewMappingFunc)on_map_expanded, expanded_paths);
+	g_ptr_array_add(expanded_paths, NULL);
 
-	return expanded_paths;
+	return (gchar **)g_ptr_array_free(expanded_paths, FALSE);
 }
 
 
-void prjorg_sidebar_update(gboolean reload)
+static gchar *get_selected_path(void)
+{
+	GtkTreeSelection *treesel;
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+
+	treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(s_file_view));
+	if (gtk_tree_selection_get_selected(treesel, &model, &iter))
+		return build_path(&iter);
+	return NULL;
+}
+
+
+void prjorg_sidebar_update_full(gboolean reload, gchar **expanded_paths)
 {
 	ExpandData *expand_data = g_new0(ExpandData, 1);
 
@@ -1467,7 +1611,8 @@ void prjorg_sidebar_update(gboolean reload)
 
 	if (reload)
 	{
-		expand_data->expanded_paths = get_expanded_paths();
+		expand_data->expanded_paths = expanded_paths != NULL ? expanded_paths : prjorg_sidebar_get_expanded_paths();
+		expand_data->selected_path = get_selected_path();
 
 		load_project();
 		/* we get color information only after the sidebar is realized -
@@ -1478,6 +1623,12 @@ void prjorg_sidebar_update(gboolean reload)
 
 	/* perform on idle - avoids unnecessary jumps on project load */
 	plugin_idle_add(geany_plugin, (GSourceFunc)expand_on_idle, expand_data);
+}
+
+
+void prjorg_sidebar_update(gboolean reload)
+{
+	prjorg_sidebar_update_full(reload, NULL);
 }
 
 
@@ -1527,7 +1678,7 @@ void prjorg_sidebar_init(void)
 	PangoFontDescription *pfd;
 	GList *focus_chain = NULL;
 
-	s_file_view_vbox = gtk_vbox_new(FALSE, 0);
+	s_file_view_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
 	/**** toolbar ****/
 
@@ -1541,9 +1692,6 @@ void prjorg_sidebar_init(void)
 	item = GTK_WIDGET(gtk_tool_button_new(image, NULL));
 	gtk_widget_set_tooltip_text(item, _("Reload all"));
 	g_signal_connect(item, "clicked", G_CALLBACK(on_reload_project), NULL);
-	gtk_container_add(GTK_CONTAINER(s_toolbar), item);
-
-	item = GTK_WIDGET(gtk_separator_tool_item_new());
 	gtk_container_add(GTK_CONTAINER(s_toolbar), item);
 
 	image = gtk_image_new_from_icon_name("folder-new", GTK_ICON_SIZE_SMALL_TOOLBAR);
@@ -1634,6 +1782,10 @@ void prjorg_sidebar_init(void)
 	g_signal_connect((gpointer) item, "activate", G_CALLBACK(expand_all), NULL);
 	s_popup_menu.expand = item;
 
+	item = gtk_separator_menu_item_new();
+	gtk_widget_show(item);
+	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
+
 	item = menu_item_new("edit-find", _("Find in Files..."));
 	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
 	g_signal_connect((gpointer) item, "activate", G_CALLBACK(on_find_in_files), NULL);
@@ -1648,6 +1800,20 @@ void prjorg_sidebar_init(void)
 	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
 	g_signal_connect((gpointer) item, "activate", G_CALLBACK(on_find_tag), NULL);
 	s_popup_menu.find_tag = item;
+
+	item = gtk_separator_menu_item_new();
+	gtk_widget_show(item);
+	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
+
+	item = menu_item_new("folder-open", _("Open File Manager"));
+	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
+	g_signal_connect((gpointer) item, "activate", G_CALLBACK(on_open_file_manager), NULL);
+	s_popup_menu.find_in_directory = item;
+
+	item = menu_item_new("terminal", _("Open Terminal"));
+	gtk_container_add(GTK_CONTAINER(s_popup_menu.widget), item);
+	g_signal_connect((gpointer) item, "activate", G_CALLBACK(on_open_terminal), NULL);
+	s_popup_menu.find_in_directory = item;
 
 	item = gtk_separator_menu_item_new();
 	gtk_widget_show(item);

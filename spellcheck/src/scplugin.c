@@ -39,7 +39,7 @@ GeanyPlugin		*geany_plugin;
 GeanyData		*geany_data;
 
 
-PLUGIN_VERSION_CHECK(224)
+PLUGIN_VERSION_CHECK(247)
 PLUGIN_SET_TRANSLATABLE_INFO(
 	LOCALEDIR,
 	GETTEXT_PACKAGE,
@@ -141,9 +141,9 @@ static void configure_response_cb(GtkDialog *dialog, gint response, gpointer use
 	{
 		GtkComboBox *combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(dialog), "combo"));
 
-		setptr(sc_info->default_language, gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo)));
+		SETPTR(sc_info->default_language, gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo)));
 #ifdef HAVE_ENCHANT_1_5
-		setptr(sc_info->dictionary_dir, g_strdup(gtk_entry_get_text(GTK_ENTRY(
+		SETPTR(sc_info->dictionary_dir, g_strdup(gtk_entry_get_text(GTK_ENTRY(
 			g_object_get_data(G_OBJECT(dialog), "dict_dir")))));
 #endif
 		sc_speller_reinit_enchant_dict();
@@ -222,10 +222,10 @@ void plugin_init(GeanyData *data)
 	/* setup keybindings */
 	key_group = plugin_set_key_group(geany_plugin, "spellcheck", KB_COUNT, NULL);
 	keybindings_set_item(key_group, KB_SPELL_CHECK, sc_gui_kb_run_activate_cb,
-		0, 0, "spell_check", _("Run Spell Check"), sc_info->submenu_item_default);
+		0, 0, "spell_check", _("Run spell check once"), sc_info->submenu_item_default);
 	keybindings_set_item(key_group, KB_SPELL_TOOGLE_TYPING,
 		sc_gui_kb_toggle_typing_activate_cb, 0, 0, "spell_toggle_typing",
-		_("Toggle Check While Typing"), NULL);
+		_("Toggle spell check"), NULL);
 }
 
 
@@ -330,7 +330,7 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 	gtk_box_pack_start(GTK_BOX(vbox), frame_interface, FALSE, FALSE, 3);
 
 
-	check_type = gtk_check_button_new_with_label(_("Check spelling while typing"));
+	check_type = gtk_check_button_new_with_label(_("Toggle spell check"));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_type), sc_info->check_while_typing);
 
 	check_on_open = gtk_check_button_new_with_label(_("Check spelling when opening a document"));

@@ -22,7 +22,9 @@
 
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <webkit/webkit.h>
+#include <webkit2/webkit2.h>
+
+#include <document.h>
 
 G_BEGIN_DECLS
 
@@ -56,8 +58,8 @@ struct _GwhBrowserClass
 {
   GtkVBoxClass parent_class;
   
-  void        (*populate_popup)       (GwhBrowser *browser,
-                                       GtkMenu    *menu);
+  void        (*populate_popup)       (GwhBrowser        *browser,
+                                       WebKitContextMenu *menu);
 };
 
 
@@ -69,6 +71,9 @@ G_GNUC_INTERNAL
 void            gwh_browser_set_uri                       (GwhBrowser  *self,
                                                            const gchar *uri);
 G_GNUC_INTERNAL
+gboolean        gwh_browser_set_uri_from_document         (GwhBrowser    *self,
+                                                           GeanyDocument *doc);
+G_GNUC_INTERNAL
 const gchar    *gwh_browser_get_uri                       (GwhBrowser *self);
 G_GNUC_INTERNAL
 GtkToolbar     *gwh_browser_get_toolbar                   (GwhBrowser *self);
@@ -76,11 +81,6 @@ G_GNUC_INTERNAL
 WebKitWebView  *gwh_browser_get_web_view                  (GwhBrowser *self);
 G_GNUC_INTERNAL
 void            gwh_browser_reload                        (GwhBrowser *self);
-G_GNUC_INTERNAL
-void            gwh_browser_set_inspector_transient_for   (GwhBrowser *self,
-                                                           GtkWindow  *window);
-G_GNUC_INTERNAL
-GtkWindow      *gwh_browser_get_inspector_transient_for   (GwhBrowser *self);
 G_GNUC_INTERNAL
 void            gwh_browser_toggle_inspector              (GwhBrowser *self);
 G_GNUC_INTERNAL

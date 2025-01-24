@@ -59,7 +59,7 @@ static gboolean 			flag_on_expand_refresh 		= FALSE;
 # define CONFIG_OPEN_EXTERNAL_CMD_DEFAULT "xdg-open '%d'"
 # define CONFIG_OPEN_TERMINAL_DEFAULT "xterm"
 #else
-# define CONFIG_OPEN_EXTERNAL_CMD_DEFAULT "explorer '%d'"
+# define CONFIG_OPEN_EXTERNAL_CMD_DEFAULT "explorer %d"
 # define CONFIG_OPEN_TERMINAL_DEFAULT "cmd"
 #endif
 
@@ -362,23 +362,39 @@ check_hidden(const gchar *filename)
 	base_name = g_path_get_basename(filename);
 
 	if (EMPTY(base_name))
+	{
+		g_free(base_name);
 		return FALSE;
+	}
 
 	if (CONFIG_SHOW_HIDDEN_FILES)
+	{
+		g_free(base_name);
 		return FALSE;
+	}
 
 #ifdef G_OS_WIN32
 	if (win32_check_hidden(filename))
+	{
+		g_free(base_name);
 		return TRUE;
+	}
 #else
 	if (base_name[0] == '.')
+	{
+		g_free(base_name);
 		return TRUE;
+	}
 #endif
 
 	len = strlen(base_name);
 	if (base_name[len - 1] == '~')
+	{
+		g_free(base_name);
 		return TRUE;
+	}
 
+	g_free(base_name);
 	return FALSE;
 }
 
@@ -410,18 +426,6 @@ get_default_dir(void)
 		return utils_get_locale_from_utf8(dir);
 
 	return g_get_current_dir();
-}
-
-static gchar *
-get_terminal(void)
-{
-	gchar 		*terminal;
-#ifdef G_OS_WIN32
-	terminal = g_strdup("cmd");
-#else
-	terminal = g_strdup(CONFIG_OPEN_TERMINAL);
-#endif
-	return terminal;
 }
 
 static gboolean
@@ -480,7 +484,7 @@ treebrowser_chroot(const gchar *dir)
 	gtk_entry_set_text(GTK_ENTRY(addressbar), directory);
 
 	if (!directory || strlen(directory) == 0)
-		setptr(directory, g_strdup(G_DIR_SEPARATOR_S));
+		SETPTR(directory, g_strdup(G_DIR_SEPARATOR_S));
 
 	if (! treebrowser_checkdir(directory))
 	{
@@ -490,7 +494,7 @@ treebrowser_chroot(const gchar *dir)
 
 	treebrowser_bookmarks_set_state();
 
-	setptr(addressbar_last_address, directory);
+	SETPTR(addressbar_last_address, directory);
 
 	treebrowser_browse(addressbar_last_address, NULL);
 	treebrowser_load_bookmarks();
@@ -996,7 +1000,7 @@ on_menu_current_path(GtkMenuItem *menuitem, gpointer *user_data)
 }
 
 static void
-on_menu_open_externally(GtkMenuItem *menuitem, gchar *uri)
+on_menu_open_externally(GtkMenuItem *menuitem, const gchar *uri)
 {
 	gchar 				*cmd, *locale_cmd, *dir, *c;
 	GString 			*cmd_str 	= g_string_new(CONFIG_OPEN_EXTERNAL_CMD);
@@ -1009,7 +1013,7 @@ on_menu_open_externally(GtkMenuItem *menuitem, gchar *uri)
 
 	cmd = g_string_free(cmd_str, FALSE);
 	locale_cmd = utils_get_locale_from_utf8(cmd);
-	if (! g_spawn_command_line_async(locale_cmd, &error))
+	if (! spawn_async(dir, locale_cmd, NULL, NULL, NULL, &error))
 	{
 		c = strchr(cmd, ' ');
 		if (c != NULL)
@@ -1025,19 +1029,16 @@ on_menu_open_externally(GtkMenuItem *menuitem, gchar *uri)
 }
 
 static void
-on_menu_open_terminal(GtkMenuItem *menuitem, gchar *uri)
+on_menu_open_terminal(GtkMenuItem *menuitem, const gchar *uri)
 {
-	gchar *argv[2] = {NULL, NULL};
-	argv[0] = get_terminal();
-
+	gchar *cwd;
 	if (g_file_test(uri, G_FILE_TEST_EXISTS))
-		uri = g_file_test(uri, G_FILE_TEST_IS_DIR) ? g_strdup(uri) : g_path_get_dirname(uri);
+		cwd = g_file_test(uri, G_FILE_TEST_IS_DIR) ? g_strdup(uri) : g_path_get_dirname(uri);
 	else
-		uri = g_strdup(addressbar_last_address);
+		cwd = g_strdup(addressbar_last_address);
 
-	g_spawn_async(uri, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-	g_free(uri);
-	g_free(argv[0]);
+	spawn_async(cwd, CONFIG_OPEN_TERMINAL, NULL, NULL, NULL, NULL);
+	g_free(cwd);
 }
 
 static void
@@ -1076,7 +1077,11 @@ on_menu_create_new_object(GtkMenuItem *menuitem, const gchar *type)
 				gtk_tree_model_get(model, &iter_parent, TREEBROWSER_COLUMN_URI, &uri, -1);
 			}
 			else
+			{
+				SETPTR(uri, g_path_get_dirname(uri));
+				
 				refresh_root = TRUE;
+			}
 		}
 	}
 	else
@@ -1098,7 +1103,7 @@ on_menu_create_new_object(GtkMenuItem *menuitem, const gchar *type)
 			gboolean creation_success = FALSE;
 
 			while(g_file_test(uri_new, G_FILE_TEST_EXISTS))
-				setptr(uri_new, g_strconcat(uri_new, "_", NULL));
+				SETPTR(uri_new, g_strconcat(uri_new, "_", NULL));
 
 			if (utils_str_equal(type, "directory"))
 				creation_success = (g_mkdir(uri_new, 0755) == 0);
@@ -1116,6 +1121,7 @@ on_menu_create_new_object(GtkMenuItem *menuitem, const gchar *type)
 		}
 		g_free(uri_new);
 	}
+	/* cppcheck-suppress doubleFree symbolName=uri */
 	g_free(uri);
 }
 
@@ -1159,15 +1165,35 @@ static void
 on_menu_refresh(GtkMenuItem *menuitem, gpointer *user_data)
 {
 	GtkTreeSelection 	*selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
-	GtkTreeIter 		iter;
+	GtkTreeIter 		iter, parent_iter;
+	GtkTreeIter 		*target_iter = NULL;
 	GtkTreeModel 		*model;
 	gchar 				*uri;
 
 	if (gtk_tree_selection_get_selected(selection, &model, &iter))
 	{
 		gtk_tree_model_get(model, &iter, TREEBROWSER_COLUMN_URI, &uri, -1);
+		/* if a directory is selected, use it directly for treebrowser_browse()
+		 * if a file within a directory is selected, use its parent for treebrowser_browse()
+		 * if a file on the top level is selected, use *no* parent for treebrowser_browse() */
 		if (g_file_test(uri, G_FILE_TEST_IS_DIR))
-			treebrowser_browse(uri, &iter);
+			target_iter = &iter;
+		else
+		{
+			if (gtk_tree_model_iter_parent(model, &parent_iter, &iter))
+			{
+				g_free(uri);
+				gtk_tree_model_get(model, &iter, TREEBROWSER_COLUMN_URI, &uri, -1);
+				target_iter = &parent_iter;
+			}
+			else
+			{
+				SETPTR(uri, g_path_get_dirname(uri));
+				target_iter = NULL;
+			}
+		}
+		treebrowser_browse(uri, target_iter);
+		/* cppcheck-suppress doubleFree symbolName=uri */
 		g_free(uri);
 	}
 	else

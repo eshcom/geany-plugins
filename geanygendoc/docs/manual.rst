@@ -346,14 +346,20 @@ Known types
   A field (of a class for example).
 ``function``
   A function.
+``include``
+  An include directive.
 ``interface``
   An interface.
+``local``
+  A local variable.
 ``member``
   A member (of a structure for example).
 ``method``
   A method.
 ``namespace``
   A namespace.
+``other``
+  A non-specific type that highly depend on the language.
 ``package``
   A package.
 ``prototype``

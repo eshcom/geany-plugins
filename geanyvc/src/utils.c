@@ -43,7 +43,10 @@ normpath(const gchar * filename)
 		return g_strdup(".");
 	v = g_strsplit_set(filename, "/\\", -1);
 	if (!g_strv_length(v))
+	{
+		g_strfreev(v);
 		return g_strdup(".");
+	}
 
 	out = g_malloc0(sizeof(gchar *) * (g_strv_length(v) + 2));
 	pout = out;
@@ -95,8 +98,8 @@ get_full_path(const gchar * location, const gchar * path)
 	gchar *dir;
 
 	dir = g_path_get_dirname(location);
-	setptr(dir, g_build_filename(dir, path, NULL));
-	setptr(dir, normpath(dir));
+	SETPTR(dir, g_build_filename(dir, path, NULL));
+	SETPTR(dir, normpath(dir));
 	return dir;
 }
 

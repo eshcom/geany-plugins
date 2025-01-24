@@ -19,6 +19,7 @@
 #ifndef __PRJORG_SIDEBAR_H__
 #define __PRJORG_SIDEBAR_H__
 
+#include <gtk/gtk.h>
 
 void prjorg_sidebar_init(void);
 void prjorg_sidebar_cleanup(void);
@@ -28,8 +29,13 @@ void prjorg_sidebar_find_file_in_active(void);
 void prjorg_sidebar_find_tag_in_active(void);
 
 void prjorg_sidebar_update(gboolean reload);
+void prjorg_sidebar_update_full(gboolean reload, gchar **expanded_paths);
 
 void prjorg_sidebar_focus_project_tab(void);
 
+gchar **prjorg_sidebar_get_expanded_paths(void);
+
+void on_open_file_manager(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data);
+void on_open_terminal(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data);
 
 #endif

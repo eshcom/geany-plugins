@@ -3,8 +3,6 @@ plugin = vimode
 
 geanyplugins_LTLIBRARIES = vimode.la
 
-noinst_PROGRAMS = viw
-
 vi_srcs = \
 	vi.h \
 	vi.c \
@@ -36,15 +34,15 @@ vi_srcs = \
 	cmds/special.c \
 	cmds/edit.h \
 	cmds/edit.c \
-	excmds/excmds.h \
-	excmds/excmds.c
+	cmds/excmds.h \
+	cmds/excmds.c \
+	cmds/undo.h \
+	cmds/undo.c \
+	cmds/fold.h \
+	cmds/fold.c
 
 vimode_la_SOURCES = \
 	backends/backend-geany.c \
-	$(vi_srcs)
-
-viw_SOURCES = \
-	backends/backend-viw.c \
 	$(vi_srcs)
     
 vimode_la_CPPFLAGS = $(AM_CPPFLAGS) \
@@ -52,9 +50,17 @@ vimode_la_CPPFLAGS = $(AM_CPPFLAGS) \
 vimode_la_CFLAGS = $(AM_CFLAGS)
 vimode_la_LIBADD = $(COMMONLIBS)
 
+if !MINGW
+noinst_PROGRAMS = viw
+
+viw_SOURCES = \
+	backends/backend-viw.c \
+	$(vi_srcs)
+
 viw_CPPFLAGS = $(AM_CPPFLAGS) \
 	-DG_LOG_DOMAIN=\"Vimode\"
 viw_CFLAGS = $(AM_CFLAGS)
 viw_LDADD = $(COMMONLIBS)
+endif
 
 include $(top_srcdir)/build/cppcheck.mk

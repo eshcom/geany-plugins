@@ -19,6 +19,13 @@
 #ifndef __PRJORG_UTILS_H__
 #define __PRJORG_UTILS_H__
 
+#include <gtk/gtk.h>
+#include <geanyplugin.h>
+
+#if ! GLIB_CHECK_VERSION(2, 70, 0)
+# define g_pattern_spec_match_string g_pattern_match_string
+#endif
+
 gchar *get_relative_path(const gchar *utf8_parent, const gchar *utf8_descendant);
 
 gboolean patterns_match(GSList *patterns, const gchar *str);
@@ -36,5 +43,9 @@ gchar *get_selection(void);
 gchar *get_project_base_path(void);
 
 GtkWidget *menu_item_new(const gchar *icon_name, const gchar *label);
+
+gchar *try_find_header_source(gchar *utf8_file_name, gboolean is_header, GSList *file_list, GSList *header_patterns, GSList *source_patterns);
+gchar *find_header_source(GeanyDocument *doc);
+void set_header_filetype(GeanyDocument * doc);
 
 #endif

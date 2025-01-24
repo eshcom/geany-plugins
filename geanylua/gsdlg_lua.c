@@ -387,7 +387,7 @@ static gint gsdl_done(lua_State *L)
 
 
 
-static const struct luaL_reg gsdl_funcs[] = {
+static const struct luaL_Reg gsdl_funcs[] = {
 	{"new",      gsdl_new},
 	{"run",      gsdl_run},
 	{"label",    gsdl_label},	
@@ -425,8 +425,8 @@ gint luaopen_dialog(lua_State *L)
 	lua_pushcfunction(L,gsdl_done);
 	lua_rawset(L,-3);
 
-	luaL_openlib(L, NULL, &gsdl_funcs[1], 0);
-	luaL_openlib(L, LUA_MODULE_NAME, gsdl_funcs, 0);
+	luaL_register(L, NULL, &gsdl_funcs[1]);
+	luaL_register(L, LUA_MODULE_NAME, gsdl_funcs);
 	return 0;
 }
 

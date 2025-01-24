@@ -21,6 +21,7 @@
 #include "utils.h"
 #include "keypress.h"
 #include "excmd-prompt.h"
+#include "cmds/undo.h"
 
 #include <gdk/gdkkeysyms.h>
 
@@ -51,7 +52,8 @@ CmdContext ctx =
 	NULL, NULL, NULL,
 	FALSE, FALSE,
 	0, 1,
-	"", 0 
+	"", 0,
+	-1
 };
 
 
@@ -109,8 +111,6 @@ static void repeat_insert(gboolean replace)
 		SSM(sci, SCI_ENDUNDOACTION, 0, 0);
 	}
 	ctx.num = 1;
-	ctx.insert_buf_len = 0;
-	ctx.insert_buf[0] = '\0';
 	ctx.newline_insert = FALSE;
 }
 
@@ -156,6 +156,10 @@ void vi_set_mode(ViMode mode)
 				gint start_pos = SSM(sci, SCI_POSITIONFROMLINE, GET_CUR_LINE(sci), 0);
 				if (pos > start_pos)
 					SET_POS(sci, PREV(sci, pos), FALSE);
+
+				/* erase kpl so '.' command repeats last inserted text and not command */
+				g_slist_free_full(ctx.kpl, g_free);
+				ctx.kpl = NULL;
 			}
 			else if (VI_IS_VISUAL(prev_mode))
 				SSM(sci, SCI_SETEMPTYSELECTION, pos, 0);
@@ -301,6 +305,19 @@ gboolean vi_notify_sci(SCNotification *nt)
 			 * multiple selections to simulate this behavior */
 			if (SSM(sci, SCI_GETANCHOR, 0, 0) != anchor_linepos || pos != pos_linepos)
 				SSM(sci, SCI_SETSEL, anchor_linepos, pos_linepos);
+		}
+	}
+
+	/* Keep position of undo operation */
+	if (nt->nmhdr.code == SCN_MODIFIED && (nt->modificationType & SC_MOD_BEFOREINSERT && nt->modificationType & SC_PERFORMED_UNDO) && nt->length > 1)
+		undo_update(&ctx, nt->position);
+
+	if (nt->nmhdr.code == SCN_MARGINCLICK)
+	{
+		if (nt->margin == 2)
+		{
+			gint line = GET_CUR_LINE(sci);
+			jump_to_expended_parent(sci, line);
 		}
 	}
 

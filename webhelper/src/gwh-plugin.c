@@ -105,7 +105,6 @@ static void
 on_separate_window_destroy (GtkWidget  *widget,
                             gpointer    data)
 {
-  gwh_browser_set_inspector_transient_for (GWH_BROWSER (G_browser), NULL);
   gtk_container_remove (GTK_CONTAINER (G_container.widget), G_browser);
 }
 
@@ -156,8 +155,6 @@ create_separate_window (void)
     gtk_window_set_icon_list (GTK_WINDOW (window), icons);
     g_list_free (icons);
   }
-  gwh_browser_set_inspector_transient_for (GWH_BROWSER (G_browser),
-                                           GTK_WINDOW (window));
   
   return window;
 }
@@ -183,8 +180,6 @@ attach_browser (void)
     }
     gtk_notebook_append_page (GTK_NOTEBOOK (G_container.widget),
                               G_browser, gtk_label_new (_("Web preview")));
-    gwh_browser_set_inspector_transient_for (GWH_BROWSER (G_browser),
-                                             GTK_WINDOW (geany_data->main_widgets->window));
   }
 }
 
@@ -240,33 +235,43 @@ on_document_save (GObject        *obj,
 }
 
 static void
-on_item_auto_reload_toggled (GtkCheckMenuItem *item,
-                             gpointer          dummy)
+on_item_auto_reload_toggled (GAction  *action,
+                             GVariant *parameter,
+                             gpointer  dummy)
 {
+  gboolean browser_auto_reload;
+
+  g_object_get (G_OBJECT (G_settings),
+                "browser-auto-reload", &browser_auto_reload, NULL);
   g_object_set (G_OBJECT (G_settings), "browser-auto-reload",
-                gtk_check_menu_item_get_active (item), NULL);
+                !browser_auto_reload, NULL);
+  g_simple_action_set_state (G_SIMPLE_ACTION (action),
+                             g_variant_new_boolean (!browser_auto_reload));
 }
 
 static void
-on_browser_populate_popup (GwhBrowser *browser,
-                           GtkMenu    *menu,
-                           gpointer    dummy)
+on_browser_populate_popup (GwhBrowser        *browser,
+                           WebKitContextMenu *menu,
+                           gpointer           dummy)
 {
-  GtkWidget  *item;
-  gboolean    auto_reload = FALSE;
-  
-  item = gtk_separator_menu_item_new ();
-  gtk_widget_show (item);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-  
+  GSimpleAction         *action;
+  gboolean               auto_reload = FALSE;
+  WebKitContextMenuItem *item;
+
+  webkit_context_menu_append (menu,
+                              webkit_context_menu_item_new_separator ());
+
   g_object_get (G_OBJECT (G_settings), "browser-auto-reload", &auto_reload,
                 NULL);
-  item = gtk_check_menu_item_new_with_mnemonic (_("Reload upon document saving"));
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item), auto_reload);
-  gtk_widget_show (item);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-  g_signal_connect (item, "toggled", G_CALLBACK (on_item_auto_reload_toggled),
-                    NULL);
+  action = g_simple_action_new_stateful ("browser-auto-reload", NULL,
+                                         g_variant_new_boolean (auto_reload));
+  g_signal_connect (action, "activate",
+                    G_CALLBACK (on_item_auto_reload_toggled), NULL);
+  item = webkit_context_menu_item_new_from_gaction (G_ACTION (action),
+                                                    _("Reload upon document saving"),
+                                                    NULL);
+  webkit_context_menu_append (menu, item);
+  g_object_unref (action);
 }
 
 static void
@@ -293,6 +298,13 @@ on_kb_toggle_bookmark (guint key_id)
   } else {
     gwh_browser_add_bookmark (GWH_BROWSER (G_browser), uri);
   }
+}
+
+static void
+on_kb_load_current_file (guint key_id)
+{
+  gwh_browser_set_uri_from_document (GWH_BROWSER (G_browser),
+                                     document_get_current ());
 }
 
 
@@ -347,12 +359,6 @@ load_config (void)
     "browser-separate-window-geometry",
     _("Browser separate window geometry"),
     _("Last geometry of the separated browser's window"),
-    "400x300",
-    G_PARAM_READWRITE));
-  gwh_settings_install_property (G_settings, g_param_spec_string (
-    "inspector-window-geometry",
-    _("Inspector window geometry"),
-    _("Last geometry of the inspector window"),
     "400x300",
     G_PARAM_READWRITE));
   gwh_settings_install_property (G_settings, g_param_spec_boolean (
@@ -418,11 +424,6 @@ plugin_init (GeanyData *data)
    * (g_quark_from_static_string() for example) so it's not safe to remove it */
   plugin_module_make_resident (geany_plugin);
   
-  /* webkit uses threads but don't initialize the thread system */
-  if (! g_thread_supported ()) {
-    g_thread_init (NULL);
-  }
-  
   load_config ();
   gwh_keybindings_init ();
   
@@ -461,6 +462,9 @@ plugin_init (GeanyData *data)
   keybindings_set_item (gwh_keybindings_get_group (), GWH_KB_TOGGLE_BOOKMARK,
                         on_kb_toggle_bookmark, 0, 0, "toggle_bookmark",
                         _("Toggle bookmark for the current website"), NULL);
+  keybindings_set_item (gwh_keybindings_get_group (), GWH_KB_LOAD_CURRENT_FILE,
+                        on_kb_load_current_file, 0, 0, "load_current_file",
+                        _("Load the current file in the web view"), NULL);
 }
 
 void
@@ -523,11 +527,11 @@ plugin_configure (GtkDialog *dialog)
   cdialog = g_malloc (sizeof *cdialog);
   
   /* Top-level box, containing the different frames */
-  box1 = gtk_vbox_new (FALSE, 12);
+  box1 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   
   /* Browser */
   gtk_box_pack_start (GTK_BOX (box1), ui_frame_new_with_alignment (_("Browser"), &alignment), FALSE, FALSE, 0);
-  box = gtk_vbox_new (FALSE, 0);
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (alignment), box);
   /* browser position */
   cdialog->browser_position = gwh_settings_widget_new (G_settings, "browser-position");
@@ -539,7 +543,7 @@ plugin_configure (GtkDialog *dialog)
   
   /* Windows */
   gtk_box_pack_start (GTK_BOX (box1), ui_frame_new_with_alignment (_("Windows"), &alignment), FALSE, FALSE, 0);
-  box = gtk_vbox_new (FALSE, 0);
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (alignment), box);
   /* skip taskbar */
   cdialog->secondary_windows_skip_taskbar = gwh_settings_widget_new (G_settings,

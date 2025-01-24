@@ -27,6 +27,8 @@
 
 #include "prjorg-utils.h"
 #include "prjorg-project.h"
+#include "prjorg-sidebar.h"
+#include "prjorg-wraplabel.h"
 
 extern GeanyPlugin *geany_plugin;
 extern GeanyData *geany_data;
@@ -69,7 +71,7 @@ static void collect_source_files(gchar *filename, TMSourceFile *sf, gpointer use
 }
 
 
-/* path - absolute path in locale, returned list in locale */
+/* path - absolute path in locale, returned list in utf8 */
 static GSList *get_file_list(const gchar *utf8_path, GSList *patterns,
 		GSList *ignored_dirs_patterns, GSList *ignored_file_patterns, GHashTable *visited_paths)
 {
@@ -215,7 +217,7 @@ static gboolean match_basename(gconstpointer pft, gconstpointer user_data)
 	{
 		GPatternSpec *pattern = g_pattern_spec_new(ft->pattern[j]);
 
-		if (g_pattern_match_string(pattern, utf8_base_filename))
+		if (g_pattern_spec_match_string(pattern, utf8_base_filename))
 		{
 			ret = TRUE;
 			g_pattern_spec_free(pattern);
@@ -233,7 +235,7 @@ static gboolean match_basename(gconstpointer pft, gconstpointer user_data)
  * extension and only if this fails, look at the shebang */
 static GeanyFiletype *filetypes_detect(const gchar *utf8_filename)
 {
-	struct stat s;
+	GStatBuf s;
 	GeanyFiletype *ft = NULL;
 	gchar *locale_filename;
 
@@ -281,7 +283,9 @@ static void regenerate_tags(PrjOrgRoot *root, gpointer user_data)
 	gpointer key, value;
 	GPtrArray *source_files;
 	GHashTable *file_table;
+	const gchar **session_files;
 
+	session_files = (const gchar **) user_data;
 	source_files = g_ptr_array_new();
 	file_table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, (GFreeFunc)tm_source_file_free);
 	g_hash_table_iter_init(&iter, root->file_table);
@@ -291,10 +295,11 @@ static void regenerate_tags(PrjOrgRoot *root, gpointer user_data)
 		gchar *utf8_path = key;
 		gchar *locale_path = utils_get_locale_from_utf8(utf8_path);
 		gchar *basename = g_path_get_basename(locale_path);
+		gboolean will_open = session_files && g_strv_contains(session_files, utf8_path);
 
 		if (g_strcmp0(PROJORG_DIR_ENTRY, basename) != 0)
 			sf = tm_source_file_new(locale_path, filetypes_detect(utf8_path)->name);
-		if (sf && !document_find_by_filename(utf8_path)  )
+		if (sf && !will_open && !document_find_by_filename(utf8_path))
 			g_ptr_array_add(source_files, sf);
 
 		g_hash_table_insert(file_table, g_strdup(utf8_path), sf);
@@ -309,7 +314,7 @@ static void regenerate_tags(PrjOrgRoot *root, gpointer user_data)
 }
 
 
-void prjorg_project_rescan(void)
+void rescan_project(gchar **session_files)
 {
 	GSList *elem;
 	gint filenum = 0;
@@ -323,10 +328,14 @@ void prjorg_project_rescan(void)
 	foreach_slist(elem, prj_org->roots)
 		filenum += prjorg_project_rescan_root(elem->data);
 
-	if (prj_org->generate_tag_prefs == PrjOrgTagYes || (prj_org->generate_tag_prefs == PrjOrgTagAuto && filenum < 300))
-		g_slist_foreach(prj_org->roots, (GFunc)regenerate_tags, NULL);
+	if (prj_org->generate_tag_prefs == PrjOrgTagYes || (prj_org->generate_tag_prefs == PrjOrgTagAuto && filenum < 1000))
+		g_slist_foreach(prj_org->roots, (GFunc)regenerate_tags, session_files);
 }
 
+
+void prjorg_project_rescan() {
+    rescan_project(NULL);
+}
 
 static PrjOrgRoot *create_root(const gchar *utf8_base_dir)
 {
@@ -342,6 +351,7 @@ static void update_project(
 	gchar **header_patterns,
 	gchar **ignored_dirs_patterns,
 	gchar **ignored_file_patterns,
+	gchar **session_files,
 	PrjOrgTagPrefs generate_tag_prefs,
 	gboolean show_empty_dirs)
 {
@@ -373,7 +383,17 @@ static void update_project(
 	prj_org->roots = g_slist_prepend(prj_org->roots, create_root(utf8_base_path));
 	g_free(utf8_base_path);
 
-	prjorg_project_rescan();
+	rescan_project(session_files);
+}
+
+
+static void save_expanded_paths(GKeyFile * key_file)
+{
+	gchar **expanded_paths = prjorg_sidebar_get_expanded_paths();
+
+	g_key_file_set_string_list(key_file, "prjorg", "expanded_paths",
+		(const gchar**) expanded_paths, g_strv_length(expanded_paths));
+	g_strfreev(expanded_paths);
 }
 
 
@@ -384,6 +404,8 @@ void prjorg_project_save(GKeyFile * key_file)
 
 	if (!prj_org)
 		return;
+
+	save_expanded_paths(key_file);
 
 	g_key_file_set_string_list(key_file, "prjorg", "source_patterns",
 		(const gchar**) prj_org->source_patterns, g_strv_length(prj_org->source_patterns));
@@ -478,6 +500,47 @@ void prjorg_project_remove_external_dir(const gchar *utf8_dirname)
 }
 
 
+gchar **prjorg_project_load_expanded_paths(GKeyFile * key_file)
+{
+	return g_key_file_get_string_list(key_file, "prjorg", "expanded_paths", NULL, NULL);
+}
+
+
+static gchar **get_session_files(GKeyFile *config)
+{
+	guint i;
+	gboolean have_session_files;
+	gchar entry[16];
+	gchar **tmp_array;
+	GError *error = NULL;
+	GPtrArray *files;
+	gchar *unescaped_filename;
+
+	files = g_ptr_array_new();
+	have_session_files = TRUE;
+	i = 0;
+	while (have_session_files)
+	{
+		g_snprintf(entry, sizeof(entry), "FILE_NAME_%d", i);
+		tmp_array = g_key_file_get_string_list(config, "files", entry, NULL, &error);
+		if (! tmp_array || error)
+		{
+			g_error_free(error);
+			error = NULL;
+			have_session_files = FALSE;
+		} else {
+			unescaped_filename = g_uri_unescape_string(tmp_array[7], NULL);
+			g_ptr_array_add(files, g_strdup(unescaped_filename));
+			g_free(unescaped_filename);
+		}
+		i++;
+	}
+	g_ptr_array_add(files, NULL);
+
+	return (gchar **) g_ptr_array_free(files, FALSE);
+}
+
+
 void prjorg_project_open(GKeyFile * key_file)
 {
 	gchar **source_patterns, **header_patterns, **ignored_dirs_patterns, **ignored_file_patterns, **external_dirs, **dir_ptr, *last_name;
@@ -485,6 +548,7 @@ void prjorg_project_open(GKeyFile * key_file)
 	gboolean show_empty_dirs;
 	GSList *elem = NULL, *ext_list = NULL;
 	gchar *utf8_base_path;
+	gchar **session_files;
 
 	if (prj_org != NULL)
 		prjorg_project_close();
@@ -500,19 +564,21 @@ void prjorg_project_open(GKeyFile * key_file)
 
 	source_patterns = g_key_file_get_string_list(key_file, "prjorg", "source_patterns", NULL, NULL);
 	if (!source_patterns)
-		source_patterns = g_strsplit("*.c *.C *.cpp *.cxx *.c++ *.cc *.m", " ", -1);
+		source_patterns = g_strsplit(PRJORG_PATTERNS_SOURCE, " ", -1);
 	header_patterns = g_key_file_get_string_list(key_file, "prjorg", "header_patterns", NULL, NULL);
 	if (!header_patterns)
-		header_patterns = g_strsplit("*.h *.H *.hpp *.hxx *.h++ *.hh", " ", -1);
+		header_patterns = g_strsplit(PRJORG_PATTERNS_HEADER, " ", -1);
 	ignored_dirs_patterns = g_key_file_get_string_list(key_file, "prjorg", "ignored_dirs_patterns", NULL, NULL);
 	if (!ignored_dirs_patterns)
-		ignored_dirs_patterns = g_strsplit(".* CVS", " ", -1);
+		ignored_dirs_patterns = g_strsplit(PRJORG_PATTERNS_IGNORED_DIRS, " ", -1);
 	ignored_file_patterns = g_key_file_get_string_list(key_file, "prjorg", "ignored_file_patterns", NULL, NULL);
 	if (!ignored_file_patterns)
-		ignored_file_patterns = g_strsplit("*.o *.obj *.a *.lib *.so *.dll *.lo *.la *.class *.jar *.pyc *.mo *.gmo", " ", -1);
+		ignored_file_patterns = g_strsplit(PRJORG_PATTERNS_IGNORED_FILE, " ", -1);
 	generate_tag_prefs = utils_get_setting_integer(key_file, "prjorg", "generate_tag_prefs", PrjOrgTagAuto);
 	show_empty_dirs = utils_get_setting_boolean(key_file, "prjorg", "show_empty_dirs", TRUE);
 
+	/* we need to know which files will be opened and parsed by Geany, to avoid parsing them twice */
+	session_files = get_session_files(key_file);
 	external_dirs = g_key_file_get_string_list(key_file, "prjorg", "external_dirs", NULL, NULL);
 	foreach_strv (dir_ptr, external_dirs)
 		ext_list = g_slist_prepend(ext_list, *dir_ptr);
@@ -536,6 +602,7 @@ void prjorg_project_open(GKeyFile * key_file)
 		header_patterns,
 		ignored_dirs_patterns,
 		ignored_file_patterns,
+		session_files,
 		generate_tag_prefs,
 		show_empty_dirs);
 
@@ -544,6 +611,7 @@ void prjorg_project_open(GKeyFile * key_file)
 	g_strfreev(ignored_dirs_patterns);
 	g_strfreev(ignored_file_patterns);
 	g_strfreev(external_dirs);
+	g_strfreev(session_files);
 }
 
 
@@ -575,7 +643,7 @@ void prjorg_project_read_properties_tab(void)
 	ignored_file_patterns = split_patterns(gtk_entry_get_text(GTK_ENTRY(e->ignored_file_patterns)));
 
 	update_project(
-		source_patterns, header_patterns, ignored_dirs_patterns, ignored_file_patterns,
+		source_patterns, header_patterns, ignored_dirs_patterns, ignored_file_patterns, NULL,
 		gtk_combo_box_get_active(GTK_COMBO_BOX(e->generate_tag_prefs)),
 		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(e->show_empty_dirs)));
 
@@ -588,23 +656,24 @@ void prjorg_project_read_properties_tab(void)
 
 GtkWidget *prjorg_project_add_properties_tab(GtkWidget *notebook)
 {
-	GtkWidget *vbox, *hbox, *hbox1;
-	GtkWidget *table;
+	GtkWidget *vbox, *hbox, *hbox1, *ebox, *table_box;
 	GtkWidget *label;
 	gchar *str;
+	GtkSizeGroup *size_group;
 
 	e = g_new0(PropertyDialogElements, 1);
 
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-	table = gtk_table_new(5, 2, FALSE);
-	gtk_table_set_row_spacings(GTK_TABLE(table), 6);
-	gtk_table_set_col_spacings(GTK_TABLE(table), 12);
+	table_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+	gtk_box_set_spacing(GTK_BOX(table_box), 6);
+
+	size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 	label = gtk_label_new(_("Source patterns:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_size_group_add_widget(size_group, label);
 	e->source_patterns = gtk_entry_new();
-	ui_table_add_row(GTK_TABLE(table), 0, label, e->source_patterns, NULL);
 	ui_entry_add_clear_icon(GTK_ENTRY(e->source_patterns));
 	gtk_widget_set_tooltip_text(e->source_patterns,
 		_("Space separated list of patterns that are used to identify source files. "
@@ -612,59 +681,75 @@ GtkWidget *prjorg_project_add_properties_tab(GtkWidget *notebook)
 	str = g_strjoinv(" ", prj_org->source_patterns);
 	gtk_entry_set_text(GTK_ENTRY(e->source_patterns), str);
 	g_free(str);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(ebox), e->source_patterns, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(table_box), ebox, TRUE, FALSE, 0);
 
 	label = gtk_label_new(_("Header patterns:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_size_group_add_widget(size_group, label);
 	e->header_patterns = gtk_entry_new();
 	ui_entry_add_clear_icon(GTK_ENTRY(e->header_patterns));
-	ui_table_add_row(GTK_TABLE(table), 1, label, e->header_patterns, NULL);
 	gtk_widget_set_tooltip_text(e->header_patterns,
 		_("Space separated list of patterns that are used to identify headers. "
 		  "Used for header/source swapping."));
 	str = g_strjoinv(" ", prj_org->header_patterns);
 	gtk_entry_set_text(GTK_ENTRY(e->header_patterns), str);
 	g_free(str);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(ebox), e->header_patterns, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(table_box), ebox, TRUE, FALSE, 0);
 
 	label = gtk_label_new(_("Ignored file patterns:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_size_group_add_widget(size_group, label);
 	e->ignored_file_patterns = gtk_entry_new();
 	ui_entry_add_clear_icon(GTK_ENTRY(e->ignored_file_patterns));
-	ui_table_add_row(GTK_TABLE(table), 2, label, e->ignored_file_patterns, NULL);
 	gtk_widget_set_tooltip_text(e->ignored_file_patterns,
 		_("Space separated list of patterns that are used to identify files "
 		  "that are not displayed in the project tree."));
 	str = g_strjoinv(" ", prj_org->ignored_file_patterns);
 	gtk_entry_set_text(GTK_ENTRY(e->ignored_file_patterns), str);
 	g_free(str);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(ebox), e->ignored_file_patterns, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(table_box), ebox, TRUE, FALSE, 0);
 
 	label = gtk_label_new(_("Ignored directory patterns:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_size_group_add_widget(size_group, label);
 	e->ignored_dirs_patterns = gtk_entry_new();
 	ui_entry_add_clear_icon(GTK_ENTRY(e->ignored_dirs_patterns));
-	ui_table_add_row(GTK_TABLE(table), 3, label, e->ignored_dirs_patterns, NULL);
 	gtk_widget_set_tooltip_text(e->ignored_dirs_patterns,
 		_("Space separated list of patterns that are used to identify directories "
 		  "that are not scanned for source files."));
 	str = g_strjoinv(" ", prj_org->ignored_dirs_patterns);
 	gtk_entry_set_text(GTK_ENTRY(e->ignored_dirs_patterns), str);
 	g_free(str);
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(ebox), e->ignored_dirs_patterns, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(table_box), ebox, TRUE, FALSE, 0);
 
-	gtk_box_pack_start(GTK_BOX(vbox), table, FALSE, FALSE, 6);
+	gtk_box_pack_start(GTK_BOX(vbox), table_box, FALSE, FALSE, 6);
 
-	hbox1 = gtk_hbox_new(FALSE, 0);
-	label = gtk_label_new(_("The patterns above affect only sidebar and indexing and are not used in the Find in Files\n"
-	"dialog. You can further restrict the files belonging to the project by setting the\n"
+	hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	label = prjorg_wrap_label_new(_("The patterns above affect only sidebar and indexing and are not used in the Find in Files "
+	"dialog. You can further restrict the files belonging to the project by setting the"
 	"File Patterns under the Project tab (these are also used for the Find in Files dialog)."));
-	gtk_box_pack_start(GTK_BOX(hbox1), label, FALSE, FALSE, 12);
+	gtk_box_pack_start(GTK_BOX(hbox1), label, TRUE, TRUE, 12);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 0);
 
-	hbox1 = gtk_hbox_new(FALSE, 0);
+	hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	label = gtk_label_new(NULL);
 	gtk_label_set_markup(GTK_LABEL(label), _("<b>Various</b>"));
 	gtk_box_pack_start(GTK_BOX(hbox1), label, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 12);
 
-	hbox1 = gtk_hbox_new(FALSE, 0);
+	hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	e->show_empty_dirs = gtk_check_button_new_with_label(_("Show empty directories in sidebar"));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(e->show_empty_dirs), prj_org->show_empty_dirs);
 	gtk_widget_set_tooltip_text(e->show_empty_dirs,
@@ -674,30 +759,34 @@ GtkWidget *prjorg_project_add_properties_tab(GtkWidget *notebook)
 	gtk_box_pack_start(GTK_BOX(hbox1), e->show_empty_dirs, FALSE, FALSE, 12);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 0);
 
-	table = gtk_table_new(1, 2, FALSE);
-	gtk_table_set_row_spacings(GTK_TABLE(table), 6);
-	gtk_table_set_col_spacings(GTK_TABLE(table), 12);
+	table_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+	gtk_box_set_spacing(GTK_BOX(table_box), 6);
+
+	size_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
 	label = gtk_label_new(_("Index all project files:"));
-	gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_size_group_add_widget(size_group, label);
 	e->generate_tag_prefs = gtk_combo_box_text_new();
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(e->generate_tag_prefs), _("Auto (index if less than 300 files)"));
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(e->generate_tag_prefs), _("Auto (index if less than 1000 files)"));
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(e->generate_tag_prefs), _("Yes"));
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(e->generate_tag_prefs), _("No"));
 	gtk_combo_box_set_active(GTK_COMBO_BOX(e->generate_tag_prefs), prj_org->generate_tag_prefs);
 	gtk_widget_set_tooltip_text(e->generate_tag_prefs,
 		_("Generate symbol list for all project files instead of only for the currently opened files. "
 		  "Might be slow for big projects."));
+	ebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+	gtk_box_pack_start(GTK_BOX(ebox), label, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(ebox), e->generate_tag_prefs, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(table_box), ebox, TRUE, FALSE, 0);
 
-	ui_table_add_row(GTK_TABLE(table), 1, label, e->generate_tag_prefs, NULL);
-
-	hbox1 = gtk_hbox_new(FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(hbox1), table, FALSE, FALSE, 12);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 0);
+	hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(hbox1), table_box, FALSE, FALSE, 12);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 6);
 
 	label = gtk_label_new("Project Organizer");
 
-	hbox = gtk_hbox_new(FALSE, 0);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, TRUE, TRUE, 6);
 
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), hbox, label);

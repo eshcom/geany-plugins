@@ -46,18 +46,6 @@ GeanyPlugin		*geany_plugin = NULL;
 GeanyData		*geany_data = NULL;
 
 
-/* Keybinding(s) */
-enum
-{
-	KB_FOCUS_BOOKMARK_LIST,
-	KB_FOCUS_TASKS,
-	KB_UPDATE_TASKS,
-	KB_XMLTAGGING,
-	KB_COPYFILEPATH,
-	KB_COUNT
-};
-
-
 typedef struct
 {
 	/* general settings */
@@ -137,7 +125,7 @@ static gboolean ao_editor_notify_cb(GObject *object, GeanyEditor *editor,
 							 SCNotification *nt, gpointer data)
 {
 	ao_bookmark_list_update_marker(ao_info->bookmarklist, editor, nt);
-	
+
 	ao_mark_editor_notify(ao_info->markword, editor, nt);
 
 	ao_color_tip_editor_notify(ao_info->colortip, editor, nt);
@@ -149,7 +137,7 @@ static gboolean ao_editor_notify_cb(GObject *object, GeanyEditor *editor,
 static void ao_update_editor_menu_cb(GObject *obj, const gchar *word, gint pos,
 									 GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_open_uri_update_menu(ao_info->openuri, doc, pos);
 }
@@ -157,7 +145,7 @@ static void ao_update_editor_menu_cb(GObject *obj, const gchar *word, gint pos,
 
 static void ao_document_activate_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_bookmark_list_update(ao_info->bookmarklist, doc);
 	ao_tasks_update_single(ao_info->tasks, doc);
@@ -166,7 +154,7 @@ static void ao_document_activate_cb(GObject *obj, GeanyDocument *doc, gpointer d
 
 static void ao_document_new_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_mark_document_new(ao_info->markword, doc);
 	ao_color_tip_document_new(ao_info->colortip, doc);
@@ -175,7 +163,7 @@ static void ao_document_new_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 
 static void ao_document_open_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_tasks_update(ao_info->tasks, doc);
 	ao_mark_document_open(ao_info->markword, doc);
@@ -185,7 +173,7 @@ static void ao_document_open_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 
 static void ao_document_close_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_tasks_remove(ao_info->tasks, doc);
 	ao_mark_document_close(ao_info->markword, doc);
@@ -195,7 +183,7 @@ static void ao_document_close_cb(GObject *obj, GeanyDocument *doc, gpointer data
 
 static void ao_document_save_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_tasks_update(ao_info->tasks, doc);
 }
@@ -203,7 +191,7 @@ static void ao_document_save_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 
 static void ao_document_before_save_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_blanklines_on_document_before_save(obj, doc, data);
 }
@@ -211,7 +199,7 @@ static void ao_document_before_save_cb(GObject *obj, GeanyDocument *doc, gpointe
 
 static void ao_document_reload_cb(GObject *obj, GeanyDocument *doc, gpointer data)
 {
-	g_return_if_fail(doc != NULL && doc->is_valid);
+	g_return_if_fail(DOC_VALID(doc));
 
 	ao_tasks_update(ao_info->tasks, doc);
 }
@@ -663,10 +651,6 @@ static GtkWidget *plugin_addons_configure(G_GNUC_UNUSED GeanyPlugin *plugin, Gtk
 	ao_configure_doclist_toggled_cb(GTK_TOGGLE_BUTTON(check_doclist), dialog);
 
 	gtk_widget_show_all(vbox);
-
-#if ! GTK_CHECK_VERSION(2, 10, 0)
-	gtk_widget_hide(check_systray);
-#endif
 
 	return vbox;
 }

@@ -29,20 +29,13 @@
 #include <gtk/gtk.h>
 
 
-#if ! GTK_CHECK_VERSION (3, 0, 0)
-/* make gtk_adjustment_new() return a real GtkAdjustment, not a GtkObject */
-# define gtk_adjustment_new(v, l, u, si, pi, ps) \
-  (GtkAdjustment *) (gtk_adjustment_new ((v), (l), (u), (si), (pi), (ps)))
-#endif
-
-
 struct _GwhSettingsPrivate
 {
   GPtrArray *prop_array;
 };
 
 
-G_DEFINE_TYPE (GwhSettings, gwh_settings, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (GwhSettings, gwh_settings, G_TYPE_OBJECT)
 
 
 static void
@@ -131,15 +124,12 @@ gwh_settings_class_init (GwhSettingsClass *klass)
   object_class->finalize      = gwh_settings_finalize;
   object_class->get_property  = gwh_settings_get_property;
   object_class->set_property  = gwh_settings_set_property;
-  
-  g_type_class_add_private (klass, sizeof (GwhSettingsPrivate));
 }
 
 static void
 gwh_settings_init (GwhSettings *self)
 {
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GWH_TYPE_SETTINGS,
-                                            GwhSettingsPrivate);
+  self->priv = gwh_settings_get_instance_private (self);
   self->priv->prop_array = g_ptr_array_new ();
 }
 
@@ -196,7 +186,7 @@ gwh_settings_install_property (GwhSettings *self,
         break;
     
     HANDLE_BASIC_TYPE (BOOLEAN, Boolean, boolean)
-    HANDLE_BASIC_TYPE (CHAR,    Char,    char)
+    HANDLE_BASIC_TYPE (CHAR,    Char,    schar)
     HANDLE_BASIC_TYPE (UCHAR,   UChar,   uchar)
     HANDLE_BASIC_TYPE (INT,     Int,     int)
     HANDLE_BASIC_TYPE (UINT,    UInt,    uint)
@@ -800,7 +790,7 @@ gwh_settings_widget_new_full (GwhSettings            *self,
       GtkWidget *box;
       gchar     *label;
       
-      box = gtk_hbox_new (FALSE, 6);
+      box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       label = g_strdup_printf (_("%s:"), g_param_spec_get_nick (pspec));
       gtk_box_pack_start (GTK_BOX (box), gtk_label_new (label), FALSE, TRUE, 0);
       g_free (label);

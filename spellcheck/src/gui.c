@@ -70,8 +70,20 @@ static void clear_spellcheck_error_markers(GeanyDocument *doc)
 }
 
 
-static void print_typing_changed_message(void)
+static void perform_spell_check_toggle(void)
 {
+	/* force a rescan of the document if 'check while typing' has been turned on and clean
+	 * errors if it has been turned off */
+	GeanyDocument *doc = document_get_current();
+	if (sc_info->check_while_typing)
+	{
+		perform_check(doc);
+	}
+	else
+	{
+		clear_spellcheck_error_markers(doc);
+	}
+
 	if (sc_info->check_while_typing)
 		ui_set_statusbar(FALSE, _("Spell checking while typing is now enabled"));
 	else
@@ -81,27 +93,12 @@ static void print_typing_changed_message(void)
 
 static void toolbar_item_toggled_cb(GtkToggleToolButton *button, gpointer user_data)
 {
-	gboolean check_while_typing_changed, check_while_typing;
-
 	if (sc_ignore_callback)
 		return;
 
-	check_while_typing = gtk_toggle_tool_button_get_active(button);
-	check_while_typing_changed = check_while_typing != sc_info->check_while_typing;
-	sc_info->check_while_typing = check_while_typing;
+	sc_info->check_while_typing = gtk_toggle_tool_button_get_active(button);
 
-	print_typing_changed_message();
-
-	/* force a rescan of the document if 'check while typing' has been turned on and clean
-	 * errors if it has been turned off */
-	if (check_while_typing_changed)
-	{
-		GeanyDocument *doc = document_get_current();
-		if (sc_info->check_while_typing)
-			perform_check(doc);
-		else
-			clear_spellcheck_error_markers(doc);
-	}
+	perform_spell_check_toggle();
 }
 
 
@@ -463,7 +460,7 @@ void sc_gui_update_editor_menu_cb(GObject *obj, const gchar *word, gint pos,
 
 		clickinfo.pos = pos;
 		clickinfo.doc = doc;
-		setptr(clickinfo.word, search_word);
+		SETPTR(clickinfo.word, search_word);
 
 		update_editor_menu_items(search_word, (const gchar**) suggs, n_suggs);
 
@@ -588,20 +585,6 @@ gboolean sc_gui_editor_notify(GObject *object, GeanyEditor *editor,
 }
 
 
-#if ! GTK_CHECK_VERSION(2, 16, 0)
-static void gtk_menu_item_set_label(GtkMenuItem *menu_item, const gchar *label)
-{
-	if (GTK_BIN(menu_item)->child != NULL)
-	{
-		GtkWidget *child = GTK_BIN(menu_item)->child;
-
-		if (GTK_IS_LABEL(child))
-			gtk_label_set_text(GTK_LABEL(child), label);
-	}
-}
-#endif
-
-
 static void update_labels(void)
 {
 	gchar *label;
@@ -613,16 +596,14 @@ static void update_labels(void)
 
 	g_free(label);
 
-#if GTK_CHECK_VERSION(2, 12, 0)
 	if (sc_info->toolbar_button != NULL)
 	{
 		gchar *text = g_strdup_printf(
-			_("Toggle spell check while typing (current language: %s)"),
+			_("Toggle spell check (current language: %s)"),
 			(sc_info->default_language != NULL) ? sc_info->default_language : _("unknown"));
 		gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM(sc_info->toolbar_button), text);
 		g_free(text);
 	}
-#endif
 }
 
 
@@ -644,7 +625,7 @@ static void menu_item_toggled_cb(GtkCheckMenuItem *menuitem, gpointer gdata)
 	/* Another language was chosen from the menu item, so make it default for this session. */
     if (gdata != NULL)
 	{
-		setptr(sc_info->default_language, g_strdup(gdata));
+		SETPTR(sc_info->default_language, g_strdup(gdata));
 		sc_speller_reinit_enchant_dict();
 		sc_gui_update_menu();
 		update_labels();
@@ -664,7 +645,7 @@ void sc_gui_kb_toggle_typing_activate_cb(guint key_id)
 {
 	sc_info->check_while_typing = ! sc_info->check_while_typing;
 
-	print_typing_changed_message();
+	perform_spell_check_toggle();
 
 	sc_gui_update_toolbar();
 }
