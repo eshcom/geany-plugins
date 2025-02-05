@@ -218,72 +218,72 @@ static gboolean tree_view_row_expanded_iter(GtkTreeView *tree_view,
 	return expanded;
 }
 
-#if GTK_CHECK_VERSION(3, 10, 0)
 static GdkPixbuf *utils_pixbuf_from_name(const gchar *icon_name)
 {
-	GError *error = NULL;
+	static gint width = 0;
+	if (width == 0)
+		gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, NULL);
 	
-	GtkIconTheme *icon_theme = gtk_icon_theme_get_default();
-	GdkPixbuf *pixbuf = gtk_icon_theme_load_icon(icon_theme, icon_name,
-												 16, 0, &error);
+	GError *error = NULL;
+	GdkPixbuf *pixbuf = gtk_icon_theme_load_icon(
+								gtk_icon_theme_get_default(),
+								icon_name, width,
+								GTK_ICON_LOOKUP_FORCE_SIZE,
+								&error);
 	if (!pixbuf)
 	{
 		g_warning("Couldn't load icon: %s", error->message);
 		g_error_free(error);
-		return NULL;
 	}
 	return pixbuf;
 }
-#else
-static GdkPixbuf *utils_pixbuf_from_stock(const gchar *stock_id)
-{
-	GtkIconSet *icon_set = gtk_icon_factory_lookup_default(stock_id);
-	
-	if (icon_set)
-		return gtk_icon_set_render_icon(icon_set, gtk_widget_get_default_style(),
-										gtk_widget_get_default_direction(),
-										GTK_STATE_NORMAL, GTK_ICON_SIZE_MENU,
-										NULL, NULL);
-	return NULL;
-}
-#endif
 
 static GdkPixbuf *utils_pixbuf_from_path(gchar *path)
 {
-	GdkPixbuf *ret = NULL;
+	static gint width = 0;
+	if (width == 0)
+		gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, NULL);
+	
+	GdkPixbuf *pixbuf = NULL;
 	
 	gchar *ctype = g_content_type_guess(path, NULL, 0, NULL);
 	GIcon *icon = g_content_type_get_icon(ctype);
 	g_free(ctype);
 	
-	if (icon != NULL)
+	if (icon)
 	{
-		GtkIconInfo *info;
-		gint width;
-		
-		gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &width, NULL);
-		info = gtk_icon_theme_lookup_by_gicon(gtk_icon_theme_get_default(),
-											  icon, width,
-											  GTK_ICON_LOOKUP_USE_BUILTIN);
+		GtkIconInfo *info = gtk_icon_theme_lookup_by_gicon(
+									gtk_icon_theme_get_default(),
+									icon, width,
+									GTK_ICON_LOOKUP_FORCE_SIZE);
 		g_object_unref(icon);
+		
 		if (!info)
 		{
 			icon = g_themed_icon_new("text-x-generic");
-			if (icon != NULL)
+			if (icon)
 			{
-				info = gtk_icon_theme_lookup_by_gicon(gtk_icon_theme_get_default(),
-													  icon, width,
-													  GTK_ICON_LOOKUP_USE_BUILTIN);
+				info = gtk_icon_theme_lookup_by_gicon(
+									gtk_icon_theme_get_default(),
+									icon, width,
+									GTK_ICON_LOOKUP_FORCE_SIZE);
 				g_object_unref(icon);
 			}
 		}
 		if (!info)
 			return NULL;
 		
-		ret = gtk_icon_info_load_icon(info, NULL);
+		GError *error = NULL;
+		pixbuf = gtk_icon_info_load_icon(info, &error);
 		gtk_icon_info_free(info);
+		
+		if (!pixbuf)
+		{
+			g_warning("Couldn't load icon: %s", error->message);
+			g_error_free(error);
+		}
 	}
-	return ret;
+	return pixbuf;
 }
 
 /* result must be freed */
@@ -688,13 +688,15 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 							gtk_tree_iter_free(last_dir_iter);
 						}
 						last_dir_iter = gtk_tree_iter_copy(&iter);
-#if GTK_CHECK_VERSION(3, 10, 0)
-						icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_name("folder")
-												 : NULL;
-#else
-						icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_stock(GTK_STOCK_DIRECTORY)
-												 : NULL;
-#endif
+						
+						if (CONFIG_SHOW_ICONS)
+						{
+							static GdkPixbuf *dir_icon = NULL;
+							if (!dir_icon)
+								dir_icon = utils_pixbuf_from_name("folder");
+							icon = g_object_ref(dir_icon);
+						}
+						
 						gtk_tree_store_set(treestore, &iter,
 										   TREEBROWSER_COLUMN_COLOR, &parent_color,
 										   TREEBROWSER_COLUMN_ICON, icon,
@@ -713,15 +715,17 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 				{
 					if (is_passed_filter(utf8_name, fobj))
 					{
-						icon = CONFIG_SHOW_ICONS == 2
-										? utils_pixbuf_from_path(uri)
-										: CONFIG_SHOW_ICONS
-#if GTK_CHECK_VERSION(3, 10, 0)
-										? utils_pixbuf_from_name("text-x-generic")
-#else
-										? utils_pixbuf_from_stock(GTK_STOCK_FILE)
-#endif
-										: NULL;
+						if (CONFIG_SHOW_ICONS == 2)
+						{
+							icon = utils_pixbuf_from_path(uri);
+						}
+						else if (CONFIG_SHOW_ICONS)
+						{
+							static GdkPixbuf *file_icon = NULL;
+							if (!file_icon)
+								file_icon = utils_pixbuf_from_name("text-x-generic");
+							icon = g_object_ref(file_icon);
+						}
 						
 						gtk_tree_store_append(treestore, &iter, parent);
 						
@@ -794,13 +798,15 @@ static void treebrowser_load_bookmarks(void)
 		else
 		{
 			gtk_tree_store_prepend(treestore, &bookmarks_iter, NULL);
-#if GTK_CHECK_VERSION(3, 10, 0)
-			icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_name("go-home")
-									 : NULL;
-#else
-			icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_stock(GTK_STOCK_HOME)
-									 : NULL;
-#endif
+			
+			if (CONFIG_SHOW_ICONS)
+			{
+				static GdkPixbuf *home_icon = NULL;
+				if (!home_icon)
+					home_icon = utils_pixbuf_from_name("go-home");
+				icon = g_object_ref(home_icon);
+			}
+			
 			gtk_tree_store_set(treestore, &bookmarks_iter,
 							   TREEBROWSER_COLUMN_ICON, icon,
 							   TREEBROWSER_COLUMN_NAME, _("Bookmarks"),
@@ -836,13 +842,15 @@ static void treebrowser_load_bookmarks(void)
 					gchar *file_name = g_path_get_basename(path_full);
 					
 					gtk_tree_store_append(treestore, &iter, &bookmarks_iter);
-#if GTK_CHECK_VERSION(3, 10, 0)
-					icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_name("folder")
-											 : NULL;
-#else
-					icon = CONFIG_SHOW_ICONS ? utils_pixbuf_from_stock(GTK_STOCK_DIRECTORY)
-											 : NULL;
-#endif
+					
+					if (CONFIG_SHOW_ICONS)
+					{
+						static GdkPixbuf *dir_icon = NULL;
+						if (!dir_icon)
+							dir_icon = utils_pixbuf_from_name("folder");
+						icon = g_object_ref(dir_icon);
+					}
+					
 					gtk_tree_store_set(treestore, &iter,
 									   TREEBROWSER_COLUMN_COLOR, &parent_color,
 									   TREEBROWSER_COLUMN_ICON, icon,
@@ -1904,14 +1912,11 @@ static void on_treeview_row_expanded(GtkWidget *widget, GtkTreeIter *iter,
 	
 	if (CONFIG_SHOW_ICONS)
 	{
-#if GTK_CHECK_VERSION(3, 10, 0)
-		GdkPixbuf *icon = utils_pixbuf_from_name("document-open");
-#else
-		GdkPixbuf *icon = utils_pixbuf_from_stock(GTK_STOCK_OPEN);
-#endif
-		gtk_tree_store_set(treestore, iter,
-						   TREEBROWSER_COLUMN_ICON, icon, -1);
-		g_object_unref(icon);
+		static GdkPixbuf *icon = NULL;
+		if (!icon)
+			icon = utils_pixbuf_from_name("folder-open");
+		
+		gtk_tree_store_set(treestore, iter, TREEBROWSER_COLUMN_ICON, icon, -1);
 	}
 	g_free(uri);
 }
@@ -1927,14 +1932,11 @@ static void on_treeview_row_collapsed(GtkWidget *widget, GtkTreeIter *iter,
 	
 	if (CONFIG_SHOW_ICONS)
 	{
-#if GTK_CHECK_VERSION(3, 10, 0)
-		GdkPixbuf *icon = utils_pixbuf_from_name("folder");
-#else
-		GdkPixbuf *icon = utils_pixbuf_from_stock(GTK_STOCK_DIRECTORY);
-#endif
-		gtk_tree_store_set(treestore, iter,
-						   TREEBROWSER_COLUMN_ICON, icon, -1);
-		g_object_unref(icon);
+		static GdkPixbuf *icon = NULL;
+		if (!icon)
+			icon = utils_pixbuf_from_name("folder");
+		
+		gtk_tree_store_set(treestore, iter, TREEBROWSER_COLUMN_ICON, icon, -1);
 	}
 	g_free(uri);
 }
@@ -2112,77 +2114,55 @@ static void create_sidebar(void)
 	gtk_toolbar_set_icon_size(GTK_TOOLBAR(toolbar), GTK_ICON_SIZE_MENU);
 	gtk_toolbar_set_style(GTK_TOOLBAR(toolbar), GTK_TOOLBAR_ICONS);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
 	wid = gtk_image_new_from_icon_name("go-up", GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_GO_UP));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Go up"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(on_button_go_up), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
 	wid = gtk_image_new_from_icon_name("view-refresh",
 									   GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_REFRESH));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Refresh"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(on_button_refresh), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
 	wid = gtk_image_new_from_icon_name("go-home", GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_HOME));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Home"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(on_button_go_home), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
 	btn_proj_path = gtk_image_new_from_icon_name("go-first",
 												 GTK_ICON_SIZE_SMALL_TOOLBAR);
 	btn_proj_path = GTK_WIDGET(gtk_tool_button_new(btn_proj_path, NULL));
-#else
-	btn_proj_path = GTK_WIDGET(gtk_tool_button_new_from_stock(
-												GTK_STOCK_GOTO_FIRST));
-#endif
+	
 	gtk_widget_set_tooltip_text(btn_proj_path, _("Set project path"));
 	g_signal_connect(btn_proj_path, "clicked",
 					 G_CALLBACK(on_button_project_path), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), btn_proj_path);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
-	wid = gtk_image_new_from_icon_name("go-jump", GTK_ICON_SIZE_SMALL_TOOLBAR);
+	wid = gtk_image_new_from_icon_name("go-last", GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_GOTO_LAST));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Set path from document"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(on_button_current_path), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
-	wid = gtk_image_new_from_icon_name("folder", GTK_ICON_SIZE_SMALL_TOOLBAR);
+	wid = gtk_image_new_from_icon_name("go-jump", GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_JUMP_TO));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Track Current"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(treebrowser_track_current), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
 	
-#if GTK_CHECK_VERSION(3, 10, 0)
 	wid = gtk_image_new_from_icon_name("window-close",
 									   GTK_ICON_SIZE_SMALL_TOOLBAR);
 	wid = GTK_WIDGET(gtk_tool_button_new(wid, NULL));
-#else
-	wid = GTK_WIDGET(gtk_tool_button_new_from_stock(GTK_STOCK_CLOSE));
-#endif
+	
 	gtk_widget_set_tooltip_text(wid, _("Hide bars"));
 	g_signal_connect(wid, "clicked", G_CALLBACK(on_button_hide_bars), NULL);
 	gtk_container_add(GTK_CONTAINER(toolbar), wid);
