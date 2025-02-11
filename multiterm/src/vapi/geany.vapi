@@ -38,7 +38,7 @@ namespace Geany {
 	/* reviewed */
 	[Compact]
 	public class InterfacePrefs {
-		public bool		sidebar_symbol_visible;
+		public bool		sidebar_symbols_visible;
 		public bool		sidebar_openfiles_visible;
 		public string	editor_font;
 		public string	tagbar_font;
@@ -48,7 +48,7 @@ namespace Geany {
 		public int		tab_pos_msgwin;
 		public int		tab_pos_sidebar;
 		public bool		statusbar_visible;
-		public bool		show_symbol_list_expanders;
+		public bool		show_symbols_expanders;
 		public bool		notebook_double_click_hides_widgets;
 		public bool		highlighting_invert_all;
 		public int		sidebar_pos;

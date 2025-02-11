@@ -64,14 +64,14 @@ InterfacePrefs_get_property(InterfacePrefs *self, const gchar *prop_name)
 		RET_BOOL(self->iface_prefs->notebook_double_click_hides_widgets)
 	else if (g_str_equal(prop_name, "show_notebook_tabs"))
 		RET_BOOL(self->iface_prefs->show_notebook_tabs)
-	else if (g_str_equal(prop_name, "show_symbol_list_expanders"))
-		RET_BOOL(self->iface_prefs->show_symbol_list_expanders)
+	else if (g_str_equal(prop_name, "show_symbols_expanders"))
+		RET_BOOL(self->iface_prefs->show_symbols_expanders)
 	else if (g_str_equal(prop_name, "sidebar_openfiles_visible"))
 		RET_BOOL(self->iface_prefs->sidebar_openfiles_visible)
 	else if (g_str_equal(prop_name, "sidebar_pos"))
 		return PyInt_FromLong((glong) self->iface_prefs->sidebar_pos);
-	else if (g_str_equal(prop_name, "sidebar_symbol_visible"))
-		RET_BOOL(self->iface_prefs->sidebar_symbol_visible)
+	else if (g_str_equal(prop_name, "sidebar_symbols_visible"))
+		RET_BOOL(self->iface_prefs->sidebar_symbols_visible)
 	else if (g_str_equal(prop_name, "statusbar_visible"))
 		RET_BOOL(self->iface_prefs->statusbar_visible)
 	else if (g_str_equal(prop_name, "tab_pos_editor"))
@@ -112,13 +112,13 @@ static PyGetSetDef InterfacePrefs_getseters[] = {
 		"Whether a double-click on the notebook tabs hides all other windows."),
 	GEANYPY_GETSETDEF(InterfacePrefs, "show_notebook_tabs",
 		"Whether editor tabs are visible."),
-	GEANYPY_GETSETDEF(InterfacePrefs, "show_symbol_list_expanders",
+	GEANYPY_GETSETDEF(InterfacePrefs, "show_symbols_expanders",
 		"Whether to show expanders in the symbol list."),
 	GEANYPY_GETSETDEF(InterfacePrefs, "sidebar_openfiles_visible",
 		"Whether the open files list is visible."),
 	GEANYPY_GETSETDEF(InterfacePrefs, "sidebar_pos",
 		"Position of the sidebar (left or right)."),
-	GEANYPY_GETSETDEF(InterfacePrefs, "sidebar_symbol_visible",
+	GEANYPY_GETSETDEF(InterfacePrefs, "sidebar_symbols_visible",
 		"Whether the status bar is visible."),
 	GEANYPY_GETSETDEF(InterfacePrefs, "statusbar_visible",
 		"Whether the statusbar is visible."),
