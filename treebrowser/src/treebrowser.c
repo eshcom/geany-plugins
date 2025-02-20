@@ -99,13 +99,14 @@ static void treebrowser_track_current_cb(void);
 
 enum
 {
-	TREEBROWSER_COLUMNC									= 5,
+	TREEBROWSER_COLUMNC									= 6,
 	
 	TREEBROWSER_COLUMN_ICON								= 0,
 	TREEBROWSER_COLUMN_NAME								= 1,
 	TREEBROWSER_COLUMN_URI								= 2,
 	TREEBROWSER_COLUMN_FLAG								= 3,
 	TREEBROWSER_COLUMN_COLOR							= 4,
+	TREEBROWSER_COLUMN_ISFILE							= 5,
 	
 	TREEBROWSER_FLAGS_SEPARATOR							= -1
 };
@@ -730,6 +731,7 @@ static void treebrowser_browse(gchar *directory, gpointer parent)
 						gtk_tree_store_append(treestore, &iter, parent);
 						
 						gtk_tree_store_set(treestore, &iter,
+										   TREEBROWSER_COLUMN_ISFILE, TRUE,
 										   TREEBROWSER_COLUMN_ICON, icon,
 										   TREEBROWSER_COLUMN_NAME, fname,
 										   TREEBROWSER_COLUMN_URI,  uri, -1);
@@ -886,6 +888,25 @@ static void treebrowser_load_bookmarks(void)
 	g_free(bookmarks);
 }
 
+static GtkTreePath *get_first_filepath(gpointer parent)
+{
+	GtkTreeIter iter;
+	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(treestore), &iter, parent))
+	{
+		gboolean is_file = FALSE;
+		do
+		{
+			gtk_tree_model_get(GTK_TREE_MODEL(treestore), &iter,
+							   TREEBROWSER_COLUMN_ISFILE, &is_file, -1);
+			if (is_file)
+			{
+				return gtk_tree_model_get_path(GTK_TREE_MODEL(treestore), &iter);
+			}
+		} while (gtk_tree_model_iter_next(GTK_TREE_MODEL(treestore), &iter));
+	}
+	return NULL;
+}
+
 static gboolean treebrowser_search(gchar *uri, gpointer parent,
 								   gboolean set_cursor)
 {
@@ -907,12 +928,27 @@ static gboolean treebrowser_search(gchar *uri, gpointer parent,
 				GtkTreePath *path = gtk_tree_model_get_path(
 											GTK_TREE_MODEL(treestore), &iter);
 				gtk_tree_view_expand_to_path(GTK_TREE_VIEW(treeview), path);
+				
 				if (set_cursor)
 				{
-					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(treeview), path,
-												 NULL, FALSE, 0, 0);
-					gtk_tree_view_set_cursor(GTK_TREE_VIEW(treeview), path,
-											 treeview_column_text, FALSE);
+					GtkTreePath *filepath = get_first_filepath(&iter);
+					if (filepath)
+					{
+						gtk_tree_view_expand_to_path(GTK_TREE_VIEW(treeview), filepath);
+						
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(treeview), filepath,
+													 NULL, FALSE, 0, 0);
+						gtk_tree_view_set_cursor(GTK_TREE_VIEW(treeview), filepath,
+												 treeview_column_text, FALSE);
+						gtk_tree_path_free(filepath);
+					}
+					else
+					{
+						gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(treeview), path,
+													 NULL, FALSE, 0, 0);
+						gtk_tree_view_set_cursor(GTK_TREE_VIEW(treeview), path,
+												 treeview_column_text, FALSE);
+					}
 				}
 				gtk_tree_path_free(path);
 				g_free(uri_current);
@@ -1012,9 +1048,8 @@ static gboolean treebrowser_expand_to_path(gchar *root, gchar *find,
 								   set_cursor && i == find_segments_n - 1))
 				global_founded = TRUE;
 		}
-		else
-			if (utils_str_equal(root, path->str))
-				founded = TRUE;
+		else if (utils_str_equal(root, path->str))
+			founded = TRUE;
 	}
 	g_string_free(path, TRUE);
 	g_strfreev(find_segments);
@@ -2067,7 +2102,7 @@ static GtkWidget *create_view_and_model(void)
 	
 	treestore = gtk_tree_store_new(TREEBROWSER_COLUMNC, GDK_TYPE_PIXBUF,
 								   G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
-								   GDK_TYPE_COLOR);
+								   GDK_TYPE_COLOR, G_TYPE_BOOLEAN);
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(view), GTK_TREE_MODEL(treestore));
 	g_signal_connect(G_OBJECT(render_text), "edited",
