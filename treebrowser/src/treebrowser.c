@@ -1676,8 +1676,9 @@ static void on_button_hide_bars(void)
 
 static void on_addressbar_activate(GtkEntry *entry, gpointer user_data)
 {
-	gchar *directory = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
-	treebrowser_chroot(directory);
+	gchar *uri = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
+	treebrowser_chroot(uri);
+	g_free(uri);
 }
 
 static void on_addressbar_grabfocus(GtkEntry *entry, gpointer user_data)
