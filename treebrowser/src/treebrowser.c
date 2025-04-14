@@ -1134,6 +1134,18 @@ static void treebrowser_create_new_current(const gchar *type)
 	on_menu_create_new_object(NULL, type);
 }
 
+static void activate_filter()
+{
+	treebrowser_chroot(addressbar_last_address);
+	
+	gboolean result = FALSE;
+#ifndef G_OS_WIN32
+	result = find_and_expand_to_paths();
+#endif
+	if (!result)
+		treebrowser_track_current_cb();
+}
+
 
 /* ------------------
  * RIGHTCLICK MENU EVENTS
@@ -1693,24 +1705,37 @@ static void on_addressbar_grabfocus(GtkEntry *entry, gpointer user_data)
 	last_focused_widget = GTK_WIDGET(entry);
 }
 
-static void on_filter_activate(GtkEntry *entry, gpointer user_data)
-{
-	treebrowser_chroot(addressbar_last_address);
-	
-	gboolean result = FALSE;
-#ifndef G_OS_WIN32
-	result = find_and_expand_to_paths();
-#endif
-	if (!result)
-		treebrowser_track_current_cb();
-}
-
 static void on_filter_clear(GtkEntry *entry, gint icon_pos,
 							GdkEvent *event, gpointer data)
 {
 	gtk_entry_set_text(entry, "");
 	treebrowser_chroot(addressbar_last_address);
 	treebrowser_track_current_cb();
+}
+
+static gboolean on_filter_keypress(GtkEntry *entry, GdkEventKey *event)
+{
+	if (event->keyval == GDK_Return)
+	{
+		GdkModifierType modifiers = gtk_accelerator_get_default_mod_mask();
+		if ((event->state & modifiers) == GDK_SHIFT_MASK)
+		{
+			activate_filter();
+			return TRUE;
+			
+		} else if ((event->state & modifiers) == 0) {
+			gchar *uri = project_get_base_path();
+			if (uri)
+			{
+				if (utils_match_dirs(uri, addressbar_last_address) != MATCH_DIRS_FULL)
+					treebrowser_chroot(uri);
+				g_free(uri);
+			}
+			activate_filter();
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 static gboolean on_filter_focus(GtkEntry *entry, GtkDirectionType direction,
@@ -2245,7 +2270,7 @@ static void create_sidebar(void)
 	g_signal_connect(treeview,   "grab-focus", 			G_CALLBACK(on_treeview_grabfocus), 		NULL);
 	g_signal_connect(addressbar, "activate", 			G_CALLBACK(on_addressbar_activate), 	NULL);
 	g_signal_connect(addressbar, "grab-focus", 			G_CALLBACK(on_addressbar_grabfocus), 	NULL);
-	g_signal_connect(filter,     "activate", 			G_CALLBACK(on_filter_activate), 		NULL);
+	g_signal_connect(filter,     "key-press-event",		G_CALLBACK(on_filter_keypress), 		NULL);
 	g_signal_connect(filter,     "focus", 				G_CALLBACK(on_filter_focus), 			NULL);
 	g_signal_connect(filter,     "grab-focus", 			G_CALLBACK(on_filter_grabfocus), 		NULL);
 	
