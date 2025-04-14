@@ -616,7 +616,11 @@ static void treebrowser_chroot(const gchar *dir)
 	else
 		directory = g_strdup(dir);
 	
-	gtk_entry_set_text(GTK_ENTRY(addressbar), directory);
+	GString *short_dir = g_string_new(NULL);
+	utils_add_short_home_dir(short_dir, directory);
+	
+	gtk_entry_set_text(GTK_ENTRY(addressbar), short_dir->str);
+	g_string_free(short_dir, TRUE);
 	
 	if (EMPTY(directory))
 		SETPTR(directory, g_strdup(G_DIR_SEPARATOR_S));
@@ -1677,6 +1681,9 @@ static void on_button_hide_bars(void)
 static void on_addressbar_activate(GtkEntry *entry, gpointer user_data)
 {
 	gchar *uri = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
+	if (*uri == '~')
+		SETPTR(uri, g_strconcat(g_get_home_dir(), uri + 1, NULL));
+	
 	treebrowser_chroot(uri);
 	g_free(uri);
 }
