@@ -1697,6 +1697,7 @@ static void on_addressbar_activate(GtkEntry *entry, gpointer user_data)
 		SETPTR(uri, g_strconcat(g_get_home_dir(), uri + 1, NULL));
 	
 	treebrowser_chroot(uri);
+	treebrowser_track_current_cb();
 	g_free(uri);
 }
 
