@@ -563,12 +563,12 @@ static GtkWidget *plugin_addons_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 	g_signal_connect(check_tasks, "toggled",
 					 G_CALLBACK(ao_configure_tasks_toggled_cb), dialog);
 	
-	check_tasks_scan_mode = add_checkbox(double_widget.widget2,
+	check_tasks_scan_mode = add_checkbox(vbox_tasks,
 		_("Show tasks of all documents"), ao_info->tasks_scan_all_documents,
 		_("Whether to show the tasks of all open documents in "
 		  "the list or only those of the current document."), TRUE);
 	
-	entry_tasks_tokens = add_inputbox(double_widget.widget2,
+	entry_tasks_tokens = add_inputbox(vbox_tasks,
 		_("Search tokens:"), ao_info->tasks_token_list, -1,
 		_("Specify a semicolon separated list of search tokens."), TRUE, TRUE);
 	
@@ -593,7 +593,7 @@ static GtkWidget *plugin_addons_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 	g_signal_connect(check_markword, "toggled",
 					 G_CALLBACK(ao_configure_markword_toggled_cb), dialog);
 	
-	check_markword_single_click_deselect = add_checkbox(double_widget.widget2,
+	check_markword_single_click_deselect = add_checkbox(vbox_markword,
 		_("Deselect a previous highlight by single click"),
 		ao_info->enable_markword_single_click_deselect, NULL, TRUE);
 	

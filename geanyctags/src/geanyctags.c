@@ -199,15 +199,15 @@ static GString *generate_find_cmd(GeanyProject *prj)
 		ADD_OPTIONS(gstr, gtags_info->extra_find_options_2);
 		ADD_OPTIONS(gstr, gtags_info->extra_find_options_3);
 		
-		g_string_append(gstr, " \\( -name \"");
+		g_string_append(gstr, " \\( -name \'");
 		g_string_append(gstr, prj->file_patterns[0]);
-		g_string_append_c(gstr, '\"');
+		g_string_append_c(gstr, '\'');
 		
 		for (guint i = 1; prj->file_patterns[i]; i++)
 		{
-			g_string_append(gstr, " -o -name \"");
+			g_string_append(gstr, " -o -name \'");
 			g_string_append(gstr, prj->file_patterns[i]);
-			g_string_append_c(gstr, '\"');
+			g_string_append_c(gstr, '\'');
 		}
 		g_string_append(gstr, " \\)");
 	}
@@ -218,8 +218,7 @@ static GString *generate_find_cmd(GeanyProject *prj)
 static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 {
 	GeanyProject *prj = geany_data->app->project;
-	if (!prj)
-		return;
+	if (!prj) return;
 	
 	GString *cmd;
 	gchar *tag_filename = project_get_tags_file();
@@ -230,7 +229,6 @@ static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 	g_string_append(cmd, " | ctags");
 	ADD_OPTIONS(cmd, gtags_info->ctags_options);
 	g_string_append(cmd, " -L - -f '");
-	
 	g_string_append(cmd, tag_filename);
 	g_string_append_c(cmd, '\'');
 #else
@@ -246,7 +244,6 @@ static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 	cmd = g_string_new("ctags.exe -R");
 	ADD_OPTIONS(cmd, gtags_info->ctags_options);
 	g_string_append(cmd, " -f \"");
-	
 	g_string_append(cmd, tag_filename);
 	g_string_append_c(cmd, '"');
 #endif
@@ -266,25 +263,19 @@ static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 static void show_entry(tagEntry *entry)
 {
 	const gchar *file = entry->file;
-	if (!file)
-		file = "";
+	if (!file) file = "";
 	
 	const gchar *name = entry->name;
-	if (!name)
-		name = "";
+	if (!name) name = "";
 	
 	const gchar *signature = tagsField(entry, "signature");
-	if (!signature)
-		signature = "";
+	if (!signature) signature = "";
 	
 	const gchar *scope = tagsField(entry, "class");
 	const gchar *scope_sep = "::";
-	if (!scope)
-		scope = tagsField(entry, "struct");
-	if (!scope)
-		scope = tagsField(entry, "union");
-	if (!scope)
-		scope = tagsField(entry, "enum");
+	if (!scope) scope = tagsField(entry, "struct");
+	if (!scope) scope = tagsField(entry, "union");
+	if (!scope) scope = tagsField(entry, "enum");
 	//~ esh: for erlang the module name (scope) is the same as the file name,
 	//		 show scope only if file name is empty
 	if (!scope && EMPTY(file))
@@ -316,8 +307,7 @@ static void show_entry(tagEntry *entry)
 static gchar *get_selection(void)
 {
 	GeanyDocument *doc = document_get_current();
-	if (!doc)
-		return NULL;
+	if (!doc) return NULL;
 	
 	GeanyEditor *editor = doc->editor;
 	gchar *ret = NULL;
@@ -339,8 +329,7 @@ static gchar *get_selection(void)
 static gchar *get_selection()
 {
 	GeanyDocument *doc = document_get_current();
-	if (!doc)
-		return NULL;
+	if (!doc) return NULL;
 	
 	if (!sci_has_selection(doc->editor->sci))
 		sci_set_current_position(doc->editor->sci,
@@ -397,6 +386,7 @@ static gboolean find_next(tagFile *tf, tagEntry *entry,
 		ret = tagsNext(tf, entry) == TagSuccess;
 	else
 		ret = tagsFindNext(tf, entry) == TagSuccess;
+	
 	return ret;
 }
 
@@ -412,8 +402,7 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 		is_prototype = g_strcmp0(entry->kind, "prototype") == 0;
 		filter = (declaration && !is_prototype) ||
 				 (!declaration && is_prototype);
-		if (filter)
-			return TRUE;
+		if (filter) return TRUE;
 	}
 	gchar *entry_name = case_sensitive ? g_strdup(entry->name)
 									   : g_utf8_strdown(entry->name, -1);
@@ -428,8 +417,7 @@ static void find_tags(const gchar *name, gboolean declaration,
 					  gboolean case_sensitive, MatchType match_type)
 {
 	GeanyProject *prj = geany_data->app->project;
-	if (!prj)
-		return;
+	if (!prj) return;
 	
 	gchar *base_path = project_get_base_path();
 	msgwin_clear_tab(MSG_MESSAGE);
@@ -475,12 +463,10 @@ static void find_tags(const gchar *name, gboolean declaration,
 			}
 			if (num == 1)
 			{
-				GeanyDocument *doc = document_open_file(path, FALSE,
-														NULL, NULL);
+				GeanyDocument *doc = document_open_file(path, FALSE, NULL, NULL);
 				if (doc != NULL)
 				{
-					navqueue_goto_line(document_get_current(), doc,
-									   last_line_number);
+					navqueue_goto_line(document_get_current(), doc, last_line_number);
 					gtk_widget_grab_focus(GTK_WIDGET(doc->editor->sci));
 				}
 			}
@@ -499,16 +485,14 @@ static void find_tags(const gchar *name, gboolean declaration,
 static void on_find_declaration(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gchar *name = get_selection();
-	if (name)
-		find_tags(name, TRUE, TRUE, MATCH_FULL);
+	if (name) find_tags(name, TRUE, TRUE, MATCH_FULL);
 	g_free(name);
 }
 
 static void on_find_definition(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gchar *name = get_selection();
-	if (name)
-		find_tags(name, FALSE, TRUE, MATCH_FULL);
+	if (name) find_tags(name, FALSE, TRUE, MATCH_FULL);
 	g_free(name);
 }
 
@@ -517,8 +501,7 @@ static void create_dialog_find_file(void)
 	GtkWidget *label, *vbox, *ebox, *entry;
 	GtkSizeGroup *size_group;
 	
-	if (s_ft_dialog.widget)
-		return;
+	if (s_ft_dialog.widget) return;
 	
 	s_ft_dialog.widget = gtk_dialog_new_with_buttons(
 							_("Find Tag"),
@@ -598,19 +581,16 @@ static void on_find_tag(GtkMenuItem *menuitem, gpointer user_data)
 	GtkWidget *entry = gtk_bin_get_child(GTK_BIN(s_ft_dialog.combo));
 	
 	gchar *selection = get_selection();
-	if (selection)
-		gtk_entry_set_text(GTK_ENTRY(entry), selection);
+	if (selection) gtk_entry_set_text(GTK_ENTRY(entry), selection);
 	g_free(selection);
 	
 	gtk_widget_grab_focus(entry);
 	
 	if (gtk_dialog_run(GTK_DIALOG(s_ft_dialog.widget)) == GTK_RESPONSE_ACCEPT)
 	{
-		const gchar *name;
 		gboolean case_sensitive, declaration;
 		MatchType match_type;
 		
-		name = gtk_entry_get_text(GTK_ENTRY(entry));
 		case_sensitive = gtk_toggle_button_get_active(
 								GTK_TOGGLE_BUTTON(s_ft_dialog.case_sensitive));
 		declaration = gtk_toggle_button_get_active(
@@ -618,9 +598,8 @@ static void on_find_tag(GtkMenuItem *menuitem, gpointer user_data)
 		match_type = gtk_combo_box_get_active(
 								GTK_COMBO_BOX(s_ft_dialog.combo_match));
 		
-		ui_combo_box_add_to_history(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo),
-									name, 0);
-		
+		const gchar *name = gtk_entry_get_text(GTK_ENTRY(entry));
+		ui_combo_box_add_to_history(GTK_COMBO_BOX_TEXT(s_ft_dialog.combo), name, 0);
 		find_tags(name, declaration, case_sensitive, match_type);
 	}
 	gtk_widget_hide(s_ft_dialog.widget);
@@ -699,7 +678,7 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	gtk_widget_show(s_context_fdec_item);
 	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu),
 						   s_context_fdec_item);
-	g_signal_connect((gpointer) s_context_fdec_item, "activate",
+	g_signal_connect((gpointer)s_context_fdec_item, "activate",
 					 G_CALLBACK(on_find_declaration), NULL);
 	
 	s_context_fdef_item = gtk_menu_item_new_with_mnemonic(
@@ -707,7 +686,7 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	gtk_widget_show(s_context_fdef_item);
 	gtk_menu_shell_prepend(GTK_MENU_SHELL(geany->main_widgets->editor_menu),
 						   s_context_fdef_item);
-	g_signal_connect((gpointer) s_context_fdef_item, "activate",
+	g_signal_connect((gpointer)s_context_fdef_item, "activate",
 					 G_CALLBACK(on_find_definition), NULL);
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
@@ -722,7 +701,7 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	gtk_widget_show(s_gt_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
 					  s_gt_item);
-	g_signal_connect((gpointer) s_gt_item, "activate",
+	g_signal_connect((gpointer)s_gt_item, "activate",
 					 G_CALLBACK(on_generate_tags), NULL);
 	keybindings_set_item(key_group, KB_GENERATE_TAGS, NULL, 0, 0,
 						 "generate_tags", _("Generate tags"), s_gt_item);
@@ -731,7 +710,7 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	gtk_widget_show(s_ft_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
 					  s_ft_item);
-	g_signal_connect((gpointer) s_ft_item, "activate",
+	g_signal_connect((gpointer)s_ft_item, "activate",
 					 G_CALLBACK(on_find_tag), NULL);
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	//~ keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
@@ -793,8 +772,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	}
 	else
 	{	/* write config to file */
-		gchar *data;
-		data = g_key_file_to_data(config, NULL, NULL);
+		gchar *data = g_key_file_to_data(config, NULL, NULL);
 		utils_write_file(gtags_info->config_file, data);
 		g_free(data);
 	}
@@ -842,10 +820,10 @@ static GtkWidget *plugin_geanyctags_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 	g_signal_connect(widget, "icon-release",
 					 G_CALLBACK(entry_ctags_options_set_default), NULL);
 	
-#define WIDGET_CONF_BOOL(name, description) G_STMT_START {			\
-	widget = add_checkbox(container, description, gtags_info->name,	\
-						  NULL, TRUE);								\
-	g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);	\
+#define WIDGET_CONF_BOOL(name, description) G_STMT_START {					\
+	widget = add_checkbox(container, description, gtags_info->name,			\
+						  NULL, TRUE);										\
+	g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);			\
 } G_STMT_END
 	
 	container = add_named_vbox(vbox, _("Print tags generation results"));
