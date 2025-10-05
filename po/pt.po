@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.36\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-29 19:43+0300\n"
+"POT-Creation-Date: 2025-10-08 14:09+0300\n"
 "PO-Revision-Date: 2019-09-22 16:20+0100\n"
 "Last-Translator: Pedro Albuquerque <palbuquerque73@gmail.com>\n"
 "Language-Team: Portuguese <translation-team-pt@lists.sourceforge.net>\n"
@@ -37,7 +37,7 @@ msgstr "Não."
 msgid "Contents"
 msgstr "Conteúdo"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:806
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:818
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "Marcadores"
@@ -178,13 +178,13 @@ msgid "Copy the file path of the current document to the clipboard"
 msgstr "Copiar o caminho do actual documento para a área de transferência."
 
 #: ../addons/src/addons.c:379 ../autoclose/src/autoclose.c:846
-#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:792
+#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:858
 #: ../latex/src/latex.c:208 ../latex/src/latex.c:293
 #: ../geanyprj/src/geanyprj.c:176 ../geanyvc/src/geanyvc.c:1973
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:64
 #: ../runscript/src/runscript.c:121 ../sendmail/src/sendmail.c:128
 #: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:109
-#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2384
+#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2433
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "A pasta de configuração da extensão não pôde ser criada."
@@ -609,7 +609,8 @@ msgid "Headers extensions"
 msgstr "Extensões de cabeçalho"
 
 #. Add the "reset to default" button to the frame's hbox
-#: ../codenav/src/codenavigation.c:450 ../geanyctags/src/geanyctags.c:841
+#: ../codenav/src/codenavigation.c:450 ../geanyctags/src/geanyctags.c:154
+#: ../geanyctags/src/geanyctags.c:883
 msgid "Reset to Default"
 msgstr "Repor predefinição"
 
@@ -702,26 +703,26 @@ msgid "Choose target file"
 msgstr "Escolha o ficheiro destino"
 
 #. target
-#: ../debugger/src/tpage.c:296
+#: ../debugger/src/tpage.c:291
 msgid "Target:"
 msgstr "Destino:"
 
-#: ../debugger/src/tpage.c:300 ../debugger/src/tpage.c:303
+#: ../debugger/src/tpage.c:295 ../debugger/src/tpage.c:298
 msgid "Browse"
 msgstr "Explorar"
 
 #. debugger
-#: ../debugger/src/tpage.c:309
+#: ../debugger/src/tpage.c:304
 msgid "Debugger:"
 msgstr "Depurador:"
 
 #. arguments
-#: ../debugger/src/tpage.c:320
+#: ../debugger/src/tpage.c:315
 msgid "Command Line Arguments"
 msgstr "Argumentos de linha de comandos"
 
 #. environment
-#: ../debugger/src/tpage.c:331
+#: ../debugger/src/tpage.c:326
 msgid "Environment Variables"
 msgstr "Variáveis de ambiente"
 
@@ -1312,113 +1313,138 @@ msgstr "Sensível a  m_aiúsculas"
 msgid "Toggle case sensitive search"
 msgstr "Alternar procura sensível a maiúsculas"
 
-#: ../geanyctags/src/geanyctags.c:119
+#: ../geanyctags/src/geanyctags.c:150
+msgid "Exclude subdirs:"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:152
+msgid ""
+"Exclude subdirs when searching for files to generate tag file (subdirs "
+"separated by spaces)"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:156
+msgid "Exclude files:"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:158
+msgid ""
+"Exclude files when searching for them to generate tag file (files separated "
+"by spaces)"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:160 ../geanyctags/src/geanyctags.c:878
+#, fuzzy
+msgid "Clear"
+msgstr "Limpa_r"
+
+#: ../geanyctags/src/geanyctags.c:194
 #, c-format
 msgid "%s (in directory: %s)"
 msgstr "%s (na pasta: %s)"
 
-#: ../geanyctags/src/geanyctags.c:147
+#: ../geanyctags/src/geanyctags.c:222
 #, c-format
 msgid "Process execution failed (%s)"
 msgstr "Falha na execução do processo (%s)"
 
-#: ../geanyctags/src/geanyctags.c:524
+#: ../geanyctags/src/geanyctags.c:605
 msgid "Find Tag"
 msgstr "Localizar etiqueta"
 
-#: ../geanyctags/src/geanyctags.c:539
+#: ../geanyctags/src/geanyctags.c:620
 msgid "_Search for:"
 msgstr "_Procurar por:"
 
-#: ../geanyctags/src/geanyctags.c:557
+#: ../geanyctags/src/geanyctags.c:638
 msgid "_Match type:"
 msgstr "Co_mparar tipo:"
 
-#: ../geanyctags/src/geanyctags.c:563
+#: ../geanyctags/src/geanyctags.c:644
 #: ../projectorganizer/src/prjorg-sidebar.c:651
 msgid "exact"
 msgstr "exacto"
 
-#: ../geanyctags/src/geanyctags.c:565
+#: ../geanyctags/src/geanyctags.c:646
 #: ../projectorganizer/src/prjorg-sidebar.c:652
 msgid "prefix"
 msgstr "prefixo"
 
-#: ../geanyctags/src/geanyctags.c:567
+#: ../geanyctags/src/geanyctags.c:648
 #: ../projectorganizer/src/prjorg-sidebar.c:653
 msgid "pattern"
 msgstr "padrão"
 
-#: ../geanyctags/src/geanyctags.c:577
+#: ../geanyctags/src/geanyctags.c:658
 #: ../projectorganizer/src/prjorg-sidebar.c:167
 #: ../projectorganizer/src/prjorg-sidebar.c:674
 msgid "C_ase sensitive"
 msgstr "Sensível a  m_aiúsculas"
 
-#: ../geanyctags/src/geanyctags.c:582
+#: ../geanyctags/src/geanyctags.c:663
 #: ../projectorganizer/src/prjorg-sidebar.c:677
 msgid "_Declaration"
 msgstr "_Declaração"
 
-#: ../geanyctags/src/geanyctags.c:698
+#: ../geanyctags/src/geanyctags.c:768
 msgid "Find Tag Declaration (geanyctags)"
 msgstr "Localizar declaração da etiqueta (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:706
+#: ../geanyctags/src/geanyctags.c:776
 msgid "Find Tag Definition (geanyctags)"
 msgstr "Localizar definição da etiqueta (geanyctags)"
 
-#: ../geanyctags/src/geanyctags.c:714
+#: ../geanyctags/src/geanyctags.c:784
 msgid "Find tag"
 msgstr "Localizar etiqueta"
 
-#: ../geanyctags/src/geanyctags.c:721 ../geanyctags/src/geanyctags.c:728
+#: ../geanyctags/src/geanyctags.c:791 ../geanyctags/src/geanyctags.c:798
 msgid "Generate tags"
 msgstr "Gerar etiquetas"
 
-#: ../geanyctags/src/geanyctags.c:730
+#: ../geanyctags/src/geanyctags.c:800
 msgid "Find tag..."
 msgstr "Localizar etiqueta..."
 
-#: ../geanyctags/src/geanyctags.c:825
-msgid "Other options to pass to Find"
+#: ../geanyctags/src/geanyctags.c:877
+#, fuzzy
+msgid "Find options:"
+msgstr "Opções do pacote:"
+
+#: ../geanyctags/src/geanyctags.c:878
+msgid "Options to pass to Find"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:829
-#, fuzzy
-msgid "Extra find options"
-msgstr "Selecção extra"
-
-#: ../geanyctags/src/geanyctags.c:835
+#: ../geanyctags/src/geanyctags.c:881
 #, fuzzy
 msgid "Ctags options:"
 msgstr "Opções do pacote:"
 
-#: ../geanyctags/src/geanyctags.c:836
+#: ../geanyctags/src/geanyctags.c:882
 msgid "Options to pass to Ctags"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:851
+#: ../geanyctags/src/geanyctags.c:891
 msgid "Print tags generation results"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:852
+#: ../geanyctags/src/geanyctags.c:892
 #, fuzzy
 msgid "To the status window"
 msgstr "Mover para janela de mensagens"
 
-#: ../geanyctags/src/geanyctags.c:853
+#: ../geanyctags/src/geanyctags.c:893
 #, fuzzy
 msgid "To the messages window"
 msgstr "Mover para janela de mensagens"
 
 #. Set metadata
-#: ../geanyctags/src/geanyctags.c:895
+#: ../geanyctags/src/geanyctags.c:934
 #, fuzzy
 msgid "Geany Ctags"
 msgstr "GeanyVC"
 
-#: ../geanyctags/src/geanyctags.c:896
+#: ../geanyctags/src/geanyctags.c:935
 msgid "Ctags generation and search plugin for geany projects"
 msgstr "Geração de ctags e extensão de procura para projectos Geany"
 
@@ -1715,8 +1741,8 @@ msgstr "Impossível gravar a configuração: %s"
 #, c-format
 msgid "Failed to find configuration file for file type \"%s\": %s"
 msgstr ""
-"Falha ao encontrar o ficheiro de configuração para o tipo de ficheiro \"%s"
-"\": %s"
+"Falha ao encontrar o ficheiro de configuração para o tipo de ficheiro "
+"\"%s\": %s"
 
 #: ../geanygendoc/src/ggd-plugin.c:329
 msgid ""
@@ -3970,7 +3996,7 @@ msgid "New _Below"
 msgstr "Novo a_baixo"
 
 #: ../geanymacro/src/geanymacro.c:1824 ../geanymacro/src/geanymacro.c:2120
-#: ../treebrowser/src/treebrowser.c:1475 ../treebrowser/src/treebrowser.c:1477
+#: ../treebrowser/src/treebrowser.c:1534 ../treebrowser/src/treebrowser.c:1536
 msgid "_Delete"
 msgstr "_Eliminar"
 
@@ -4249,8 +4275,8 @@ msgstr ""
 "número de marcador ele é removido, senão move o marcador para aí se estiver "
 "definido noutra linha ou cria um novo se ainda não existir. Só será mostrado "
 "o marcador numerado mais recentemente definido, mas pode ter mais de um "
-"marcador por linha. Para mover um marcador anteriormente definido, prima Ctrl"
-"+nº de 0 a 9."
+"marcador por linha. Para mover um marcador anteriormente definido, prima "
+"Ctrl+nº de 0 a 9."
 
 #: ../geanynumberedbookmarks/src/geanynumberedbookmarks.c:1408
 msgid "Unable to apply markers as all being used."
@@ -5230,46 +5256,46 @@ msgstr "Linhas _removidas:"
 msgid "Colors"
 msgstr "Cores"
 
-#: ../git-changebar/src/gcb-plugin.c:62
+#: ../git-changebar/src/gcb-plugin.c:73
 msgid "Git Change Bar"
 msgstr "Barra de alteração Git"
 
-#: ../git-changebar/src/gcb-plugin.c:63
+#: ../git-changebar/src/gcb-plugin.c:74
 msgid "Highlights uncommitted changes in files tracked with Git"
 msgstr "Realça alterações não submetidas em ficheiros monitorizados com Git"
 
-#: ../git-changebar/src/gcb-plugin.c:1390 ../pohelper/src/gph-plugin.c:1661
+#: ../git-changebar/src/gcb-plugin.c:1436 ../pohelper/src/gph-plugin.c:1661
 #, c-format
 msgid "Failed to load configuration file: %s"
 msgstr "Falha ao carregar ficheiro de configuração: %s"
 
-#: ../git-changebar/src/gcb-plugin.c:1415 ../pohelper/src/gph-plugin.c:1686
+#: ../git-changebar/src/gcb-plugin.c:1461 ../pohelper/src/gph-plugin.c:1686
 #, c-format
 msgid "Failed to create configuration directory \"%s\": %s"
 msgstr "Falha ao criar pasta de configuração \"%s\": %s"
 
-#: ../git-changebar/src/gcb-plugin.c:1418 ../pohelper/src/gph-plugin.c:1689
+#: ../git-changebar/src/gcb-plugin.c:1464 ../pohelper/src/gph-plugin.c:1689
 #, c-format
 msgid "Failed to save configuration file: %s"
 msgstr "Falha ao gravar ficheiro de configuração: %s"
 
-#: ../git-changebar/src/gcb-plugin.c:1495
+#: ../git-changebar/src/gcb-plugin.c:1541
 msgid "Undo Git hunk"
 msgstr "Desfazer hunk Git"
 
-#: ../git-changebar/src/gcb-plugin.c:1503
+#: ../git-changebar/src/gcb-plugin.c:1549
 msgid "Go to the previous hunk"
 msgstr "Ir para o hunk anterior"
 
-#: ../git-changebar/src/gcb-plugin.c:1505
+#: ../git-changebar/src/gcb-plugin.c:1551
 msgid "Go to the next hunk"
 msgstr "Ir para o hunk seguinte"
 
-#: ../git-changebar/src/gcb-plugin.c:1507
+#: ../git-changebar/src/gcb-plugin.c:1553
 msgid "Undo hunk at the cursor position"
 msgstr "Desfazer hunk até ao cursor"
 
-#: ../git-changebar/src/gcb-plugin.c:1655 ../pohelper/src/gph-plugin.c:1456
+#: ../git-changebar/src/gcb-plugin.c:1701 ../pohelper/src/gph-plugin.c:1456
 #: ../pohelper/src/gph-plugin.c:1791
 #, c-format
 msgid ""
@@ -5495,8 +5521,8 @@ msgstr ""
 #: ../lipsum/src/lipsum.c:184 ../sendmail/src/sendmail.c:396
 #, c-format
 msgid ""
-"Your configuration directory has been successfully moved from \"%s\" to \"%s"
-"\"."
+"Your configuration directory has been successfully moved from \"%s\" to "
+"\"%s\"."
 msgstr ""
 "A sua pasta de configuração foi movida com sucesso de \"%s\" para \"%s\"."
 
@@ -5506,8 +5532,8 @@ msgid ""
 "Your old configuration directory \"%s\" could not be moved to \"%s\" (%s). "
 "Please manually move the directory to the new location."
 msgstr ""
-"A sua pasta de configuração antiga \"%s\" não pôde ser movida para \"%s"
-"\" (%s). Por favor, mova-a manualmente para a nova localização."
+"A sua pasta de configuração antiga \"%s\" não pôde ser movida para "
+"\"%s\" (%s). Por favor, mova-a manualmente para a nova localização."
 
 #: ../lipsum/src/lipsum.c:223 ../lipsum/src/lipsum.c:225
 msgid "_Lipsum..."
@@ -6281,7 +6307,7 @@ msgid "Add"
 msgstr "Adicionar"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2584
+#: ../treebrowser/src/treebrowser.c:2633
 msgid "New File"
 msgstr "Novo ficheiro"
 
@@ -7525,8 +7551,8 @@ msgid ""
 "Your old configuration directory \"%s\" could not be moved to \"%s\" (%s). "
 "Please move manually the directory to the new location."
 msgstr ""
-"A sua pasta de configuração antiga \"%s\" não pôde ser movida para \"%s"
-"\" (%s). Por favor, mova-a manualmente para a nova localização."
+"A sua pasta de configuração antiga \"%s\" não pôde ser movida para "
+"\"%s\" (%s). Por favor, mova-a manualmente para a nova localização."
 
 #. Build up menu entry
 #: ../sendmail/src/sendmail.c:442
@@ -7837,11 +7863,11 @@ msgstr "Converte a lista actualmente seleccionada numa tabela."
 msgid "_More TableConvert"
 msgstr "_Mais TableConvert"
 
-#: ../treebrowser/src/treebrowser.c:146
+#: ../treebrowser/src/treebrowser.c:147
 msgid "TreeBrowser"
 msgstr "Navegador em árvore"
 
-#: ../treebrowser/src/treebrowser.c:147
+#: ../treebrowser/src/treebrowser.c:148
 msgid ""
 "This plugin adds a tree browser to Geany, allowing the user to browse files "
 "using a tree view of the directory being browsed."
@@ -7849,30 +7875,30 @@ msgstr ""
 "Esta extensão adiciona um navegador em árvore ao Geany, permitindo a "
 "navegação em ficheiros, na pasta actual, usando uma vista em árvore."
 
-#: ../treebrowser/src/treebrowser.c:602
+#: ../treebrowser/src/treebrowser.c:603
 #, c-format
 msgid "%s: no such directory."
 msgstr "%s: pasta inexistente."
 
-#: ../treebrowser/src/treebrowser.c:708 ../treebrowser/src/treebrowser.c:748
-#: ../treebrowser/src/treebrowser.c:859
+#: ../treebrowser/src/treebrowser.c:715 ../treebrowser/src/treebrowser.c:758
+#: ../treebrowser/src/treebrowser.c:873
 msgid "(Empty)"
 msgstr "(vazio)"
 
-#: ../treebrowser/src/treebrowser.c:1129
+#: ../treebrowser/src/treebrowser.c:1188
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "Impossível executar o comando externo \"%s\" (%s). "
 
-#: ../treebrowser/src/treebrowser.c:1205
+#: ../treebrowser/src/treebrowser.c:1264
 msgid "NewDirectory"
 msgstr "Nova pasta"
 
-#: ../treebrowser/src/treebrowser.c:1207
+#: ../treebrowser/src/treebrowser.c:1266
 msgid "NewFile"
 msgstr "Novo ficheiro"
 
-#: ../treebrowser/src/treebrowser.c:1213
+#: ../treebrowser/src/treebrowser.c:1272
 #, c-format
 msgid ""
 "Target file '%s' exists.\n"
@@ -7881,130 +7907,130 @@ msgstr ""
 "O ficheiro destino \"%s\" já existe.\n"
 "Tem a certeza que o quer substituir por um ficheiro vazio?"
 
-#: ../treebrowser/src/treebrowser.c:1258
+#: ../treebrowser/src/treebrowser.c:1317
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr "Tem a certeza que quer eliminar \"%s\"?"
 
-#: ../treebrowser/src/treebrowser.c:1371 ../treebrowser/src/treebrowser.c:1373
+#: ../treebrowser/src/treebrowser.c:1430 ../treebrowser/src/treebrowser.c:1432
 msgid "Go _Up"
 msgstr "S_ubir"
 
-#: ../treebrowser/src/treebrowser.c:1379 ../treebrowser/src/treebrowser.c:1381
+#: ../treebrowser/src/treebrowser.c:1438 ../treebrowser/src/treebrowser.c:1440
 msgid "Set _Path From Document"
 msgstr "Definir _caminho do documento"
 
-#: ../treebrowser/src/treebrowser.c:1389 ../treebrowser/src/treebrowser.c:1391
+#: ../treebrowser/src/treebrowser.c:1448 ../treebrowser/src/treebrowser.c:1450
 #, fuzzy
 msgid "Set Project _Path"
 msgstr "Caminho do projecto"
 
-#: ../treebrowser/src/treebrowser.c:1402 ../treebrowser/src/treebrowser.c:1404
+#: ../treebrowser/src/treebrowser.c:1461 ../treebrowser/src/treebrowser.c:1463
 msgid "_Open Externally"
 msgstr "_Abrir externamente"
 
-#: ../treebrowser/src/treebrowser.c:1411
+#: ../treebrowser/src/treebrowser.c:1470
 msgid "Open _Terminal"
 msgstr "Abrir _terminal"
 
-#: ../treebrowser/src/treebrowser.c:1417 ../treebrowser/src/treebrowser.c:1419
+#: ../treebrowser/src/treebrowser.c:1476 ../treebrowser/src/treebrowser.c:1478
 msgid "Set as _Root"
 msgstr "Definir como _raiz"
 
-#: ../treebrowser/src/treebrowser.c:1427 ../treebrowser/src/treebrowser.c:1429
+#: ../treebrowser/src/treebrowser.c:1486 ../treebrowser/src/treebrowser.c:1488
 msgid "Refres_h"
 msgstr "Actuali_zar"
 
-#: ../treebrowser/src/treebrowser.c:1435 ../treebrowser/src/treebrowser.c:1437
+#: ../treebrowser/src/treebrowser.c:1494 ../treebrowser/src/treebrowser.c:1496
 msgid "_Find in Files"
 msgstr "Localizar em _ficheiros"
 
-#: ../treebrowser/src/treebrowser.c:1448 ../treebrowser/src/treebrowser.c:1450
+#: ../treebrowser/src/treebrowser.c:1507 ../treebrowser/src/treebrowser.c:1509
 msgid "N_ew Folder"
 msgstr "N_ova pasta"
 
-#: ../treebrowser/src/treebrowser.c:1457 ../treebrowser/src/treebrowser.c:1459
+#: ../treebrowser/src/treebrowser.c:1516 ../treebrowser/src/treebrowser.c:1518
 msgid "_New File"
 msgstr "_Novo ficheiro"
 
-#: ../treebrowser/src/treebrowser.c:1466 ../treebrowser/src/treebrowser.c:1468
+#: ../treebrowser/src/treebrowser.c:1525 ../treebrowser/src/treebrowser.c:1527
 msgid "Rena_me"
 msgstr "Reno_mear"
 
-#: ../treebrowser/src/treebrowser.c:1488 ../treebrowser/src/treebrowser.c:1491
+#: ../treebrowser/src/treebrowser.c:1547 ../treebrowser/src/treebrowser.c:1550
 #, c-format
 msgid "Close: %s"
 msgstr "Fechar: %s"
 
-#: ../treebrowser/src/treebrowser.c:1500 ../treebrowser/src/treebrowser.c:1503
+#: ../treebrowser/src/treebrowser.c:1559 ../treebrowser/src/treebrowser.c:1562
 #, c-format
 msgid "Clo_se Child Documents "
 msgstr "Fechar documento_s-filho"
 
-#: ../treebrowser/src/treebrowser.c:1514 ../treebrowser/src/treebrowser.c:1516
+#: ../treebrowser/src/treebrowser.c:1573 ../treebrowser/src/treebrowser.c:1575
 #, fuzzy
 msgid "_Copy Name to Clipboard"
 msgstr "Copiar para a área de transferência"
 
-#: ../treebrowser/src/treebrowser.c:1525 ../treebrowser/src/treebrowser.c:1528
+#: ../treebrowser/src/treebrowser.c:1584 ../treebrowser/src/treebrowser.c:1587
 msgid "_Copy Full Path to Clipboard"
 msgstr "_Copiar caminho completo para a área de transferência"
 
-#: ../treebrowser/src/treebrowser.c:1541 ../treebrowser/src/treebrowser.c:1543
+#: ../treebrowser/src/treebrowser.c:1600 ../treebrowser/src/treebrowser.c:1602
 msgid "E_xpand All"
 msgstr "E_xpandir tudo"
 
-#: ../treebrowser/src/treebrowser.c:1549 ../treebrowser/src/treebrowser.c:1551
+#: ../treebrowser/src/treebrowser.c:1608 ../treebrowser/src/treebrowser.c:1610
 msgid "Coll_apse All"
 msgstr "Col_apsar tudo"
 
-#: ../treebrowser/src/treebrowser.c:1559
+#: ../treebrowser/src/treebrowser.c:1618
 msgid "Show Boo_kmarks"
 msgstr "Mostrar mar_cadores"
 
-#: ../treebrowser/src/treebrowser.c:1566
+#: ../treebrowser/src/treebrowser.c:1625
 msgid "Sho_w Hidden Files"
 msgstr "Mostrar ficheiros oc_ultos"
 
-#: ../treebrowser/src/treebrowser.c:1573
+#: ../treebrowser/src/treebrowser.c:1632
 msgid "Show Tool_bars"
 msgstr "Mostrar _barras de ferramentas"
 
-#: ../treebrowser/src/treebrowser.c:1972
+#: ../treebrowser/src/treebrowser.c:2043
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr "O ficheiro destino \"%s\" já existe, quer realmente substituir?"
 
-#: ../treebrowser/src/treebrowser.c:2121
+#: ../treebrowser/src/treebrowser.c:2189
 msgid "Go up"
 msgstr "Ir para cima"
 
-#: ../treebrowser/src/treebrowser.c:2132 ../treebrowser/src/treebrowser.c:2588
+#: ../treebrowser/src/treebrowser.c:2197 ../treebrowser/src/treebrowser.c:2637
 msgid "Refresh"
 msgstr "Actualizar"
 
-#: ../treebrowser/src/treebrowser.c:2142
+#: ../treebrowser/src/treebrowser.c:2204
 msgid "Home"
 msgstr "Pasta pessoal"
 
-#: ../treebrowser/src/treebrowser.c:2154
+#: ../treebrowser/src/treebrowser.c:2212
 #, fuzzy
 msgid "Set project path"
 msgstr "Caminho do projecto"
 
-#: ../treebrowser/src/treebrowser.c:2165
+#: ../treebrowser/src/treebrowser.c:2220
 msgid "Set path from document"
 msgstr "Definir caminho a partir do documento"
 
-#: ../treebrowser/src/treebrowser.c:2175 ../treebrowser/src/treebrowser.c:2590
+#: ../treebrowser/src/treebrowser.c:2227 ../treebrowser/src/treebrowser.c:2639
 msgid "Track Current"
 msgstr "Rastrear actual"
 
-#: ../treebrowser/src/treebrowser.c:2186
+#: ../treebrowser/src/treebrowser.c:2235
 msgid "Hide bars"
 msgstr "Ocultar barras"
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2245
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
@@ -8012,19 +8038,19 @@ msgstr ""
 "Filtrar (*.c;*.h;*.cpp) e, se quiser uma filtragem temporária, use \"!\". "
 "Tente por exemplo isto \"!;*.c;*.h;*.cpp\""
 
-#: ../treebrowser/src/treebrowser.c:2202
+#: ../treebrowser/src/treebrowser.c:2251
 msgid "Addressbar for example '/projects/my-project'"
 msgstr "Barra de endereço por exemplo \"/projectos/meu-projecto\""
 
-#: ../treebrowser/src/treebrowser.c:2233
+#: ../treebrowser/src/treebrowser.c:2282
 msgid "Tree Browser"
 msgstr "Navegador em árvore"
 
-#: ../treebrowser/src/treebrowser.c:2394
+#: ../treebrowser/src/treebrowser.c:2443
 msgid "External open command:"
 msgstr "Comando externo para abrir:"
 
-#: ../treebrowser/src/treebrowser.c:2395
+#: ../treebrowser/src/treebrowser.c:2444
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -8039,66 +8065,66 @@ msgstr ""
 "%d será substituído pelo nome do caminho do ficheiro seleccionado, sem o "
 "nome do ficheiro."
 
-#: ../treebrowser/src/treebrowser.c:2402
+#: ../treebrowser/src/treebrowser.c:2451
 msgid "Terminal:"
 msgstr "Terminal:"
 
-#: ../treebrowser/src/treebrowser.c:2403
+#: ../treebrowser/src/treebrowser.c:2452
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr "O terminal a usar com o comando \"Abrir terminal\""
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Hidden"
 msgstr "Oculto"
 
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Top"
 msgstr "Topo"
 
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Bottom"
 msgstr "Fundo"
 
-#: ../treebrowser/src/treebrowser.c:2409
+#: ../treebrowser/src/treebrowser.c:2458
 msgid "Toolbar:"
 msgstr "Barra de ferramentas:"
 
-#: ../treebrowser/src/treebrowser.c:2410
+#: ../treebrowser/src/treebrowser.c:2459
 msgid "If position is changed, the option require plugin restart."
 msgstr "Se a posição mudar, esta opção requer reinicialização da extensão."
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "None"
 msgstr "Nenhum"
 
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "Base"
 msgstr "Base"
 
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "Content-type"
 msgstr "Tipo de conteúdo"
 
-#: ../treebrowser/src/treebrowser.c:2415
+#: ../treebrowser/src/treebrowser.c:2464
 msgid "Show icons:"
 msgstr "Mostrar ícones:"
 
-#: ../treebrowser/src/treebrowser.c:2419
+#: ../treebrowser/src/treebrowser.c:2468
 msgid "Show hidden files"
 msgstr "Mostrar ficheiros ocultos"
 
-#: ../treebrowser/src/treebrowser.c:2420
+#: ../treebrowser/src/treebrowser.c:2469
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr "Em Windows, isto apenas oculta ficheiros precedidos de \".\" (ponto)"
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2424
+#: ../treebrowser/src/treebrowser.c:2473
 msgid "Hide object files:"
 msgstr "Ocultar ficheiros objecto:"
 
-#: ../treebrowser/src/treebrowser.c:2426
+#: ../treebrowser/src/treebrowser.c:2475
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
@@ -8107,74 +8133,74 @@ msgstr ""
 "*.so, *.dll, *.a, *.lib"
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2433
+#: ../treebrowser/src/treebrowser.c:2482
 #, fuzzy
 msgid "Hide specified dirs:"
 msgstr "Ocultar ficheiros objecto:"
 
-#: ../treebrowser/src/treebrowser.c:2435
+#: ../treebrowser/src/treebrowser.c:2484
 msgid "Don't show specified dirs in the file browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2442
+#: ../treebrowser/src/treebrowser.c:2491
 msgid "Reverse filter"
 msgstr "Reverte o filtro"
 
-#: ../treebrowser/src/treebrowser.c:2446
+#: ../treebrowser/src/treebrowser.c:2495
 msgid "Follow current document"
 msgstr "Seguir o documento activo"
 
-#: ../treebrowser/src/treebrowser.c:2451
+#: ../treebrowser/src/treebrowser.c:2500
 msgid "Single click, open document and focus it"
 msgstr "Clique único abre documento e foca-o"
 
-#: ../treebrowser/src/treebrowser.c:2456
+#: ../treebrowser/src/treebrowser.c:2505
 msgid "Double click open directory"
 msgstr "Clique duplo abre pasta"
 
-#: ../treebrowser/src/treebrowser.c:2461
+#: ../treebrowser/src/treebrowser.c:2510
 msgid "On delete file, close it if is opened"
 msgstr "Ao eliminar ficheiro, fechá-lo caso esteja aberto"
 
-#: ../treebrowser/src/treebrowser.c:2466
+#: ../treebrowser/src/treebrowser.c:2515
 msgid "Focus editor on file open"
 msgstr "Focar o editor ao abrir ficheiro"
 
-#: ../treebrowser/src/treebrowser.c:2471
+#: ../treebrowser/src/treebrowser.c:2520
 msgid "Show tree lines"
 msgstr "Mostrar as linhas da árvore"
 
-#: ../treebrowser/src/treebrowser.c:2475
+#: ../treebrowser/src/treebrowser.c:2524
 msgid "Show bookmarks"
 msgstr "Mostrar marcadores"
 
-#: ../treebrowser/src/treebrowser.c:2479
+#: ../treebrowser/src/treebrowser.c:2528
 msgid "Open new files"
 msgstr "Abrir novos ficheiros"
 
-#: ../treebrowser/src/treebrowser.c:2574
+#: ../treebrowser/src/treebrowser.c:2623
 msgid "Focus File List"
 msgstr "Focar a lista de ficheiros"
 
-#: ../treebrowser/src/treebrowser.c:2576
+#: ../treebrowser/src/treebrowser.c:2625
 #, fuzzy
 msgid "Focus File List (second hotkey)"
 msgstr "Focar a lista de ficheiros"
 
-#: ../treebrowser/src/treebrowser.c:2578
+#: ../treebrowser/src/treebrowser.c:2627
 msgid "Focus Path Entry"
 msgstr "Focar a entrada de caminho"
 
-#: ../treebrowser/src/treebrowser.c:2580
+#: ../treebrowser/src/treebrowser.c:2629
 #, fuzzy
 msgid "Focus Filter Entry"
 msgstr "Focar a entrada de caminho"
 
-#: ../treebrowser/src/treebrowser.c:2582
+#: ../treebrowser/src/treebrowser.c:2631
 msgid "Rename Object"
 msgstr "Renomear objecto"
 
-#: ../treebrowser/src/treebrowser.c:2586
+#: ../treebrowser/src/treebrowser.c:2635
 msgid "New Folder"
 msgstr "Nova pasta"
 
@@ -9375,9 +9401,6 @@ msgstr "Conclusão automática de etiquetas  XML/HTML usando excertos de código
 #~ msgid "Display additional information about the selected frame."
 #~ msgstr "Apresentar informação adicional sobre a moldura selecionada."
 
-#~ msgid "Clea_r"
-#~ msgstr "Limpa_r"
-
 #~ msgid "Variable to watch:"
 #~ msgstr "Variável a Observar:"
 
@@ -9573,8 +9596,8 @@ msgstr "Conclusão automática de etiquetas  XML/HTML usando excertos de código
 #~ "Permite usar 10 favoritos numerados. Normalmente se tiver mais do que um "
 #~ "favorito, terá de percorrê-los a todos até chegar ao que pretende. Com "
 #~ "este plugin pode ir diretamente ao favorito que pretende com uma única "
-#~ "combinação de teclas. Para definir um favorito numerado carregue em Ctrl"
-#~ "+Shift+um número de 0 a 9. Verá uma marca aparecer junto do número da "
+#~ "combinação de teclas. Para definir um favorito numerado carregue em "
+#~ "Ctrl+Shift+um número de 0 a 9. Verá uma marca aparecer junto do número da "
 #~ "linha. Se carregar em Ctrl+Shift+um número quando está numa linha com "
 #~ "favorito numerado previamente atribuído, irá remover esse favorito. Caso "
 #~ "contrário, irá mover o favorito para a linha em questão se este estava já "

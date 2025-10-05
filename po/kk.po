@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-29 19:43+0300\n"
+"POT-Creation-Date: 2025-10-08 14:09+0300\n"
 "PO-Revision-Date: 2016-10-31 09:17+0500\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
@@ -36,7 +36,7 @@ msgstr "Жоқ."
 msgid "Contents"
 msgstr "Құрамасы"
 
-#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:806
+#: ../addons/src/ao_bookmarklist.c:383 ../treebrowser/src/treebrowser.c:818
 #: ../webhelper/src/gwh-plugin.c:328
 msgid "Bookmarks"
 msgstr "Бетбелгілер"
@@ -174,13 +174,13 @@ msgid "Copy the file path of the current document to the clipboard"
 msgstr ""
 
 #: ../addons/src/addons.c:379 ../autoclose/src/autoclose.c:846
-#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:792
+#: ../codenav/src/codenavigation.c:281 ../geanyctags/src/geanyctags.c:858
 #: ../latex/src/latex.c:208 ../latex/src/latex.c:293
 #: ../geanyprj/src/geanyprj.c:176 ../geanyvc/src/geanyvc.c:1973
 #: ../geniuspaste/src/geniuspaste.c:336 ../lineoperations/src/lo_prefs.c:64
 #: ../runscript/src/runscript.c:121 ../sendmail/src/sendmail.c:128
 #: ../sendmail/src/sendmail.c:293 ../setfiletype/src/setfiletype.c:109
-#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2384
+#: ../spellcheck/src/scplugin.c:124 ../treebrowser/src/treebrowser.c:2433
 #: ../updatechecker/src/updatechecker.c:262
 msgid "Plugin configuration directory could not be created."
 msgstr "Плагиннің баптаулар бумасын жасау мүмкін емес."
@@ -567,7 +567,8 @@ msgid "Headers extensions"
 msgstr ""
 
 #. Add the "reset to default" button to the frame's hbox
-#: ../codenav/src/codenavigation.c:450 ../geanyctags/src/geanyctags.c:841
+#: ../codenav/src/codenavigation.c:450 ../geanyctags/src/geanyctags.c:154
+#: ../geanyctags/src/geanyctags.c:883
 msgid "Reset to Default"
 msgstr ""
 
@@ -655,26 +656,26 @@ msgid "Choose target file"
 msgstr ""
 
 #. target
-#: ../debugger/src/tpage.c:296
+#: ../debugger/src/tpage.c:291
 msgid "Target:"
 msgstr "Мақсаты:"
 
-#: ../debugger/src/tpage.c:300 ../debugger/src/tpage.c:303
+#: ../debugger/src/tpage.c:295 ../debugger/src/tpage.c:298
 msgid "Browse"
 msgstr "Қарап шығу"
 
 #. debugger
-#: ../debugger/src/tpage.c:309
+#: ../debugger/src/tpage.c:304
 msgid "Debugger:"
 msgstr "Жөндеуші:"
 
 #. arguments
-#: ../debugger/src/tpage.c:320
+#: ../debugger/src/tpage.c:315
 msgid "Command Line Arguments"
 msgstr ""
 
 #. environment
-#: ../debugger/src/tpage.c:331
+#: ../debugger/src/tpage.c:326
 msgid "Environment Variables"
 msgstr ""
 
@@ -1253,109 +1254,134 @@ msgstr "Р_егистрге тәуелді іздеу"
 msgid "Toggle case sensitive search"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:119
+#: ../geanyctags/src/geanyctags.c:150
+msgid "Exclude subdirs:"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:152
+msgid ""
+"Exclude subdirs when searching for files to generate tag file (subdirs "
+"separated by spaces)"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:156
+msgid "Exclude files:"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:158
+msgid ""
+"Exclude files when searching for them to generate tag file (files separated "
+"by spaces)"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:160 ../geanyctags/src/geanyctags.c:878
+msgid "Clear"
+msgstr ""
+
+#: ../geanyctags/src/geanyctags.c:194
 #, c-format
 msgid "%s (in directory: %s)"
 msgstr "%s (бумада: %s)"
 
-#: ../geanyctags/src/geanyctags.c:147
+#: ../geanyctags/src/geanyctags.c:222
 #, c-format
 msgid "Process execution failed (%s)"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:524
+#: ../geanyctags/src/geanyctags.c:605
 msgid "Find Tag"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:539
+#: ../geanyctags/src/geanyctags.c:620
 msgid "_Search for:"
 msgstr "_Нені іздеу:"
 
-#: ../geanyctags/src/geanyctags.c:557
+#: ../geanyctags/src/geanyctags.c:638
 msgid "_Match type:"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:563
+#: ../geanyctags/src/geanyctags.c:644
 #: ../projectorganizer/src/prjorg-sidebar.c:651
 msgid "exact"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:565
+#: ../geanyctags/src/geanyctags.c:646
 #: ../projectorganizer/src/prjorg-sidebar.c:652
 msgid "prefix"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:567
+#: ../geanyctags/src/geanyctags.c:648
 #: ../projectorganizer/src/prjorg-sidebar.c:653
 msgid "pattern"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:577
+#: ../geanyctags/src/geanyctags.c:658
 #: ../projectorganizer/src/prjorg-sidebar.c:167
 #: ../projectorganizer/src/prjorg-sidebar.c:674
 msgid "C_ase sensitive"
 msgstr "Р_егистрге тәуелді"
 
-#: ../geanyctags/src/geanyctags.c:582
+#: ../geanyctags/src/geanyctags.c:663
 #: ../projectorganizer/src/prjorg-sidebar.c:677
 msgid "_Declaration"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:698
+#: ../geanyctags/src/geanyctags.c:768
 msgid "Find Tag Declaration (geanyctags)"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:706
+#: ../geanyctags/src/geanyctags.c:776
 msgid "Find Tag Definition (geanyctags)"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:714
+#: ../geanyctags/src/geanyctags.c:784
 msgid "Find tag"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:721 ../geanyctags/src/geanyctags.c:728
+#: ../geanyctags/src/geanyctags.c:791 ../geanyctags/src/geanyctags.c:798
 msgid "Generate tags"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:730
+#: ../geanyctags/src/geanyctags.c:800
 msgid "Find tag..."
 msgstr "Тегті табу..."
 
-#: ../geanyctags/src/geanyctags.c:825
-msgid "Other options to pass to Find"
+#: ../geanyctags/src/geanyctags.c:877
+#, fuzzy
+msgid "Find options:"
+msgstr "Жол әрекеттері"
+
+#: ../geanyctags/src/geanyctags.c:878
+msgid "Options to pass to Find"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:829
-msgid "Extra find options"
-msgstr ""
-
-#: ../geanyctags/src/geanyctags.c:835
+#: ../geanyctags/src/geanyctags.c:881
 msgid "Ctags options:"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:836
+#: ../geanyctags/src/geanyctags.c:882
 msgid "Options to pass to Ctags"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:851
+#: ../geanyctags/src/geanyctags.c:891
 msgid "Print tags generation results"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:852
+#: ../geanyctags/src/geanyctags.c:892
 msgid "To the status window"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:853
+#: ../geanyctags/src/geanyctags.c:893
 #, fuzzy
 msgid "To the messages window"
 msgstr "_Хабарламалар терезесін жасыру"
 
 #. Set metadata
-#: ../geanyctags/src/geanyctags.c:895
+#: ../geanyctags/src/geanyctags.c:934
 msgid "Geany Ctags"
 msgstr ""
 
-#: ../geanyctags/src/geanyctags.c:896
+#: ../geanyctags/src/geanyctags.c:935
 msgid "Ctags generation and search plugin for geany projects"
 msgstr ""
 
@@ -3752,7 +3778,7 @@ msgid "New _Below"
 msgstr ""
 
 #: ../geanymacro/src/geanymacro.c:1824 ../geanymacro/src/geanymacro.c:2120
-#: ../treebrowser/src/treebrowser.c:1475 ../treebrowser/src/treebrowser.c:1477
+#: ../treebrowser/src/treebrowser.c:1534 ../treebrowser/src/treebrowser.c:1536
 msgid "_Delete"
 msgstr "Ө_шіру"
 
@@ -4900,46 +4926,46 @@ msgstr ""
 msgid "Colors"
 msgstr "Түстер"
 
-#: ../git-changebar/src/gcb-plugin.c:62
+#: ../git-changebar/src/gcb-plugin.c:73
 msgid "Git Change Bar"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:63
+#: ../git-changebar/src/gcb-plugin.c:74
 msgid "Highlights uncommitted changes in files tracked with Git"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1390 ../pohelper/src/gph-plugin.c:1661
+#: ../git-changebar/src/gcb-plugin.c:1436 ../pohelper/src/gph-plugin.c:1661
 #, c-format
 msgid "Failed to load configuration file: %s"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1415 ../pohelper/src/gph-plugin.c:1686
+#: ../git-changebar/src/gcb-plugin.c:1461 ../pohelper/src/gph-plugin.c:1686
 #, c-format
 msgid "Failed to create configuration directory \"%s\": %s"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1418 ../pohelper/src/gph-plugin.c:1689
+#: ../git-changebar/src/gcb-plugin.c:1464 ../pohelper/src/gph-plugin.c:1689
 #, c-format
 msgid "Failed to save configuration file: %s"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1495
+#: ../git-changebar/src/gcb-plugin.c:1541
 msgid "Undo Git hunk"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1503
+#: ../git-changebar/src/gcb-plugin.c:1549
 msgid "Go to the previous hunk"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1505
+#: ../git-changebar/src/gcb-plugin.c:1551
 msgid "Go to the next hunk"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1507
+#: ../git-changebar/src/gcb-plugin.c:1553
 msgid "Undo hunk at the cursor position"
 msgstr ""
 
-#: ../git-changebar/src/gcb-plugin.c:1655 ../pohelper/src/gph-plugin.c:1456
+#: ../git-changebar/src/gcb-plugin.c:1701 ../pohelper/src/gph-plugin.c:1456
 #: ../pohelper/src/gph-plugin.c:1791
 #, c-format
 msgid ""
@@ -5153,8 +5179,8 @@ msgstr ""
 #: ../lipsum/src/lipsum.c:184 ../sendmail/src/sendmail.c:396
 #, c-format
 msgid ""
-"Your configuration directory has been successfully moved from \"%s\" to \"%s"
-"\"."
+"Your configuration directory has been successfully moved from \"%s\" to "
+"\"%s\"."
 msgstr ""
 
 #: ../lipsum/src/lipsum.c:199
@@ -5888,7 +5914,7 @@ msgid "Add"
 msgstr "Қосу"
 
 #: ../projectorganizer/src/prjorg-sidebar.c:390
-#: ../treebrowser/src/treebrowser.c:2584
+#: ../treebrowser/src/treebrowser.c:2633
 #, fuzzy
 msgid "New File"
 msgstr "Жаңа файлды жасау"
@@ -7391,200 +7417,200 @@ msgstr ""
 msgid "_More TableConvert"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:146
+#: ../treebrowser/src/treebrowser.c:147
 msgid "TreeBrowser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:147
+#: ../treebrowser/src/treebrowser.c:148
 msgid ""
 "This plugin adds a tree browser to Geany, allowing the user to browse files "
 "using a tree view of the directory being browsed."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:602
+#: ../treebrowser/src/treebrowser.c:603
 #, c-format
 msgid "%s: no such directory."
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:708 ../treebrowser/src/treebrowser.c:748
-#: ../treebrowser/src/treebrowser.c:859
+#: ../treebrowser/src/treebrowser.c:715 ../treebrowser/src/treebrowser.c:758
+#: ../treebrowser/src/treebrowser.c:873
 msgid "(Empty)"
 msgstr "(Бос)"
 
-#: ../treebrowser/src/treebrowser.c:1129
+#: ../treebrowser/src/treebrowser.c:1188
 #, c-format
 msgid "Could not execute configured external command '%s' (%s)."
 msgstr "Бапталған '%s' сыртқы командасын орындау мүмкін емес (%s)."
 
-#: ../treebrowser/src/treebrowser.c:1205
+#: ../treebrowser/src/treebrowser.c:1264
 msgid "NewDirectory"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1207
+#: ../treebrowser/src/treebrowser.c:1266
 msgid "NewFile"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1213
+#: ../treebrowser/src/treebrowser.c:1272
 #, c-format
 msgid ""
 "Target file '%s' exists.\n"
 "Do you really want to replace it with an empty file?"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1258
+#: ../treebrowser/src/treebrowser.c:1317
 #, c-format
 msgid "Do you really want to delete '%s' ?"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1371 ../treebrowser/src/treebrowser.c:1373
+#: ../treebrowser/src/treebrowser.c:1430 ../treebrowser/src/treebrowser.c:1432
 #, fuzzy
 msgid "Go _Up"
 msgstr "Ж_оғары апару"
 
-#: ../treebrowser/src/treebrowser.c:1379 ../treebrowser/src/treebrowser.c:1381
+#: ../treebrowser/src/treebrowser.c:1438 ../treebrowser/src/treebrowser.c:1440
 #, fuzzy
 msgid "Set _Path From Document"
 msgstr "Орналасу жолын құжаттан орнату"
 
-#: ../treebrowser/src/treebrowser.c:1389 ../treebrowser/src/treebrowser.c:1391
+#: ../treebrowser/src/treebrowser.c:1448 ../treebrowser/src/treebrowser.c:1450
 #, fuzzy
 msgid "Set Project _Path"
 msgstr "Жоба"
 
-#: ../treebrowser/src/treebrowser.c:1402 ../treebrowser/src/treebrowser.c:1404
+#: ../treebrowser/src/treebrowser.c:1461 ../treebrowser/src/treebrowser.c:1463
 #, fuzzy
 msgid "_Open Externally"
 msgstr "Терминал"
 
-#: ../treebrowser/src/treebrowser.c:1411
+#: ../treebrowser/src/treebrowser.c:1470
 #, fuzzy
 msgid "Open _Terminal"
 msgstr "Терминал"
 
-#: ../treebrowser/src/treebrowser.c:1417 ../treebrowser/src/treebrowser.c:1419
+#: ../treebrowser/src/treebrowser.c:1476 ../treebrowser/src/treebrowser.c:1478
 msgid "Set as _Root"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1427 ../treebrowser/src/treebrowser.c:1429
+#: ../treebrowser/src/treebrowser.c:1486 ../treebrowser/src/treebrowser.c:1488
 #, fuzzy
 msgid "Refres_h"
 msgstr "Жаңарту"
 
-#: ../treebrowser/src/treebrowser.c:1435 ../treebrowser/src/treebrowser.c:1437
+#: ../treebrowser/src/treebrowser.c:1494 ../treebrowser/src/treebrowser.c:1496
 msgid "_Find in Files"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1448 ../treebrowser/src/treebrowser.c:1450
+#: ../treebrowser/src/treebrowser.c:1507 ../treebrowser/src/treebrowser.c:1509
 #, fuzzy
 msgid "N_ew Folder"
 msgstr "Буманы таңдау"
 
-#: ../treebrowser/src/treebrowser.c:1457 ../treebrowser/src/treebrowser.c:1459
+#: ../treebrowser/src/treebrowser.c:1516 ../treebrowser/src/treebrowser.c:1518
 #, fuzzy
 msgid "_New File"
 msgstr "_Файл"
 
-#: ../treebrowser/src/treebrowser.c:1466 ../treebrowser/src/treebrowser.c:1468
+#: ../treebrowser/src/treebrowser.c:1525 ../treebrowser/src/treebrowser.c:1527
 #, fuzzy
 msgid "Rena_me"
 msgstr "Атын өзгерту"
 
-#: ../treebrowser/src/treebrowser.c:1488 ../treebrowser/src/treebrowser.c:1491
+#: ../treebrowser/src/treebrowser.c:1547 ../treebrowser/src/treebrowser.c:1550
 #, c-format
 msgid "Close: %s"
 msgstr "Жабу: %s"
 
-#: ../treebrowser/src/treebrowser.c:1500 ../treebrowser/src/treebrowser.c:1503
+#: ../treebrowser/src/treebrowser.c:1559 ../treebrowser/src/treebrowser.c:1562
 #, fuzzy, c-format
 msgid "Clo_se Child Documents "
 msgstr "Б_асқа құжаттарды жабу"
 
-#: ../treebrowser/src/treebrowser.c:1514 ../treebrowser/src/treebrowser.c:1516
+#: ../treebrowser/src/treebrowser.c:1573 ../treebrowser/src/treebrowser.c:1575
 msgid "_Copy Name to Clipboard"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1525 ../treebrowser/src/treebrowser.c:1528
+#: ../treebrowser/src/treebrowser.c:1584 ../treebrowser/src/treebrowser.c:1587
 msgid "_Copy Full Path to Clipboard"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:1541 ../treebrowser/src/treebrowser.c:1543
+#: ../treebrowser/src/treebrowser.c:1600 ../treebrowser/src/treebrowser.c:1602
 #, fuzzy
 msgid "E_xpand All"
 msgstr "Жазық қылу"
 
-#: ../treebrowser/src/treebrowser.c:1549 ../treebrowser/src/treebrowser.c:1551
+#: ../treebrowser/src/treebrowser.c:1608 ../treebrowser/src/treebrowser.c:1610
 #, fuzzy
 msgid "Coll_apse All"
 msgstr "Бар_лығын жабу"
 
-#: ../treebrowser/src/treebrowser.c:1559
+#: ../treebrowser/src/treebrowser.c:1618
 #, fuzzy
 msgid "Show Boo_kmarks"
 msgstr "Бетбелгілер"
 
-#: ../treebrowser/src/treebrowser.c:1566
+#: ../treebrowser/src/treebrowser.c:1625
 #, fuzzy
 msgid "Sho_w Hidden Files"
 msgstr "Жасырын файлдарды көрсету"
 
-#: ../treebrowser/src/treebrowser.c:1573
+#: ../treebrowser/src/treebrowser.c:1632
 #, fuzzy
 msgid "Show Tool_bars"
 msgstr "Беттерді көрсету"
 
-#: ../treebrowser/src/treebrowser.c:1972
+#: ../treebrowser/src/treebrowser.c:2043
 #, c-format
 msgid "Target file '%s' exists, do you really want to replace it?"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2121
+#: ../treebrowser/src/treebrowser.c:2189
 msgid "Go up"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2132 ../treebrowser/src/treebrowser.c:2588
+#: ../treebrowser/src/treebrowser.c:2197 ../treebrowser/src/treebrowser.c:2637
 msgid "Refresh"
 msgstr "Жаңарту"
 
-#: ../treebrowser/src/treebrowser.c:2142
+#: ../treebrowser/src/treebrowser.c:2204
 msgid "Home"
 msgstr "Үй"
 
-#: ../treebrowser/src/treebrowser.c:2154
+#: ../treebrowser/src/treebrowser.c:2212
 #, fuzzy
 msgid "Set project path"
 msgstr "Жоба"
 
-#: ../treebrowser/src/treebrowser.c:2165
+#: ../treebrowser/src/treebrowser.c:2220
 msgid "Set path from document"
 msgstr "Орналасу жолын құжаттан орнату"
 
-#: ../treebrowser/src/treebrowser.c:2175 ../treebrowser/src/treebrowser.c:2590
+#: ../treebrowser/src/treebrowser.c:2227 ../treebrowser/src/treebrowser.c:2639
 msgid "Track Current"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2186
+#: ../treebrowser/src/treebrowser.c:2235
 msgid "Hide bars"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2196
+#: ../treebrowser/src/treebrowser.c:2245
 msgid ""
 "Filter (*.c;*.h;*.cpp), and if you want temporary filter using the '!' "
 "reverse try for example this '!;*.c;*.h;*.cpp'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2202
+#: ../treebrowser/src/treebrowser.c:2251
 msgid "Addressbar for example '/projects/my-project'"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2233
+#: ../treebrowser/src/treebrowser.c:2282
 msgid "Tree Browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2394
+#: ../treebrowser/src/treebrowser.c:2443
 msgid "External open command:"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2395
+#: ../treebrowser/src/treebrowser.c:2444
 #, c-format
 msgid ""
 "The command to execute when using \"Open with\". You can use %f and %d "
@@ -7599,141 +7625,141 @@ msgstr ""
 "%d таңдалған файлдың толық орналасу жолымен, сол файлдың атауына дейін, "
 "алмастырылады"
 
-#: ../treebrowser/src/treebrowser.c:2402
+#: ../treebrowser/src/treebrowser.c:2451
 msgid "Terminal:"
 msgstr "Терминал:"
 
-#: ../treebrowser/src/treebrowser.c:2403
+#: ../treebrowser/src/treebrowser.c:2452
 msgid "The terminal to use with the command \"Open Terminal\""
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Hidden"
 msgstr "Жасырын"
 
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Top"
 msgstr "Жоғарыдан"
 
-#: ../treebrowser/src/treebrowser.c:2407
+#: ../treebrowser/src/treebrowser.c:2456
 msgid "Bottom"
 msgstr "Төменнен"
 
-#: ../treebrowser/src/treebrowser.c:2409
+#: ../treebrowser/src/treebrowser.c:2458
 msgid "Toolbar:"
 msgstr "Саймандар панелі:"
 
-#: ../treebrowser/src/treebrowser.c:2410
+#: ../treebrowser/src/treebrowser.c:2459
 msgid "If position is changed, the option require plugin restart."
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "None"
 msgstr "Ешнәрсе"
 
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "Base"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2413
+#: ../treebrowser/src/treebrowser.c:2462
 msgid "Content-type"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2415
+#: ../treebrowser/src/treebrowser.c:2464
 msgid "Show icons:"
 msgstr "Таңбашаларды көрсету:"
 
-#: ../treebrowser/src/treebrowser.c:2419
+#: ../treebrowser/src/treebrowser.c:2468
 msgid "Show hidden files"
 msgstr "Жасырын файлдарды көрсету"
 
-#: ../treebrowser/src/treebrowser.c:2420
+#: ../treebrowser/src/treebrowser.c:2469
 msgid "On Windows, this just hide files that are prefixed with '.' (dot)"
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2424
+#: ../treebrowser/src/treebrowser.c:2473
 #, fuzzy
 msgid "Hide object files:"
 msgstr "Файлды таңдаңыз"
 
-#: ../treebrowser/src/treebrowser.c:2426
+#: ../treebrowser/src/treebrowser.c:2475
 msgid ""
 "Don't show generated object files in the file browser, this includes *.o, *."
 "obj, *.so, *.dll, *.a, *.lib"
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../treebrowser/src/treebrowser.c:2433
+#: ../treebrowser/src/treebrowser.c:2482
 #, fuzzy
 msgid "Hide specified dirs:"
 msgstr "Файлды таңдаңыз"
 
-#: ../treebrowser/src/treebrowser.c:2435
+#: ../treebrowser/src/treebrowser.c:2484
 msgid "Don't show specified dirs in the file browser"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2442
+#: ../treebrowser/src/treebrowser.c:2491
 msgid "Reverse filter"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2446
+#: ../treebrowser/src/treebrowser.c:2495
 msgid "Follow current document"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2451
+#: ../treebrowser/src/treebrowser.c:2500
 msgid "Single click, open document and focus it"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2456
+#: ../treebrowser/src/treebrowser.c:2505
 msgid "Double click open directory"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2461
+#: ../treebrowser/src/treebrowser.c:2510
 msgid "On delete file, close it if is opened"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2466
+#: ../treebrowser/src/treebrowser.c:2515
 msgid "Focus editor on file open"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2471
+#: ../treebrowser/src/treebrowser.c:2520
 msgid "Show tree lines"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2475
+#: ../treebrowser/src/treebrowser.c:2524
 msgid "Show bookmarks"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2479
+#: ../treebrowser/src/treebrowser.c:2528
 msgid "Open new files"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2574
+#: ../treebrowser/src/treebrowser.c:2623
 msgid "Focus File List"
 msgstr "Файлдар тізіміне фокусты орнату"
 
-#: ../treebrowser/src/treebrowser.c:2576
+#: ../treebrowser/src/treebrowser.c:2625
 #, fuzzy
 msgid "Focus File List (second hotkey)"
 msgstr "Файлдар тізіміне фокусты орнату"
 
-#: ../treebrowser/src/treebrowser.c:2578
+#: ../treebrowser/src/treebrowser.c:2627
 msgid "Focus Path Entry"
 msgstr "Жол өрісіне фокусты орнату"
 
-#: ../treebrowser/src/treebrowser.c:2580
+#: ../treebrowser/src/treebrowser.c:2629
 #, fuzzy
 msgid "Focus Filter Entry"
 msgstr "Жол өрісіне фокусты орнату"
 
-#: ../treebrowser/src/treebrowser.c:2582
+#: ../treebrowser/src/treebrowser.c:2631
 msgid "Rename Object"
 msgstr ""
 
-#: ../treebrowser/src/treebrowser.c:2586
+#: ../treebrowser/src/treebrowser.c:2635
 #, fuzzy
 msgid "New Folder"
 msgstr "Буманы таңдау"

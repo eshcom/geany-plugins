@@ -32,9 +32,9 @@ static GeanyData *geany_data = NULL;
 
 typedef struct {
 	/* settings */
-	gchar *extra_find_options_1;
-	gchar *extra_find_options_2;
-	gchar *extra_find_options_3;
+	gchar *find_excludedirs;
+	gchar *find_excludefiles;
+	gchar *find_options;
 	gchar *ctags_options;
 	gboolean print_to_status_win;
 	gboolean print_to_msg_win;
@@ -47,6 +47,9 @@ static GeanyctagsInfo *gtags_info = NULL;
 
 static GtkWidget *s_context_fdec_item, *s_context_fdef_item, *s_context_sep_item,
 				 *s_gt_item, *s_sep_item, *s_ft_item;
+
+static GtkWidget *find_excludedirs_entry = NULL;
+static GtkWidget *find_excludefiles_entry = NULL;
 
 static struct
 {
@@ -67,8 +70,20 @@ enum
 };
 
 
-static const gchar *default_ctags_options = "--totals --fields=fKsSt --extra=-fq "
-											"--c-kinds=+p --sort=foldcase --excmd=number";
+#define CONFIG_SECTION "geanyctags"
+#define DEFAULT_FIND_EXCLUDEDIRS "build"
+#define DEFAULT_CTAGS_OPTIONS "--totals --fields=fKsSt --extra=-fq " \
+							  "--c-kinds=+p --sort=foldcase --excmd=number"
+
+#define ADD_INPUTBOX(vbox, entry, label, text, tooltip,					\
+					 icon_stock, icon_tooltip, cb_text)					\
+	entry = add_inputbox(vbox, label, text, -1, tooltip, FALSE, FALSE);	\
+	g_object_set(entry,													\
+				 "secondary-icon-stock", icon_stock,					\
+				 "secondary-icon-activatable", TRUE,					\
+				 "secondary-icon-tooltip-text", icon_tooltip, NULL);	\
+	g_signal_connect(entry, "icon-release", G_CALLBACK(entry_set_text),	\
+					 (gpointer)cb_text);
 
 
 static void set_widgets_sensitive(gboolean sensitive)
@@ -79,16 +94,37 @@ static void set_widgets_sensitive(gboolean sensitive)
 	gtk_widget_set_sensitive(GTK_WIDGET(s_context_fdef_item), sensitive);
 }
 
+static void entry_set_text(GtkEntry *entry, gint icon_pos,
+						   GdkEvent *event, gpointer data)
+{
+	if (event->button.button == 1 && icon_pos == 1)
+	{
+		gtk_entry_set_text(entry, (gchar *)data);
+		gtk_widget_grab_focus(GTK_WIDGET(entry));
+	}
+}
+
 static void on_project_open(G_GNUC_UNUSED GObject *obj, GKeyFile *config,
 							G_GNUC_UNUSED gpointer user_data)
 {
 	set_widgets_sensitive(TRUE);
+	
+	gtags_info->find_excludedirs = utils_get_setting_string(config, CONFIG_SECTION,
+															"find_excludedirs",
+															DEFAULT_FIND_EXCLUDEDIRS);
+	
+	gtags_info->find_excludefiles = utils_get_setting_string(config, CONFIG_SECTION,
+															 "find_excludefiles",
+															 NULL);
 }
 
 static void on_project_save(G_GNUC_UNUSED GObject *obj, GKeyFile *config,
 							G_GNUC_UNUSED gpointer user_data)
 {
-	set_widgets_sensitive(TRUE);
+	g_key_file_set_string(config, CONFIG_SECTION, "find_excludedirs",
+						  gtags_info->find_excludedirs);
+	g_key_file_set_string(config, CONFIG_SECTION, "find_excludefiles",
+						  gtags_info->find_excludefiles);
 }
 
 static void on_project_close(G_GNUC_UNUSED GObject *obj,
@@ -97,10 +133,49 @@ static void on_project_close(G_GNUC_UNUSED GObject *obj,
 	set_widgets_sensitive(FALSE);
 }
 
+static void on_project_dialog_open(G_GNUC_UNUSED GObject *obj, GtkWidget *notebook,
+								   G_GNUC_UNUSED gpointer user_data)
+{
+	if (find_excludedirs_entry)
+	{
+		gtk_entry_set_text(GTK_ENTRY(find_excludedirs_entry),
+						   gtags_info->find_excludedirs);
+		gtk_entry_set_text(GTK_ENTRY(find_excludefiles_entry),
+						   gtags_info->find_excludefiles);
+	}
+	else
+	{
+		GtkWidget *vbox = ui_lookup_widget(notebook, "vbox_tags_file");
+		
+		ADD_INPUTBOX(vbox, find_excludedirs_entry, _("Exclude subdirs:"),
+					 gtags_info->find_excludedirs,
+					 _("Exclude subdirs when searching for files to generate "
+					   "tag file (subdirs separated by spaces)"),
+					 GTK_STOCK_UNDO, _("Reset to Default"), DEFAULT_FIND_EXCLUDEDIRS);
+		
+		ADD_INPUTBOX(vbox, find_excludefiles_entry, _("Exclude files:"),
+					 gtags_info->find_excludefiles,
+					 _("Exclude files when searching for them to generate "
+					   "tag file (files separated by spaces)"),
+					 GTK_STOCK_CLEAR, _("Clear"), "");
+	}
+}
+
+static void on_project_dialog_confirmed(G_GNUC_UNUSED GObject *obj, GtkWidget *notebook,
+										G_GNUC_UNUSED gpointer user_data)
+{
+	SETPTR(gtags_info->find_excludedirs,
+		   g_strdup(gtk_entry_get_text(GTK_ENTRY(find_excludedirs_entry))));
+	SETPTR(gtags_info->find_excludefiles,
+		   g_strdup(gtk_entry_get_text(GTK_ENTRY(find_excludefiles_entry))));
+}
+
 static PluginCallback plugin_geanyctags_callbacks[] = {
 	{"project-open", (GCallback) &on_project_open, TRUE, NULL},
 	{"project-save", (GCallback) &on_project_save, TRUE, NULL},
 	{"project-close", (GCallback) &on_project_close, TRUE, NULL},
+	{"project-dialog-open", (GCallback) &on_project_dialog_open, TRUE, NULL},
+	{"project-dialog-confirmed", (GCallback) &on_project_dialog_confirmed, TRUE, NULL},
 	{NULL, NULL, FALSE, NULL}
 };
 
@@ -181,34 +256,57 @@ static gboolean spawn_cmd(const gchar *locale_cmd, const gchar *locale_dir)
 	return success;
 }
 
-#define ADD_OPTIONS(gstr, options)		\
-	if (!EMPTY(options))				\
-	{									\
-		g_string_append_c(gstr, ' ');	\
-		g_string_append(gstr, options);	\
+#define ADD_OPTIONS(gstr, options)						\
+	if (!EMPTY(options))								\
+	{													\
+		g_string_append_c(gstr, ' ');					\
+		g_string_append(gstr, options);					\
 	}
 
 #ifndef G_OS_WIN32
+static void add_multi(GString *gstr, const gchar *multi,
+					  const gchar *prefix, const gchar *suffix)
+{
+	gchar **item, **items = g_strsplit(multi, " ", -1);
+	
+	foreach_strv(item, items)
+	{
+		if (**item)
+		{
+			g_string_append(gstr, prefix);
+			g_string_append(gstr, *item);
+			g_string_append(gstr, suffix);
+		}
+	}
+	g_strfreev(items);
+}
+
+static void add_param(GString *gstr, const gchar *name, const gchar *value)
+{
+	if (!EMPTY(name) && !EMPTY(value))
+	{
+		g_string_append_c(gstr, ' ');
+		g_string_append(gstr, name);
+		g_string_append(gstr, " \'");
+		g_string_append(gstr, value);
+		g_string_append_c(gstr, '\'');
+	}
+}
+
 static GString *generate_find_cmd(GeanyProject *prj)
 {
 	GString *gstr = g_string_new("find -L . -type f -not -path '*/.*'");
 	
+	add_multi(gstr, gtags_info->find_excludedirs, " -not -path '*/", "/*'");
+	add_multi(gstr, gtags_info->find_excludefiles, " -not -name '", "'");
+	ADD_OPTIONS(gstr, gtags_info->find_options);
+	
 	if (!EMPTY(prj->file_patterns))
 	{
-		ADD_OPTIONS(gstr, gtags_info->extra_find_options_1);
-		ADD_OPTIONS(gstr, gtags_info->extra_find_options_2);
-		ADD_OPTIONS(gstr, gtags_info->extra_find_options_3);
-		
-		g_string_append(gstr, " \\( -name \'");
-		g_string_append(gstr, prj->file_patterns[0]);
-		g_string_append_c(gstr, '\'');
-		
+		g_string_append(gstr, " \\(");
+		add_param(gstr, "-name", prj->file_patterns[0]);
 		for (guint i = 1; prj->file_patterns[i]; i++)
-		{
-			g_string_append(gstr, " -o -name \'");
-			g_string_append(gstr, prj->file_patterns[i]);
-			g_string_append_c(gstr, '\'');
-		}
+			add_param(gstr, "-o -name", prj->file_patterns[i]);
 		g_string_append(gstr, " \\)");
 	}
 	return gstr;
@@ -644,23 +742,16 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 	g_key_file_load_from_file(config, gtags_info->config_file,
 							  G_KEY_FILE_NONE, NULL);
 	
-#define GET_CONF_TEXT(name)												\
-	gtags_info->name = utils_get_setting_string(config, "geanyctags",	\
-												#name, NULL)
+	gtags_info->find_options = utils_get_setting_string(config, CONFIG_SECTION,
+														"find_options", NULL);
 	
-	GET_CONF_TEXT(extra_find_options_1);
-	GET_CONF_TEXT(extra_find_options_2);
-	GET_CONF_TEXT(extra_find_options_3);
-#undef GET_CONF_TEXT
-	
-	gtags_info->ctags_options = utils_get_setting_string(config, "geanyctags",
+	gtags_info->ctags_options = utils_get_setting_string(config, CONFIG_SECTION,
 														 "ctags_options",
-														 default_ctags_options);
+														 DEFAULT_CTAGS_OPTIONS);
 	
-#define GET_CONF_BOOL(name, def)										\
-	gtags_info->name = utils_get_setting_boolean(config, "geanyctags",	\
+#define GET_CONF_BOOL(name, def)											\
+	gtags_info->name = utils_get_setting_boolean(config, CONFIG_SECTION,	\
 												 #name, def)
-	
 	GET_CONF_BOOL(print_to_status_win, TRUE);
 	GET_CONF_BOOL(print_to_msg_win, FALSE);
 #undef GET_CONF_BOOL
@@ -736,7 +827,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 										G_OBJECT(dialog), "entry_ctags_options"));
 	const gchar *ctags_options = gtk_entry_get_text(entry_ctags_options);
 	if (EMPTY(ctags_options))
-		gtk_entry_set_text(entry_ctags_options, default_ctags_options);
+		gtk_entry_set_text(entry_ctags_options, DEFAULT_CTAGS_OPTIONS);
 	
 #define SAVE_CONF_TEXT(name) G_STMT_START {										\
 	gtags_info->name = gtk_editable_get_chars(									\
@@ -744,22 +835,18 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 														   "entry_" #name)),	\
 							0, -1);												\
 	g_strstrip(gtags_info->name);												\
-	g_key_file_set_string(config, "geanyctags", #name, gtags_info->name);		\
+	g_key_file_set_string(config, CONFIG_SECTION, #name, gtags_info->name);		\
 } G_STMT_END
-	
-	SAVE_CONF_TEXT(extra_find_options_1);
-	SAVE_CONF_TEXT(extra_find_options_2);
-	SAVE_CONF_TEXT(extra_find_options_3);
+	SAVE_CONF_TEXT(find_options);
 	SAVE_CONF_TEXT(ctags_options);
 #undef SAVE_CONF_TEXT
 	
-#define SAVE_CONF_BOOL(name) G_STMT_START {									\
-	gtags_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(		\
-							g_object_get_data(G_OBJECT(dialog),				\
-											  "check_" #name)));			\
-	g_key_file_set_boolean(config, "geanyctags", #name, gtags_info->name);	\
+#define SAVE_CONF_BOOL(name) G_STMT_START {										\
+	gtags_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(			\
+							g_object_get_data(G_OBJECT(dialog),					\
+											  "check_" #name)));				\
+	g_key_file_set_boolean(config, CONFIG_SECTION, #name, gtags_info->name);	\
 } G_STMT_END
-	
 	SAVE_CONF_BOOL(print_to_status_win);
 	SAVE_CONF_BOOL(print_to_msg_win);
 #undef SAVE_CONF_BOOL
@@ -780,59 +867,33 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	g_key_file_free(config);
 }
 
-static void entry_ctags_options_set_default(GtkEntry *entry, gint icon_pos,
-											GdkEvent *event, gpointer data)
-{
-	if (event->button.button == 1 && icon_pos == 1)
-	{
-		gtk_entry_set_text(entry, default_ctags_options);
-		gtk_widget_grab_focus(GTK_WIDGET(entry));
-	}
-}
-
 static GtkWidget *plugin_geanyctags_configure(G_GNUC_UNUSED GeanyPlugin *plugin,
 											  GtkDialog *dialog,
 											  G_GNUC_UNUSED gpointer pdata)
 {
 	GtkWidget *vbox, *container, *widget;
-	
 	vbox = gtk_vbox_new(FALSE, 0);
 	
-#define WIDGET_CONF_TEXT(name, label_text) G_STMT_START {					\
-	widget = add_inputbox(container, label_text, gtags_info->name, -1,		\
-						  _("Other options to pass to Find"), FALSE, TRUE);	\
-	g_object_set_data(G_OBJECT(dialog), "entry_" #name, widget);			\
-} G_STMT_END
+	ADD_INPUTBOX(vbox, widget, _("Find options:"), gtags_info->find_options,
+				 _("Options to pass to Find"), GTK_STOCK_CLEAR, _("Clear"), "");
+	g_object_set_data(G_OBJECT(dialog), "entry_find_options", widget);
 	
-	container = add_named_vbox(vbox, _("Extra find options"));
-	WIDGET_CONF_TEXT(extra_find_options_1, "1:");
-	WIDGET_CONF_TEXT(extra_find_options_2, "2:");
-	WIDGET_CONF_TEXT(extra_find_options_3, "3:");
-#undef WIDGET_CONF_TEXT
-	
-	widget = add_inputbox(vbox, _("Ctags options:"), gtags_info->ctags_options, -1,
-						  _("Options to pass to Ctags"), FALSE, FALSE);
+	ADD_INPUTBOX(vbox, widget, _("Ctags options:"), gtags_info->ctags_options,
+				 _("Options to pass to Ctags"), GTK_STOCK_UNDO,
+				 _("Reset to Default"), DEFAULT_CTAGS_OPTIONS);
 	g_object_set_data(G_OBJECT(dialog), "entry_ctags_options", widget);
-	
-	g_object_set(widget, "secondary-icon-stock", GTK_STOCK_UNDO,
-				 "secondary-icon-activatable", TRUE,
-				 "secondary-icon-tooltip-text", _("Reset to Default"), NULL);
-	g_signal_connect(widget, "icon-release",
-					 G_CALLBACK(entry_ctags_options_set_default), NULL);
 	
 #define WIDGET_CONF_BOOL(name, description) G_STMT_START {					\
 	widget = add_checkbox(container, description, gtags_info->name,			\
 						  NULL, TRUE);										\
 	g_object_set_data(G_OBJECT(dialog), "check_" #name, widget);			\
 } G_STMT_END
-	
 	container = add_named_vbox(vbox, _("Print tags generation results"));
 	WIDGET_CONF_BOOL(print_to_status_win, _("To the status window"));
 	WIDGET_CONF_BOOL(print_to_msg_win, _("To the messages window"));
 #undef WIDGET_CONF_BOOL
 	
-	g_signal_connect(dialog, "response",
-					 G_CALLBACK(configure_response_cb), NULL);
+	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
 	
 	gtk_widget_show_all(vbox);
 	return vbox;
@@ -842,9 +903,9 @@ static void plugin_geanyctags_cleanup(G_GNUC_UNUSED GeanyPlugin *plugin,
 									  G_GNUC_UNUSED gpointer pdata)
 {
 	g_free(gtags_info->config_file);
-	g_free(gtags_info->extra_find_options_1);
-	g_free(gtags_info->extra_find_options_2);
-	g_free(gtags_info->extra_find_options_3);
+	g_free(gtags_info->find_excludedirs);
+	g_free(gtags_info->find_excludefiles);
+	g_free(gtags_info->find_options);
 	g_free(gtags_info->ctags_options);
 	g_free(gtags_info);
 	
