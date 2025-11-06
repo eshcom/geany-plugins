@@ -1,7 +1,7 @@
 /*
  *      setfiletype.c
  *
- *      Copyright 2020 Egor Shinkarev <esh.eburg@gmail.com>
+ *      Copyright 2020 Egor Shinkarev <esheburg@gmail.com>
  *
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -266,7 +266,7 @@ void geany_load_module(GeanyPlugin *plugin)
 	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) "
 								  "by hotkey");
 	plugin->info->version = "0.1";
-	plugin->info->author = "Egor Shinkarev <esh.eburg@gmail.com>";
+	plugin->info->author = "Egor Shinkarev <esheburg@gmail.com>";
 	
 	/* Set functions */
 	plugin->funcs->init = plugin_setfiletype_init;
