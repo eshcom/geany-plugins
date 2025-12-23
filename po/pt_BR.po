@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 16:35+0300\n"
+"POT-Creation-Date: 2026-05-07 18:09+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Adrovane Marques Kade <adrovane@gmail.com>\n"
 "Language-Team: Adrovane Marques Kade <adrovane@gmail.com>\n"
@@ -312,93 +312,93 @@ msgid "Various small addons for Geany."
 msgstr "Diversos pequenos complementos para o Geany."
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:976
+#: ../autoclose/src/autoclose.c:984
 msgid "Auto-close quotes and brackets"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:977
+#: ../autoclose/src/autoclose.c:985
 msgid "Parenthesis ( )"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:978
+#: ../autoclose/src/autoclose.c:986
 msgid "Auto-close parenthesis \"(\" -> \"(|)\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:980
+#: ../autoclose/src/autoclose.c:988
 msgid "Curly brackets { }"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:981
+#: ../autoclose/src/autoclose.c:989
 msgid "Auto-close curly brackets \"{\" -> \"{|}\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:983
+#: ../autoclose/src/autoclose.c:991
 msgid "Square brackets [ ]"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:984
+#: ../autoclose/src/autoclose.c:992
 msgid "Auto-close square brackets \"[\" -> \"[|]\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:985
+#: ../autoclose/src/autoclose.c:993
 msgid "Angular brackets < >"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:986
+#: ../autoclose/src/autoclose.c:994
 msgid "Auto-close angular brackets \"<\" -> \"<|>\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:989
+#: ../autoclose/src/autoclose.c:997
 msgid "\tOnly for HTML/XML"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:990
+#: ../autoclose/src/autoclose.c:998
 msgid "Auto-close angular brackets only in HTML documents"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:992
+#: ../autoclose/src/autoclose.c:1000
 msgid "Double quotes \" \""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:993
+#: ../autoclose/src/autoclose.c:1001
 msgid "Auto-close double quotes \" -> \"|\""
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:994
+#: ../autoclose/src/autoclose.c:1002
 msgid "Single quotes ' '"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:995
+#: ../autoclose/src/autoclose.c:1003
 msgid "Auto-close single quotes ' -> '|'"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:996
+#: ../autoclose/src/autoclose.c:1004
 msgid "Backquote ` `"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:997
+#: ../autoclose/src/autoclose.c:1005
 msgid "Auto-close backquote ` -> `|`"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1000
+#: ../autoclose/src/autoclose.c:1008
 msgid "\tOnly for Shell-scripts (Bash)"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1001
+#: ../autoclose/src/autoclose.c:1009
 msgid "Auto-close backquote only in Shell-scripts like Bash"
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:1005
+#: ../autoclose/src/autoclose.c:1013
 msgid "Improve curly brackets completion"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1006
+#: ../autoclose/src/autoclose.c:1014
 #, fuzzy
 msgid "Indent when enclosing"
 msgstr "Não definir nenhum encoding"
 
-#: ../autoclose/src/autoclose.c:1007
+#: ../autoclose/src/autoclose.c:1015
 msgid ""
 "If you select some text and press \"{\" or \"}\", plugin will auto-close "
 "selected lines and make new block with indent.\n"
@@ -406,135 +406,135 @@ msgid ""
 "account only lines."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1013
+#: ../autoclose/src/autoclose.c:1021
 #, fuzzy
 msgid "Move cursor to beginning"
 msgstr "Formatar seleção alinhado à esquerda"
 
-#: ../autoclose/src/autoclose.c:1014
+#: ../autoclose/src/autoclose.c:1022
 msgid ""
 "If you checked \"Indent when enclosing\", moving cursor to beginning may be "
 "useful: usually you make new block and need to create new statement before "
 "this block."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1017
+#: ../autoclose/src/autoclose.c:1025
 #, fuzzy
 msgid "Improved auto-indentation"
 msgstr "Orientação do Papel:"
 
-#: ../autoclose/src/autoclose.c:1018
+#: ../autoclose/src/autoclose.c:1026
 msgid ""
 "Improved auto-indent for curly brackets: type \"{\" and then press Enter - "
 "plugin will create full indented block. Works without \"auto-close { }\" "
 "checkbox."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1021
+#: ../autoclose/src/autoclose.c:1029
 msgid "\tWhitesmith's style"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1022
+#: ../autoclose/src/autoclose.c:1030
 msgid ""
 "This style puts the brace associated with a control statement on the next "
 "line, indented. Statements within the braces are indented to the same level "
 "as the braces."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1029
+#: ../autoclose/src/autoclose.c:1037
 msgid "Delete pairing character while backspacing first"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1030
+#: ../autoclose/src/autoclose.c:1038
 msgid "Check if you want to delete pairing bracket by pressing BackSpace."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1034
+#: ../autoclose/src/autoclose.c:1042
 #, fuzzy
 msgid "Suppress double-completion"
 msgstr "Modo de auto-completação"
 
-#: ../autoclose/src/autoclose.c:1035
+#: ../autoclose/src/autoclose.c:1043
 msgid ""
 "Check if you want to allow editor automatically fix mistypes with brackets: "
 "if you type \"{}\" you will get \"{}\", not \"{}}\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1038
+#: ../autoclose/src/autoclose.c:1046
 #, fuzzy
 msgid "Enclose selections"
 msgstr "Seleção Extra"
 
-#: ../autoclose/src/autoclose.c:1039
+#: ../autoclose/src/autoclose.c:1047
 msgid "Automatically enclose selected text by pressing just one bracket key."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1043
+#: ../autoclose/src/autoclose.c:1051
 #, fuzzy
 msgid "Keep selection when enclosing"
 msgstr "Definir seleção um nível para baixo"
 
-#: ../autoclose/src/autoclose.c:1044
+#: ../autoclose/src/autoclose.c:1052
 msgid "Keep your previously selected text after enclosing."
 msgstr ""
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:1047
+#: ../autoclose/src/autoclose.c:1055
 msgid "Behaviour inside comments and strings"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1048
+#: ../autoclose/src/autoclose.c:1056
 msgid "Allow auto-closing in strings and comments"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1049
+#: ../autoclose/src/autoclose.c:1057
 msgid "Check if you want to keep auto-closing inside strings and comments too."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1051
+#: ../autoclose/src/autoclose.c:1059
 msgid "Enclose selections in strings and comments"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1052
+#: ../autoclose/src/autoclose.c:1060
 msgid ""
 "Check if you want to enclose selections inside strings and comments too."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1057
+#: ../autoclose/src/autoclose.c:1065
 msgid "Auto-complete \";\" for functions"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1058
+#: ../autoclose/src/autoclose.c:1066
 msgid ""
 "Full function auto-closing (works only for C/C++): type \"sin(\" and you "
 "will get \"sin(|);\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1060
+#: ../autoclose/src/autoclose.c:1068
 msgid "Shift+BackSpace removes pairing brace too"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1061
+#: ../autoclose/src/autoclose.c:1069
 msgid ""
 "Remove left and right brace while pressing Shift+BackSpace.\n"
 "Tip: to completely remove indented block just Shift+BackSpace first \"{\" or "
 "last \"}\"."
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1064
+#: ../autoclose/src/autoclose.c:1072
 msgid "Jump on Tab to enclosed char"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1065
+#: ../autoclose/src/autoclose.c:1073
 msgid "Jump behind autoclosed items on Tab press."
 msgstr ""
 
 #. Set metadata
-#: ../autoclose/src/autoclose.c:1121
+#: ../autoclose/src/autoclose.c:1129
 msgid "Auto-close"
 msgstr ""
 
-#: ../autoclose/src/autoclose.c:1122
+#: ../autoclose/src/autoclose.c:1130
 msgid "Auto-close braces and brackets with lot of features"
 msgstr ""
 
@@ -5225,6 +5225,63 @@ msgstr "Pula para a próxima linha."
 
 #: ../git-changebar/src/gcb-plugin.c:1477
 msgid "Undo hunk at the cursor position"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:65
+msgid "Git Manager"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:131
+msgid "Repo Tags"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:132
+msgid "Repo Branches"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:134
+msgid "Pull Repo"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:135
+msgid "Push Repo"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:136
+#, fuzzy
+msgid "Commit Repo"
+msgstr "Submeter"
+
+#: ../git-manager/src/git-manager.c:138
+msgid "Show Repo Log"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:139
+msgid "Show File Log"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:140
+msgid "Show File Dir Log"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:142
+msgid "Show File Last Diff"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:143
+msgid "Show File Prev Diff"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:192
+msgid "Log"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:260
+msgid "Path to the Diff Util"
+msgstr ""
+
+#: ../git-manager/src/git-manager.c:292
+msgid "This plugin provides a GUI for Git commands (log/commit/push/pull/etc.)"
 msgstr ""
 
 #: ../jsonprettifier/src/jsonprettifier.c:49

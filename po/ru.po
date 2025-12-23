@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Geany-Plugins 1.30\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 16:35+0300\n"
+"POT-Creation-Date: 2026-05-07 18:09+0300\n"
 "PO-Revision-Date: 2020-05-01 16:20+1000\n"
 "Last-Translator: Dmitry Unruh <dmitryunruh@googlemail.com>\n"
 "Language-Team: Russian <geany-i18n@uvena.de>\n"
@@ -306,92 +306,92 @@ msgid "Various small addons for Geany."
 msgstr "Различные небольшие дополнения для Geany"
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:976
+#: ../autoclose/src/autoclose.c:984
 msgid "Auto-close quotes and brackets"
 msgstr "Автозакрытие скобок и кавычек"
 
-#: ../autoclose/src/autoclose.c:977
+#: ../autoclose/src/autoclose.c:985
 msgid "Parenthesis ( )"
 msgstr "Круглые скобки ( )"
 
-#: ../autoclose/src/autoclose.c:978
+#: ../autoclose/src/autoclose.c:986
 msgid "Auto-close parenthesis \"(\" -> \"(|)\""
 msgstr "Автозакрытие круглых скобок \"(\" -> \"(|)\""
 
-#: ../autoclose/src/autoclose.c:980
+#: ../autoclose/src/autoclose.c:988
 msgid "Curly brackets { }"
 msgstr "Фигурные скобки { }"
 
-#: ../autoclose/src/autoclose.c:981
+#: ../autoclose/src/autoclose.c:989
 msgid "Auto-close curly brackets \"{\" -> \"{|}\""
 msgstr "Автозакрытие фигурных скобок \"{\" -> \"{|}\""
 
-#: ../autoclose/src/autoclose.c:983
+#: ../autoclose/src/autoclose.c:991
 msgid "Square brackets [ ]"
 msgstr "Квадратные скобки [ ]"
 
-#: ../autoclose/src/autoclose.c:984
+#: ../autoclose/src/autoclose.c:992
 msgid "Auto-close square brackets \"[\" -> \"[|]\""
 msgstr "Автозакрытие квадратных скобок \"[\" -> \"[|]\""
 
-#: ../autoclose/src/autoclose.c:985
+#: ../autoclose/src/autoclose.c:993
 msgid "Angular brackets < >"
 msgstr "Угловые скобки < >"
 
-#: ../autoclose/src/autoclose.c:986
+#: ../autoclose/src/autoclose.c:994
 msgid "Auto-close angular brackets \"<\" -> \"<|>\""
 msgstr "Автозакрытие угловых скобок \"<\" -> \"<|>\""
 
-#: ../autoclose/src/autoclose.c:989
+#: ../autoclose/src/autoclose.c:997
 msgid "\tOnly for HTML/XML"
 msgstr "\tТолько для HTML/XML"
 
-#: ../autoclose/src/autoclose.c:990
+#: ../autoclose/src/autoclose.c:998
 msgid "Auto-close angular brackets only in HTML documents"
 msgstr "Автозакрытие угловых скобок только в HTML/XML документах"
 
-#: ../autoclose/src/autoclose.c:992
+#: ../autoclose/src/autoclose.c:1000
 msgid "Double quotes \" \""
 msgstr "Двойные кавычки \" \""
 
-#: ../autoclose/src/autoclose.c:993
+#: ../autoclose/src/autoclose.c:1001
 msgid "Auto-close double quotes \" -> \"|\""
 msgstr "Автозакрытие двойных кавычек \" -> \"|\""
 
-#: ../autoclose/src/autoclose.c:994
+#: ../autoclose/src/autoclose.c:1002
 msgid "Single quotes ' '"
 msgstr "Одинарные кавычки ' '"
 
-#: ../autoclose/src/autoclose.c:995
+#: ../autoclose/src/autoclose.c:1003
 msgid "Auto-close single quotes ' -> '|'"
 msgstr "Автозакрытие одинарных кавычек ' -> '|'"
 
-#: ../autoclose/src/autoclose.c:996
+#: ../autoclose/src/autoclose.c:1004
 msgid "Backquote ` `"
 msgstr "Обратная кавычка ` `"
 
-#: ../autoclose/src/autoclose.c:997
+#: ../autoclose/src/autoclose.c:1005
 msgid "Auto-close backquote ` -> `|`"
 msgstr "Автозакрытие обратной кавычки ` -> `|`"
 
-#: ../autoclose/src/autoclose.c:1000
+#: ../autoclose/src/autoclose.c:1008
 msgid "\tOnly for Shell-scripts (Bash)"
 msgstr "\tТолько для языка сценариев Bash"
 
-#: ../autoclose/src/autoclose.c:1001
+#: ../autoclose/src/autoclose.c:1009
 msgid "Auto-close backquote only in Shell-scripts like Bash"
 msgstr "Автозакрытие обратной кавычки только в документах Bash"
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:1005
+#: ../autoclose/src/autoclose.c:1013
 msgid "Improve curly brackets completion"
 msgstr "Улучшить автозакрытие фигурных скобок"
 
-#: ../autoclose/src/autoclose.c:1006
+#: ../autoclose/src/autoclose.c:1014
 msgid "Indent when enclosing"
 msgstr "Создавать отступ при окружении"
 
-#: ../autoclose/src/autoclose.c:1007
+#: ../autoclose/src/autoclose.c:1015
 msgid ""
 "If you select some text and press \"{\" or \"}\", plugin will auto-close "
 "selected lines and make new block with indent.\n"
@@ -404,11 +404,11 @@ msgstr ""
 "Вам не нужно точно выделять границы блоки - окружение работает только со "
 "строками целиком."
 
-#: ../autoclose/src/autoclose.c:1013
+#: ../autoclose/src/autoclose.c:1021
 msgid "Move cursor to beginning"
 msgstr "Переместить курсор к началу"
 
-#: ../autoclose/src/autoclose.c:1014
+#: ../autoclose/src/autoclose.c:1022
 msgid ""
 "If you checked \"Indent when enclosing\", moving cursor to beginning may be "
 "useful: usually you make new block and need to create new statement before "
@@ -418,11 +418,11 @@ msgstr ""
 "в начало блока может быть полезным: обычно вы создаёте новый блок и "
 "печатаете оператор перед этим блоком."
 
-#: ../autoclose/src/autoclose.c:1017
+#: ../autoclose/src/autoclose.c:1025
 msgid "Improved auto-indentation"
 msgstr "Улучшить автоотступ"
 
-#: ../autoclose/src/autoclose.c:1018
+#: ../autoclose/src/autoclose.c:1026
 msgid ""
 "Improved auto-indent for curly brackets: type \"{\" and then press Enter - "
 "plugin will create full indented block. Works without \"auto-close { }\" "
@@ -432,11 +432,11 @@ msgstr ""
 "нажмите Enter - модуль создаст полностью готовый блок с отступом. Работает "
 "без параметра \"автозакрытие фигурных скобок { }\"."
 
-#: ../autoclose/src/autoclose.c:1021
+#: ../autoclose/src/autoclose.c:1029
 msgid "\tWhitesmith's style"
 msgstr "\tСтиль Уайтсмит"
 
-#: ../autoclose/src/autoclose.c:1022
+#: ../autoclose/src/autoclose.c:1030
 msgid ""
 "This style puts the brace associated with a control statement on the next "
 "line, indented. Statements within the braces are indented to the same level "
@@ -445,21 +445,21 @@ msgstr ""
 "Данный стиль располагает фигурные скобки с отступом относительно предыдущего "
 "оператора. Операторы внутри блока имеют тот же отступ, что и фигурная скобка."
 
-#: ../autoclose/src/autoclose.c:1029
+#: ../autoclose/src/autoclose.c:1037
 msgid "Delete pairing character while backspacing first"
 msgstr "Удалить парный символ при удалении предыдущего клавишей BackSpace"
 
-#: ../autoclose/src/autoclose.c:1030
+#: ../autoclose/src/autoclose.c:1038
 msgid "Check if you want to delete pairing bracket by pressing BackSpace."
 msgstr ""
 "Включите, если хотите, чтобы модуль удалял соседний парный символ каждый "
 "раз, когда вы нажимете BackSpace."
 
-#: ../autoclose/src/autoclose.c:1034
+#: ../autoclose/src/autoclose.c:1042
 msgid "Suppress double-completion"
 msgstr "Подавлять двойное автозакрытие"
 
-#: ../autoclose/src/autoclose.c:1035
+#: ../autoclose/src/autoclose.c:1043
 msgid ""
 "Check if you want to allow editor automatically fix mistypes with brackets: "
 "if you type \"{}\" you will get \"{}\", not \"{}}\"."
@@ -467,55 +467,55 @@ msgstr ""
 "Включите, если хотите, чтобы модуль автоматически исправлял ошибки в "
 "скобках: если вы печатаете \"{}\", вы получите \"{}\", а не \"{}}\"."
 
-#: ../autoclose/src/autoclose.c:1038
+#: ../autoclose/src/autoclose.c:1046
 msgid "Enclose selections"
 msgstr "Окружать выделенный текст"
 
-#: ../autoclose/src/autoclose.c:1039
+#: ../autoclose/src/autoclose.c:1047
 msgid "Automatically enclose selected text by pressing just one bracket key."
 msgstr ""
 "Автоматически окружать выбранный текст путём нажатия только одной клавиши со "
 "скобкой."
 
-#: ../autoclose/src/autoclose.c:1043
+#: ../autoclose/src/autoclose.c:1051
 msgid "Keep selection when enclosing"
 msgstr "Сохранять выделение при окружении"
 
-#: ../autoclose/src/autoclose.c:1044
+#: ../autoclose/src/autoclose.c:1052
 msgid "Keep your previously selected text after enclosing."
 msgstr "Сохранить предыдущее выделение текст после окружения скобками."
 
 #. ----------------------------------------------------------------
-#: ../autoclose/src/autoclose.c:1047
+#: ../autoclose/src/autoclose.c:1055
 msgid "Behaviour inside comments and strings"
 msgstr "Поведение внутри комментариев и строк"
 
-#: ../autoclose/src/autoclose.c:1048
+#: ../autoclose/src/autoclose.c:1056
 msgid "Allow auto-closing in strings and comments"
 msgstr "Разрешить автозакрытие внутри комментариев и строк"
 
-#: ../autoclose/src/autoclose.c:1049
+#: ../autoclose/src/autoclose.c:1057
 msgid "Check if you want to keep auto-closing inside strings and comments too."
 msgstr ""
 "Включите, если вы хотите, чтобы автозакрытие также работало внутри "
 "комментариев и строк."
 
-#: ../autoclose/src/autoclose.c:1051
+#: ../autoclose/src/autoclose.c:1059
 msgid "Enclose selections in strings and comments"
 msgstr "Окружать выделение внутри комментариев и строк"
 
-#: ../autoclose/src/autoclose.c:1052
+#: ../autoclose/src/autoclose.c:1060
 msgid ""
 "Check if you want to enclose selections inside strings and comments too."
 msgstr ""
 "Включите, если вы хотите, чтобы окружение выделенного блока текст также "
 "работало внутри комментариев и строк."
 
-#: ../autoclose/src/autoclose.c:1057
+#: ../autoclose/src/autoclose.c:1065
 msgid "Auto-complete \";\" for functions"
 msgstr "Автозавершение \";\" для функций"
 
-#: ../autoclose/src/autoclose.c:1058
+#: ../autoclose/src/autoclose.c:1066
 msgid ""
 "Full function auto-closing (works only for C/C++): type \"sin(\" and you "
 "will get \"sin(|);\"."
@@ -523,11 +523,11 @@ msgstr ""
 "Полное автозакрытие для функций (работает только для C/C++): напечатайте "
 "\"sin(\" и вы получите \"sin(|);\"."
 
-#: ../autoclose/src/autoclose.c:1060
+#: ../autoclose/src/autoclose.c:1068
 msgid "Shift+BackSpace removes pairing brace too"
 msgstr "Shift+BackSpace удаляет парную скобку"
 
-#: ../autoclose/src/autoclose.c:1061
+#: ../autoclose/src/autoclose.c:1069
 msgid ""
 "Remove left and right brace while pressing Shift+BackSpace.\n"
 "Tip: to completely remove indented block just Shift+BackSpace first \"{\" or "
@@ -538,20 +538,20 @@ msgstr ""
 "Подсказка: чтобы удалить полностью блок с отступом, просто нажмите "
 "Shift+BackSpace рядом с первым символом \"{\" или последним символом \"}\"."
 
-#: ../autoclose/src/autoclose.c:1064
+#: ../autoclose/src/autoclose.c:1072
 msgid "Jump on Tab to enclosed char"
 msgstr "Нажмите Tab для перехода к следующему символу"
 
-#: ../autoclose/src/autoclose.c:1065
+#: ../autoclose/src/autoclose.c:1073
 msgid "Jump behind autoclosed items on Tab press."
 msgstr "Переходить к парному автоматически вставленному символу клавишей Tab."
 
 #. Set metadata
-#: ../autoclose/src/autoclose.c:1121
+#: ../autoclose/src/autoclose.c:1129
 msgid "Auto-close"
 msgstr "Автозакрытие"
 
-#: ../autoclose/src/autoclose.c:1122
+#: ../autoclose/src/autoclose.c:1130
 msgid "Auto-close braces and brackets with lot of features"
 msgstr "Многофункциональное автозакрытие скобок и кавычек"
 
@@ -5215,6 +5215,59 @@ msgstr "Перейти к следующему участку"
 #: ../git-changebar/src/gcb-plugin.c:1477
 msgid "Undo hunk at the cursor position"
 msgstr ""
+
+#: ../git-manager/src/git-manager.c:65
+msgid "Git Manager"
+msgstr "Git-менеджер"
+
+#: ../git-manager/src/git-manager.c:131
+msgid "Repo Tags"
+msgstr "Менеджер тегов"
+
+#: ../git-manager/src/git-manager.c:132
+msgid "Repo Branches"
+msgstr "Менеджер веток"
+
+#: ../git-manager/src/git-manager.c:134
+msgid "Pull Repo"
+msgstr "Загрузить изменения из удаленного репо"
+
+#: ../git-manager/src/git-manager.c:135
+msgid "Push Repo"
+msgstr "Отправить изменения в удаленный репо"
+
+#: ../git-manager/src/git-manager.c:136
+msgid "Commit Repo"
+msgstr "Записать изменения в локальный репо"
+
+#: ../git-manager/src/git-manager.c:138
+msgid "Show Repo Log"
+msgstr "Показать лог репо"
+
+#: ../git-manager/src/git-manager.c:139
+msgid "Show File Log"
+msgstr "Показать лог файла"
+
+#: ../git-manager/src/git-manager.c:140
+msgid "Show File Dir Log"
+msgstr "Показать лог директории файла"
+
+#: ../git-manager/src/git-manager.c:142
+msgid "Show File Last Diff"
+msgstr "Показать последние изменения файла"
+
+#: ../git-manager/src/git-manager.c:143
+msgid "Show File Prev Diff"
+msgstr "Показать предыдущие изменения файла"
+
+#: ../git-manager/src/git-manager.c:260
+msgid "Path to the Diff Util"
+msgstr "Путь к утилите сравнения исходного кода"
+
+#: ../git-manager/src/git-manager.c:292
+msgid "This plugin provides a GUI for Git commands (log/commit/push/pull/etc.)"
+msgstr ""
+"Этот плагин предоставляет GUI для git-комманд (log/commit/push/pull и т.д.)"
 
 #: ../jsonprettifier/src/jsonprettifier.c:49
 msgid "JSON Prettifier"

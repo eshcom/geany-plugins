@@ -1,0 +1,27 @@
+Git Manager
+===================
+
+About
+-----
+
+This plugin provides a GUI for Git commands (log/commit/push/pull/etc.).
+
+Features
+--------
+
+Usage
+-----
+
+After installed successfully, load the plugin in Geany's plugin manager. You may
+change module preferences.
+
+Requirements
+------------
+
+* GTK >= 2.8.0
+* libgit2 >= 0.21
+
+Contact developers
+------------------
+
+Egor Shinkarev <esheburg@gmail.com>
