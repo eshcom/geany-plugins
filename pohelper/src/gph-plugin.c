@@ -28,6 +28,8 @@
 #include <document.h>
 #include <SciLexer.h>
 
+#include "../../utils/src/ui_plugins.h"
+
 
 GeanyPlugin      *geany_plugin;
 GeanyData        *geany_data;
@@ -1421,24 +1423,6 @@ on_color_button_color_notify (GtkWidget  *widget,
                               gpointer    user_data)
 {
   gtk_color_button_get_color (GTK_COLOR_BUTTON (widget), user_data);
-}
-
-static gchar *
-get_data_dir_path (const gchar *filename)
-{
-  gchar *prefix = NULL;
-  gchar *path;
-
-#ifdef G_OS_WIN32
-  prefix = g_win32_get_package_installation_directory_of_module (NULL);
-#elif defined(__APPLE__)
-  if (g_getenv ("GEANY_PLUGINS_SHARE_PATH"))
-    return g_build_filename( g_getenv ("GEANY_PLUGINS_SHARE_PATH"), 
-                             PLUGIN, filename, NULL);
-#endif
-  path = g_build_filename (prefix ? prefix : "", PLUGINDATADIR, filename, NULL);
-  g_free (prefix);
-  return path;
 }
 
 static void

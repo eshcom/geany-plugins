@@ -17,8 +17,7 @@ libgeanypluginutils_la_SOURCES += \
 	gp_vtecompat.c
 endif
 
-libgeanypluginutils_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DG_LOG_DOMAIN=\"Utils\"
+libgeanypluginutils_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Utils\"
 libgeanypluginutils_la_CFLAGS = $(AM_CFLAGS) $(UTILSLIB_CFLAGS)
 libgeanypluginutils_la_LIBADD = $(COMMONLIBS) $(UTILSLIB_LIBS)
 libgeanypluginutils_la_LDFLAGS = -no-undefined $(GP_LDFLAGS)

@@ -21,11 +21,12 @@
 # include "config.h"
 #endif
 
-#include <stdlib.h>
-
 #include "common.h"
-
+#include <stdlib.h>
 #include <gp_gtkcompat.h>
+
+#include "../../utils/src/ui_plugins.h"
+
 
 GeanyPlugin *geany_plugin;
 GeanyData *geany_data;
@@ -518,23 +519,6 @@ void configure_panel(void)
 		short_tab_names ? _("Console") : _("Debug Console"));
 
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(debug_panel), pref_panel_tab_pos);
-}
-
-static gchar *get_data_dir_path(const gchar *filename)
-{
-	gchar *prefix = NULL;
-	gchar *path;
-
-#ifdef G_OS_WIN32
-	prefix = g_win32_get_package_installation_directory_of_module(NULL);
-#elif defined(__APPLE__)
-	if (g_getenv("GEANY_PLUGINS_SHARE_PATH"))
-		return g_build_filename(g_getenv("GEANY_PLUGINS_SHARE_PATH"), 
-								PLUGIN, filename, NULL);
-#endif
-	path = g_build_filename(prefix ? prefix : "", PLUGINDATADIR, filename, NULL);
-	g_free(prefix);
-	return path;
 }
 
 void plugin_init(G_GNUC_UNUSED GeanyData *gdata)

@@ -53,12 +53,10 @@ scope_la_SOURCES = \
 
 scope_la_LIBADD = $(COMMONLIBS) $(VTE_LIBS) $(PTY_LIBS) \
 				  $(top_builddir)/utils/src/libgeanypluginutils.la
-
 scope_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Scope\"
 scope_la_CFLAGS = $(AM_CFLAGS) $(VTE_CFLAGS) \
-	-DPLUGINHTMLDOCDIR=\"$(plugindocdir)/html\" \
-	-Wno-shadow \
-	-I$(top_srcdir)/utils/src
+				  -DPLUGINHTMLDOCDIR=\"$(plugindocdir)/html\" \
+				  -Wno-shadow -I$(top_srcdir)/utils/src
 
 include $(top_srcdir)/build/cppcheck.mk
 

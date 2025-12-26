@@ -24,6 +24,7 @@
 #endif
 
 #include "ggd-utils.h"
+#include "ggd-plugin.h" /* to access Geany data/funcs */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,7 +37,7 @@
 #include <gio/gio.h> /* for G_FILE_ERROR and friends */
 #include <geanyplugin.h>
 
-#include "ggd-plugin.h" /* to access Geany data/funcs */
+#include "../../utils/src/ui_plugins.h"
 
 
 /*
@@ -133,24 +134,6 @@ ggd_copy_file (const gchar *input,
   }
   
   return success;
-}
-
-static gchar *
-get_data_dir_path (const gchar *filename)
-{
-  gchar *prefix = NULL;
-  gchar *path;
-
-#ifdef G_OS_WIN32
-  prefix = g_win32_get_package_installation_directory_of_module (NULL);
-#elif defined(__APPLE__)
-  if (g_getenv ("GEANY_PLUGINS_SHARE_PATH"))
-    return g_build_filename (g_getenv ("GEANY_PLUGINS_SHARE_PATH"), 
-                             PLUGIN, filename, NULL);
-#endif
-  path = g_build_filename (prefix ? prefix : "", PLUGINDATADIR, filename, NULL);
-  g_free (prefix);
-  return path;
 }
 
 /**

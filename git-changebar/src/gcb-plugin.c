@@ -32,6 +32,8 @@
 #include <geany.h>
 #include <document.h>
 
+#include "../../utils/src/ui_plugins.h"
+
 #ifdef LIBGIT2_VER_MINOR
 # define CHECK_LIBGIT2_VERSION(MAJOR, MINOR) \
   ((LIBGIT2_VER_MAJOR == (MAJOR) && LIBGIT2_VER_MINOR >= (MINOR)) || \
@@ -1666,24 +1668,6 @@ on_plugin_configure_response (GtkDialog        *dialog,
       }
     }
   }
-}
-
-static gchar *
-get_data_dir_path (const gchar *filename)
-{
-  gchar *prefix = NULL;
-  gchar *path;
-
-#ifdef G_OS_WIN32
-  prefix = g_win32_get_package_installation_directory_of_module (NULL);
-#elif defined(__APPLE__)
-  if (g_getenv ("GEANY_PLUGINS_SHARE_PATH"))
-    return g_build_filename (g_getenv ("GEANY_PLUGINS_SHARE_PATH"), 
-                             PLUGIN, filename, NULL);
-#endif
-  path = g_build_filename (prefix ? prefix : "", PLUGINDATADIR, filename, NULL);
-  g_free (prefix);
-  return path;
 }
 
 GtkWidget *

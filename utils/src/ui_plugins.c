@@ -287,3 +287,20 @@ DoubleWidget add_checkbutton(GtkWidget *parent_box, const gchar *check_text,
 	
 	return (DoubleWidget){check, button};
 }
+
+gchar *get_data_dir_path(const gchar *filename)
+{
+	gchar *prefix = NULL;
+	
+#ifdef G_OS_WIN32
+	prefix = g_win32_get_package_installation_directory_of_module(NULL);
+#elif defined(__APPLE__)
+	if (g_getenv("GEANY_PLUGINS_SHARE_PATH"))
+		return g_build_filename(g_getenv("GEANY_PLUGINS_SHARE_PATH"), 
+								PLUGIN, filename, NULL);
+#endif
+	gchar *path = g_build_filename(prefix ? prefix : "", PLUGINDATADIR,
+								   filename, NULL);
+	g_free(prefix);
+	return path;
+}

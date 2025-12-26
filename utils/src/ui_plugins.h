@@ -79,6 +79,8 @@ DoubleWidget add_checkbutton(GtkWidget *parent_box, const gchar *check_text,
 							 const gboolean checked, const gchar *tooltip_text,
 							 const gboolean add_offset);
 
+gchar *get_data_dir_path(const gchar *filename);
+
 G_END_DECLS
 
 #endif /* GP_UTILS_UI_PLUGINS_H */
