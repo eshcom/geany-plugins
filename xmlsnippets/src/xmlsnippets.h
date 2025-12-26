@@ -24,10 +24,7 @@
 
 #ifdef TEST
   #include "test-stubs.h"
-#else
-  #include "plugin.h"
 #endif
-#include <glib.h>
 
 typedef struct InputInfo
 {
@@ -40,6 +37,6 @@ typedef struct CompletionInfo
 } CompletionInfo;
 
 gboolean get_completion(GeanyEditor *editor, const gchar *sel, const gint size,
-  CompletionInfo * c, InputInfo * i);
+						CompletionInfo *c, InputInfo *i);
 
 #endif

@@ -21,15 +21,11 @@
 #ifndef H_GGD_DOC_TYPE
 #define H_GGD_DOC_TYPE
 
-#include <stdio.h>
-#include <glib.h>
-
 #include "ggd-doc-setting.h"
 #include "ggd-macros.h"
 
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 typedef struct  _GgdDocType GgdDocType;
 

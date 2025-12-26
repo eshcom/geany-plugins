@@ -20,10 +20,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <sys/time.h>
-
 #include "geanyprj.h"
+#include "../../utils/src/common.h"
+
 
 const gchar *project_type_string[NEW_PROJECT_TYPE_SIZE] = {
 	[NEW_PROJECT_TYPE_ALL]    = "All",
@@ -93,93 +92,82 @@ static void free_tag_object(gpointer obj)
 
 struct GeanyPrj *geany_project_new(void)
 {
-	struct GeanyPrj *ret;
-
-	ret = (struct GeanyPrj *) g_new0(struct GeanyPrj, 1);
-	ret->tags = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, free_tag_object);
-
+	struct GeanyPrj *ret = (struct GeanyPrj *)g_new0(struct GeanyPrj, 1);
+	
+	ret->tags = g_hash_table_new_full(g_str_hash, g_str_equal,
+									  g_free, free_tag_object);
 	return ret;
 }
 
 
 struct GeanyPrj *geany_project_load(const gchar *path)
 {
-	struct GeanyPrj *ret;
 	TMSourceFile *tm_obj = NULL;
-	GKeyFile *config;
-	gint i = 0;
-	gchar *file;
-	gchar *filename, *locale_filename;
-	gchar *key;
 	gchar *tmp;
-
+	
 	debug("%s path=%s\n", __FUNCTION__, path);
-
+	
 	if (!path)
 		return NULL;
-
-	config = g_key_file_new();
-	if (!g_key_file_load_from_file(config, path, G_KEY_FILE_NONE, NULL))
+	
+	gboolean result = FALSE;
+	GKeyFile *config = load_config_from_file(path, &result);
+	if (!result)
 	{
 		g_key_file_free(config);
 		return NULL;
 	}
-
-
-	ret = geany_project_new();
+	
+	struct GeanyPrj *ret = geany_project_new();
 	geany_project_set_path(ret, path);
-
+	
 	tmp = utils_get_setting_string(config, "project", "name", GEANY_STRING_UNTITLED);
 	geany_project_set_name(ret, tmp);
 	g_free(tmp);
-
+	
 	tmp = utils_get_setting_string(config, "project", "description", "");
 	geany_project_set_description(ret, tmp);
 	g_free(tmp);
-
+	
 	tmp = utils_get_setting_string(config, "project", "base_path", "");
 	geany_project_set_base_path(ret, tmp);
 	g_free(tmp);
-
+	
 	tmp = utils_get_setting_string(config, "project", "run_cmd", "");
 	geany_project_set_run_cmd(ret, tmp);
 	g_free(tmp);
-
-	geany_project_set_type_string(ret,
-				      utils_get_setting_string(config, "project", "type",
-							       project_type_string[0]));
-	geany_project_set_regenerate(ret,
-				     g_key_file_get_boolean(config, "project", "regenerate", NULL));
-
+	
+	geany_project_set_type_string(ret, utils_get_setting_string(config, "project", "type",
+																project_type_string[0]));
+	geany_project_set_regenerate(ret, g_key_file_get_boolean(config, "project",
+															 "regenerate", NULL));
 	if (ret->regenerate)
-	{
 		geany_project_regenerate_file_list(ret);
-	}
 	else
 	{
 		GPtrArray *to_add = g_ptr_array_new();
-
+		gchar *file;
+		gint i = 0;
+		
 		/* Create tag files */
-		key = g_strdup_printf("file%d", i);
+		gchar *key = g_strdup_printf("file%d", i);
 		while ((file = g_key_file_get_string(config, "files", key, NULL)))
 		{
-			filename = get_full_path(path, file);
-
-			locale_filename = utils_get_locale_from_utf8(filename);
+			gchar *filename = get_full_path(path, file);
+			gchar *locale_filename = utils_get_locale_from_utf8(filename);
 			tm_obj = tm_source_file_new(locale_filename,
-						    filetypes_detect_from_file(filename)->name);
+										filetypes_detect_from_file(filename)->name);
 			g_free(locale_filename);
+			
 			if (tm_obj)
 			{
 				g_hash_table_insert(ret->tags, filename, tm_obj);
 				g_ptr_array_add(to_add, tm_obj);
 			}
-			else
-				g_free(filename);
-			i++;
-			g_free(key);
+			
+			SETPTR(key, g_strdup_printf("file%d", ++i));
+			g_free(filename);
 			g_free(file);
-			key = g_strdup_printf("file%d", i);
 		}
 		tm_workspace_add_source_files(to_add);
 		g_ptr_array_free(to_add, TRUE);
@@ -260,9 +248,7 @@ void geany_project_set_type_int(struct GeanyPrj *prj, gint val)
 
 void geany_project_set_type_string(struct GeanyPrj *prj, const gchar *val)
 {
-	guint i;
-
-	for (i = 0; i < sizeof(project_type_string) / sizeof(project_type_string[0]); i++)
+	for (guint i = 0; i < sizeof(project_type_string) / sizeof(project_type_string[0]); i++)
 	{
 		if (strcmp(val, project_type_string[i]) == 0)
 		{
@@ -291,15 +277,10 @@ void geany_project_set_base_path(struct GeanyPrj *prj, const gchar *base_path)
 {
 	if (prj->base_path)
 		g_free(prj->base_path);
-
-	if (g_path_is_absolute(base_path))
-	{
-		prj->base_path = g_strdup(base_path);
-	}
-	else
-	{
-		prj->base_path = get_full_path(prj->path, base_path);
-	}
+	
+	prj->base_path = g_path_is_absolute(base_path)
+						? g_strdup(base_path)
+						: get_full_path(prj->path, base_path);
 }
 
 
@@ -314,19 +295,17 @@ void geany_project_set_run_cmd(struct GeanyPrj *prj, const gchar *run_cmd)
 /* list in utf8 */
 void geany_project_set_tags_from_list(struct GeanyPrj *prj, GSList *files)
 {
-	GSList *tmp;
-	gchar *locale_filename;
-	TMSourceFile *tm_obj = NULL;
 	GPtrArray *to_add = g_ptr_array_new();
-
-	prj->tags = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, free_tag_object);
-
-	for (tmp = files; tmp != NULL; tmp = g_slist_next(tmp))
+	prj->tags = g_hash_table_new_full(g_str_hash, g_str_equal,
+									  g_free, free_tag_object);
+	
+	for (GSList *tmp = files; tmp != NULL; tmp = g_slist_next(tmp))
 	{
-		locale_filename = utils_get_locale_from_utf8(tmp->data);
-		tm_obj = tm_source_file_new(locale_filename,
-					    filetypes_detect_from_file(tmp->data)->name);
+		gchar *locale_filename = utils_get_locale_from_utf8(tmp->data);
+		TMSourceFile *tm_obj = tm_source_file_new(locale_filename,
+										filetypes_detect_from_file(tmp->data)->name);
 		g_free(locale_filename);
+		
 		if (tm_obj)
 		{
 			g_hash_table_insert(prj->tags, g_strdup(tmp->data), tm_obj);
@@ -342,7 +321,7 @@ void geany_project_free(struct GeanyPrj *prj)
 {
 	debug("%s prj=%p\n", __FUNCTION__, prj);
 	g_return_if_fail(prj);
-
+	
 	if (prj->path)
 		g_free(prj->path);
 	if (prj->name)
@@ -358,35 +337,33 @@ void geany_project_free(struct GeanyPrj *prj)
 		remove_all_tags(prj);
 		g_hash_table_destroy(prj->tags);
 	}
-
+	
 	g_free(prj);
 }
 
 
 gboolean geany_project_add_file(struct GeanyPrj *prj, const gchar *path)
 {
-	gchar *filename;
-	TMSourceFile *tm_obj = NULL;
-
-	GKeyFile *config;
-
-	config = g_key_file_new();
-	if (!g_key_file_load_from_file(config, prj->path, G_KEY_FILE_NONE, NULL))
+	gboolean result = FALSE;
+	GKeyFile *config = load_config_from_file(prj->path, &result);
+	if (!result)
 	{
 		g_key_file_free(config);
 		return FALSE;
 	}
-
+	
 	if (g_hash_table_lookup(prj->tags, path))
 	{
 		g_key_file_free(config);
 		return TRUE;
 	}
 	g_key_file_free(config);
-
-	filename = utils_get_locale_from_utf8(path);
-	tm_obj = tm_source_file_new(filename, filetypes_detect_from_file(path)->name);
+	
+	gchar *filename = utils_get_locale_from_utf8(path);
+	TMSourceFile *tm_obj = tm_source_file_new(filename,
+											  filetypes_detect_from_file(path)->name);
 	g_free(filename);
+	
 	if (tm_obj)
 	{
 		g_hash_table_insert(prj->tags, g_strdup(path), tm_obj);
@@ -405,18 +382,16 @@ struct CFGData
 };
 
 
-static void geany_project_save_files(gpointer key, G_GNUC_UNUSED gpointer value, gpointer user_data)
+static void geany_project_save_files(gpointer key, G_GNUC_UNUSED gpointer value,
+									 gpointer user_data)
 {
-	gchar *fkey;
-	gchar *filename;
-	struct CFGData *data = (struct CFGData *) user_data;
-
-	filename = get_relative_path(data->prj->path, (const gchar *) key);
+	struct CFGData *data = (struct CFGData *)user_data;
+	gchar *filename = get_relative_path(data->prj->path, (const gchar *)key);
+	
 	if (filename)
 	{
-		fkey = g_strdup_printf("file%d", data->i);
+		gchar *fkey = g_strdup_printf("file%d", data->i++);
 		g_key_file_set_string(data->config, "files", fkey, filename);
-		data->i++;
 		g_free(fkey);
 		g_free(filename);
 	}
@@ -426,10 +401,8 @@ static void geany_project_save_files(gpointer key, G_GNUC_UNUSED gpointer value,
 gboolean geany_project_remove_file(struct GeanyPrj *prj, const gchar *path)
 {
 	if (!g_hash_table_remove(prj->tags, path))
-	{
 		return FALSE;
-	}
-
+	
 	geany_project_save(prj);
 	return TRUE;
 }
@@ -437,31 +410,25 @@ gboolean geany_project_remove_file(struct GeanyPrj *prj, const gchar *path)
 
 void geany_project_save(struct GeanyPrj *prj)
 {
-	GKeyFile *config;
-	struct CFGData data;
-	gchar *base_path;
-
-	base_path = get_relative_path(prj->path, prj->base_path);
-
-	config = g_key_file_new();
-	g_key_file_load_from_file(config, prj->path, G_KEY_FILE_NONE, NULL);
-
+	gchar *base_path = get_relative_path(prj->path, prj->base_path);
+	GKeyFile *config = load_config_from_file(prj->path, NULL);
+	
 	g_key_file_set_string(config, "project", "name", prj->name);
 	g_key_file_set_string(config, "project", "description", prj->description);
 	g_key_file_set_string(config, "project", "base_path", base_path);
 	g_key_file_set_string(config, "project", "run_cmd", prj->run_cmd);
 	g_key_file_set_boolean(config, "project", "regenerate", prj->regenerate);
 	g_key_file_set_string(config, "project", "type", project_type_string[prj->type]);
-
+	
+	struct CFGData data;
 	data.prj = prj;
 	data.config = config;
 	data.i = 0;
-
+	
 	g_key_file_remove_group(config, "files", NULL);
 	if (!prj->regenerate)
-	{
 		g_hash_table_foreach(prj->tags, geany_project_save_files, &data);
-	}
-	save_config(config, prj->path);
+	
+	write_config_to_file(config, prj->path, SYSLOG);
 	g_free(base_path);
 }

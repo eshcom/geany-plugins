@@ -18,8 +18,6 @@
 
 #include "vi.h"
 
-#include <gtk/gtk.h>
-
 #define SSM(s, m, w, l) scintilla_send_message((s), (m), (w), (l))
 
 static const gchar *fname = NULL;

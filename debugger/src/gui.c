@@ -23,24 +23,25 @@
  * 		function for creating GUI elements
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "gui.h"
+#include "../../utils/src/common.h"
+
 
 /*
  * 	creates a button with an icon from file and a tooltip 
  */
-GtkWidget* create_button(const gchar *icon, const gchar *tooltip)
+GtkWidget *create_button(const gchar *icon_filename, const gchar *tooltip)
 {
+	gchar *icon_filepath = get_data_filepath(PLUGIN, icon_filename);
+	GtkWidget *image = gtk_image_new_from_file(icon_filepath);
+	g_free(icon_filepath);
+	
 	GtkWidget *btn = gtk_button_new();
-
-	gchar *path = g_build_path(G_DIR_SEPARATOR_S, DBGPLUG_DATA_DIR, icon, NULL);
-	GtkWidget *image =  gtk_image_new_from_file(path);
-	g_free(path);
-
+	
 	gtk_widget_show(image);
 	gtk_button_set_image(GTK_BUTTON(btn), image);
-
 	gtk_widget_set_tooltip_text(btn, tooltip);
 	
 	return btn;
@@ -55,11 +56,10 @@ GtkWidget* create_stock_button(const gchar *stockid, const gchar *tooltip)
 #if GTK_CHECK_VERSION(3, 0, 0)
 	GtkWidget *image = gtk_image_new_from_icon_name(stockid, GTK_ICON_SIZE_MENU);
 #else
-	GtkWidget *image = gtk_image_new_from_stock (stockid, GTK_ICON_SIZE_MENU);
+	GtkWidget *image = gtk_image_new_from_stock(stockid, GTK_ICON_SIZE_MENU);
 #endif
 	gtk_widget_show(image);
 	gtk_button_set_image(GTK_BUTTON(btn), image);
-
 	gtk_widget_set_tooltip_text(btn, tooltip);
 	
 	return btn;
@@ -68,17 +68,16 @@ GtkWidget* create_stock_button(const gchar *stockid, const gchar *tooltip)
 /*
  * 	creates a toggle button with an icon from file and a tooltip 
  */
-GtkWidget* create_toggle_button(const gchar *icon, const gchar *tooltip)
+GtkWidget* create_toggle_button(const gchar *icon_filename, const gchar *tooltip)
 {
+	gchar *icon_filepath = get_data_filepath(PLUGIN, icon_filename);
+	GtkWidget *image = gtk_image_new_from_file(icon_filepath);
+	g_free(icon_filepath);
+	
 	GtkWidget *btn = gtk_toggle_button_new();
-
-	gchar *path = g_build_path(G_DIR_SEPARATOR_S, DBGPLUG_DATA_DIR, icon, NULL);
-	GtkWidget *image =  gtk_image_new_from_file(path);
-	g_free(path);
-
+	
 	gtk_widget_show(image);
 	gtk_button_set_image(GTK_BUTTON(btn), image);
-
 	gtk_widget_set_tooltip_text(btn, tooltip);
 	
 	return btn;
@@ -87,12 +86,12 @@ GtkWidget* create_toggle_button(const gchar *icon, const gchar *tooltip)
 /*
  * 	sets button icon from file 
  */
-void set_button_image(GtkWidget *btn, const gchar *icon)
+void set_button_image(GtkWidget *btn, const gchar *icon_filename)
 {
-	gchar *path = g_build_path(G_DIR_SEPARATOR_S, DBGPLUG_DATA_DIR, icon, NULL);
-	GtkWidget *image =  gtk_image_new_from_file(path);
-	g_free(path);
-
+	gchar *icon_filepath = get_data_filepath(PLUGIN, icon_filename);
+	GtkWidget *image = gtk_image_new_from_file(icon_filepath);
+	g_free(icon_filepath);
+	
 	gtk_widget_show(image);
 	gtk_button_set_image(GTK_BUTTON(btn), image);
 }

@@ -22,12 +22,9 @@
  * $Id$
  */
 
-
 #ifndef SC_PLUGIN_H
 #define SC_PLUGIN_H 1
-
-
-
+	
 typedef struct
 {
 	gchar *config_file;
@@ -50,9 +47,8 @@ typedef struct
 	GSList *edit_menu_items;
 } SpellCheck;
 
-
-extern SpellCheck		*sc_info;
-extern GeanyPlugin		*geany_plugin;
-extern GeanyData		*geany_data;
+extern SpellCheck	*sc_info;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;
 
 #endif

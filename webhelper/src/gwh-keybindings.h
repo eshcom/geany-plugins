@@ -20,14 +20,9 @@
 #ifndef H_GWH_KEYBINDINGS
 #define H_GWH_KEYBINDINGS
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
-#include <geanyplugin.h>
-#include <geany.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 G_BEGIN_DECLS
-
 
 enum {
   GWH_KB_TOGGLE_INSPECTOR,

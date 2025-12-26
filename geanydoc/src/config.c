@@ -22,13 +22,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "geanydoc.h"
+#include "../../utils/src/common.h"
 
 extern GeanyData *geany_data;
+
 
 const gchar defaults[] =
 	"[C]\n"
@@ -54,24 +54,20 @@ const gchar defaults[] =
 static GKeyFile *config = NULL;
 static gchar *config_file = NULL;
 
-void
-config_init(void)
+void config_init(void)
 {
-	config_file = g_build_filename(geany->app->configdir, "plugins", "geanydoc", NULL);
-	utils_mkdir(config_file, TRUE);
-
-	SETPTR(config_file, g_build_filename(config_file, "geanydoc.conf", NULL));
-
-	config = g_key_file_new();
-	if (!g_key_file_load_from_file(config, config_file, G_KEY_FILE_KEEP_COMMENTS, NULL))
+	config_file = get_config_filepath(PLUGIN, NULL);
+	
+	gboolean result = FALSE;
+	config = load_config_from_file(config_file, &result);
+	if (!result)
 	{
-		g_key_file_load_from_data(config, defaults, sizeof(defaults),
-					  G_KEY_FILE_KEEP_COMMENTS, NULL);
+		g_key_file_free(config);
+		config = load_config_from_data(defaults, NULL);
 	}
 }
 
-void
-config_uninit(void)
+void config_uninit(void)
 {
 	g_free(config_file);
 	config_file = NULL;
@@ -79,46 +75,32 @@ config_uninit(void)
 	config = NULL;
 }
 
-GKeyFile *
-config_clone(void)
+GKeyFile *config_clone(void)
 {
-	GKeyFile *ret;
-	gchar *txt = g_key_file_to_data(config, NULL, NULL);
-	ret = g_key_file_new();
-	g_key_file_load_from_data(ret, txt, strlen(txt), G_KEY_FILE_KEEP_COMMENTS, NULL);
-	g_free(txt);
-	return ret;
+	return create_copy_config(config);
 }
 
-void
-config_set(GKeyFile * cfg)
+void config_set(GKeyFile *cfg)
 {
-	gchar *data;
-
 	g_key_file_free(config);
 	config = cfg;
-
-	data = g_key_file_to_data(config, NULL, NULL);
-	utils_write_file(config_file, data);
-	g_free(data);
+	write_config_to_file(config, config_file, SYSLOG);
 }
 
-gchar *
-config_get_command(const gchar * lang, gint cmd_num, gboolean * intern)
+gchar *config_get_command(const gchar *lang, gint cmd_num, gboolean *intern)
 {
-	gchar *ret, *tmp;
 	gchar *key = g_strdup_printf("command%d", cmd_num);
-	ret = utils_get_setting_string(config, lang, key, "");
+	gchar *ret = utils_get_setting_string(config, lang, key, "");
 	g_free(key);
-	if (EMPTY(ret))
-		return ret;
+	
+	if (EMPTY(ret)) return ret;
+	
 	key = g_strdup_printf("command%d", cmd_num + 1);
-	tmp = utils_get_setting_string(config, lang, key, "");
+	gchar *tmp = utils_get_setting_string(config, lang, key, "");
 	g_free(key);
-	if (! EMPTY(tmp))
-		*intern = TRUE;
-	else
-		*intern = utils_get_setting_boolean(config, lang, "internal", FALSE);
+	
+	*intern = EMPTY(tmp) ? utils_get_setting_boolean(config, lang, "internal", FALSE)
+						 : TRUE;
 	g_free(tmp);
 	return ret;
 }

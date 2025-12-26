@@ -20,25 +20,18 @@
  * $Id$
  */
 
-
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_bookmarklist.h"
 
-#include <gdk/gdkkeysyms.h>
 
-
-typedef struct _AoBookmarkListPrivate			AoBookmarkListPrivate;
-
-#define AO_BOOKMARK_LIST_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_BOOKMARK_LIST_TYPE, AoBookmarkListPrivate))
+typedef struct _AoBookmarkListPrivate AoBookmarkListPrivate;
 
 struct _AoBookmarkList
 {
@@ -90,13 +83,14 @@ static void ao_bookmark_list_finalize  			(GObject *object);
 static void ao_bookmark_list_show				(AoBookmarkList *bm);
 static void ao_bookmark_list_hide				(AoBookmarkList *bm);
 
-G_DEFINE_TYPE(AoBookmarkList, ao_bookmark_list, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoBookmarkList, ao_bookmark_list, G_TYPE_OBJECT)
 
 
 static void ao_bookmark_list_set_property(GObject *object, guint prop_id,
 										  const GValue *value, GParamSpec *pspec)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(object);
+	AoBookmarkListPrivate *priv =
+			ao_bookmark_list_get_instance_private((AoBookmarkList *)object);
 
 	switch (prop_id)
 	{
@@ -125,7 +119,6 @@ static void ao_bookmark_list_class_init(AoBookmarkListClass *klass)
 	g_object_class = G_OBJECT_CLASS(klass);
 	g_object_class->finalize = ao_bookmark_list_finalize;
 	g_object_class->set_property = ao_bookmark_list_set_property;
-	g_type_class_add_private(klass, sizeof(AoBookmarkListPrivate));
 
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_BOOKMARKLIST,
@@ -153,7 +146,7 @@ static gboolean tree_model_foreach(GtkTreeModel *model, GtkTreePath *path,
 								   GtkTreeIter *iter, gpointer data)
 {
 	gint x;
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(data);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(data);
 
 	gtk_tree_model_get(model, iter, BMLIST_COL_LINE, &x, -1);
 	if (x == priv->search_line)
@@ -167,7 +160,7 @@ static gboolean tree_model_foreach(GtkTreeModel *model, GtkTreePath *path,
 
 static void delete_line(AoBookmarkList *bm, gint line_nr)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	priv->search_line = line_nr + 1;
 	priv->search_iter = NULL;
@@ -183,7 +176,7 @@ static void delete_line(AoBookmarkList *bm, gint line_nr)
 static void add_line(AoBookmarkList *bm, ScintillaObject *sci, gint line_nr)
 {
 	gchar *line, *tooltip;
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	line = g_strstrip(sci_get_line(sci, line_nr));
 	if (EMPTY(line))
@@ -233,7 +226,7 @@ static gboolean ao_button_press_cb(GtkWidget *widget, GdkEventButton *event, gpo
 	}
 	else if (event->button == 3)
 	{
-		AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(data);
+		AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(data);
 		GtkTreeSelection *treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->tree));
 		if (gtk_tree_selection_get_selected(treesel, NULL, NULL))
 		{
@@ -272,7 +265,7 @@ static gboolean ao_key_press_cb(GtkWidget *widget, GdkEventKey *event, gpointer 
 
 static void ao_bookmark_list_hide(AoBookmarkList *bm)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	if (priv->page)
 	{
@@ -292,7 +285,7 @@ static void popup_item_click_cb(GtkWidget *button, gpointer data)
 	GtkTreeSelection *treesel;
 	GtkTreeModel *model;
 	GtkTreeIter iter;
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(data);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(data);
 
 	treesel = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->tree));
 
@@ -330,7 +323,7 @@ static void ao_bookmark_list_show(AoBookmarkList *bm)
 	GtkWidget *scrollwin;
 	GtkTreeSortable *sortable;
 	GeanyDocument *doc;
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	tree = GTK_TREE_VIEW(gtk_tree_view_new());
 	store = gtk_list_store_new(BMLIST_COL_MAX, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING);
@@ -396,7 +389,7 @@ static void ao_bookmark_list_show(AoBookmarkList *bm)
 
 void ao_bookmark_list_activate(AoBookmarkList *bm)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	if (priv->enable_bookmarklist)
 	{
@@ -415,7 +408,7 @@ static gboolean update_bookmark_list_delayed(gpointer data)
 	gint mask = 1 << 1;
 	AoBookmarkListRefreshContainer *container = data;
 	AoBookmarkList *bm = container->bm;
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 	GeanyDocument *doc = document_find_by_id(container->document_id);
 
 	if (priv->enable_bookmarklist && doc != NULL)
@@ -438,7 +431,7 @@ static gboolean update_bookmark_list_delayed(gpointer data)
 
 void ao_bookmark_list_update(AoBookmarkList *bm, GeanyDocument *doc)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	if (priv->refresh_idle_source_id == 0)
 	{
@@ -456,7 +449,7 @@ void ao_bookmark_list_update(AoBookmarkList *bm, GeanyDocument *doc)
 
 void ao_bookmark_list_update_marker(AoBookmarkList *bm, GeanyEditor *editor, SCNotification *nt)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(bm);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(bm);
 
 	if (priv->enable_bookmarklist && nt->nmhdr.code == SCN_MODIFIED)
 	{
@@ -482,7 +475,7 @@ void ao_bookmark_list_update_marker(AoBookmarkList *bm, GeanyEditor *editor, SCN
 
 static void ao_bookmark_list_init(AoBookmarkList *self)
 {
-	AoBookmarkListPrivate *priv = AO_BOOKMARK_LIST_GET_PRIVATE(self);
+	AoBookmarkListPrivate *priv = ao_bookmark_list_get_instance_private(self);
 
 	priv->page = NULL;
 	priv->refresh_idle_source_id = 0;

@@ -23,7 +23,6 @@
 #define LATEXENVIRONMENTS_H
 
 #include "latex.h"
-#include <string.h>
 
 enum {
     ENVIRONMENT_CAT_DUMMY = 0,

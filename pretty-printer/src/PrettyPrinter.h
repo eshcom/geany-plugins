@@ -22,18 +22,12 @@
 /*===================================== INCLUDES =====================================*/
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"		// for the gettext domain
+	#include "config.h" // for the gettext domain
 #endif
 
+#include <glib.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
 #include <stdbool.h>
-
-#ifdef HAVE_GLIB
-	#include <glib.h>
-#endif
 
 /*===================================== DEFINES ======================================*/
 

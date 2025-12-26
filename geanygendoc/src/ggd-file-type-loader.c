@@ -23,27 +23,19 @@
  *        merge and/or what can be.
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd-file-type-loader.h"
-
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
-#include <glib.h>
 #include <glib/gstdio.h>
-#include <ctpl/ctpl.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-doc-setting.h"
 #include "ggd-doc-type.h"
 #include "ggd-file-type.h"
+#include "ggd-file-type-loader.h"
 
 
 /**

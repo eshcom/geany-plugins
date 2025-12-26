@@ -19,17 +19,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
-#include <string.h>
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "scptreedata.h"
 
 #if !GLIB_CHECK_VERSION(2, 30, 0)
-#define G_VALUE_INIT { 0, { { 0 } } }
+	#define G_VALUE_INIT { 0, { { 0 } } }
 #endif
+
 
 GType scp_tree_data_get_fundamental_type(GType type)
 {
@@ -301,8 +301,8 @@ gint scp_tree_data_value_compare_func(GValue *a, GValue *b)
 	return scp_tree_data_compare_func(&data_a, &data_b, G_VALUE_TYPE(a));
 }
 
-gint scp_tree_data_model_compare_func(GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b,
-	gpointer gdata)
+gint scp_tree_data_model_compare_func(GtkTreeModel *model, GtkTreeIter *a,
+									  GtkTreeIter *b, gpointer gdata)
 {
 	gint column = GPOINTER_TO_INT(gdata);
 	GValue value_a = G_VALUE_INIT;
@@ -321,13 +321,12 @@ gint scp_tree_data_model_compare_func(GtkTreeModel *model, GtkTreeIter *a, GtkTr
 /* Header code */
 
 ScpTreeDataHeader *scp_tree_data_headers_new(gint n_columns, GType *types,
-	GtkTreeIterCompareFunc func)
+											 GtkTreeIterCompareFunc func)
 {
 	ScpTreeDataHeader *headers = g_new0(ScpTreeDataHeader, n_columns + 1);
 	ScpTreeDataHeader *header = headers + 1;
-	gint i;
-
-	for (i = 0; i < n_columns; i++, header++)
+	
+	for (gint i = 0; i < n_columns; i++, header++)
 	{
 		header->type = types[i];
 		if (!scp_tree_data_check_type(header->type))
@@ -353,20 +352,18 @@ static void scp_destroy_header(ScpTreeDataHeader *header)
 
 void scp_tree_data_headers_free(gint n_columns, ScpTreeDataHeader *headers)
 {
-	gint i;
-
-	for (i = 0; i < n_columns; i++)
+	for (gint i = 0; i < n_columns; i++)
 		scp_destroy_header(headers + i);
-
 	g_free(headers - 1);
 }
 
 void scp_tree_data_set_header(ScpTreeDataHeader *headers, gint sort_column_id,
-	GtkTreeIterCompareFunc func, gpointer data, GDestroyNotify destroy)
+							  GtkTreeIterCompareFunc func, gpointer data,
+							  GDestroyNotify destroy)
 {
 	ScpTreeDataHeader *header = headers + sort_column_id;
-
 	scp_destroy_header(header);
+	
 	header->func = func;
 	header->data = data;
 	header->destroy = destroy;

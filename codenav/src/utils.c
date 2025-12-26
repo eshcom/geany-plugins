@@ -19,94 +19,74 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "utils.h"
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
-#include <geanyplugin.h>
+#include "utils.h"
 
  /**
  * @brief	Function which returns the extension of the file path which 
  * 			is given, or NULL if it did not found any extension.
- * @param 	gchar*	the file path 
- * @return	gchar*	newly-allocated string containing the extension
+ * @param	gchar *	the file path
  * 
+ * @return	gchar *	newly-allocated string containing the extension
  */
-gchar*
-get_extension(gchar* path)
+gchar *get_extension(const gchar *path)
 {
-	gchar* extension = NULL;
-	gchar* pc = path;
-	while(*pc != '\0')
-	{
-		if(*pc == '.')
-			extension = pc+1;
-		pc++;
-	}
-
-	if(extension == NULL || (*extension) == '\0')
-		return NULL;
-	else
-		return g_strdup(extension);
+	const gchar *extension = NULL;
+	
+	for (const gchar *pc = path; *pc != '\0'; pc++)
+		if (*pc == '.') extension = pc + 1;
+	
+	return EMPTY(extension) ? NULL : g_strdup(extension);
 }
 
 /**
  * @brief	Copy a path and remove the extension 
- * @param 	gchar*	the file path 
- * @return	gchar*	newly-allocated string containing the filename without ext
+ * @param	gchar *	the file path 
  * 
+ * @return	gchar *	newly-allocated string containing the filename without ext
  */
-gchar*
-copy_and_remove_extension(gchar* path)
+gchar *copy_and_remove_extension(const gchar *path)
 {
-	gchar* str = NULL;
-	gchar* pc = NULL;
-	gchar* dot_pos = NULL;
-
-	if(path == NULL || path[0] == '\0')
-		return NULL;
-
-	str = g_strdup(path);
-	pc = str;
-	while(*pc != '\0')
+	if (EMPTY(path)) return NULL;
+	
+	gchar *dot_pos = NULL;
+	gchar *str = g_strdup(path);
+	
+	for (gchar *pc = str; *pc != '\0'; pc++)
 	{
-		if(*pc == '.')
+		if (*pc == '.')
 		{
 			dot_pos = pc;
 			break;
 		}
-		pc++;
 	}
-
-	if(dot_pos != NULL)
-		*dot_pos = '\0';
-
+	
+	if (dot_pos) *dot_pos = '\0';
 	return str;
 }
 
 /**
  * @brief	Comparison of strings, for use with g_slist_find_custom 
- * @param 	const gchar*, const gchar* 
- * @return	gint
+ * @param	const gchar *, const gchar *
  * 
+ * @return	gint
  */
-gint
-compare_strings(const gchar* a, const gchar* b)
+gint compare_strings(const gchar *a, const gchar *b)
 {
 	return (gint)(!utils_str_equal(a, b));
 }
 
 /**
  * @brief	A PHP-like reverse strpos implementation 
- * @param 	const gchar*	haystack
- * @param   const gchar*	needle 
- * @return	gint	position or -1 if not found
+ * @param	const gchar *	haystack
+ * @param	const gchar *	needle
  * 
+ * @return	gint			position or -1 if not found
  */
-gint
-strrpos(const gchar *haystack, const gchar *needle)
+gint strrpos(const gchar *haystack, const gchar *needle)
 {
    char *p = g_strrstr_len(haystack, -1, needle);
-   if (p)
-	  return p - haystack;
-   return -1;   // not found
+   if (p) return p - haystack;
+   return -1;	// not found
 }
-

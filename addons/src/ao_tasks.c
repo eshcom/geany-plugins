@@ -20,26 +20,18 @@
  * $Id$
  */
 
-
-#include <string.h>
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_tasks.h"
 
-#include <gdk/gdkkeysyms.h>
-
 
 typedef struct _AoTasksPrivate AoTasksPrivate;
-
-#define AO_TASKS_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
-	AO_TASKS_TYPE, AoTasksPrivate))
 
 struct _AoTasks
 {
@@ -96,13 +88,13 @@ static void ao_tasks_finalize  			(GObject *object);
 static void ao_tasks_show				(AoTasks *t);
 static void ao_tasks_hide				(AoTasks *t);
 
-G_DEFINE_TYPE(AoTasks, ao_tasks, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoTasks, ao_tasks, G_TYPE_OBJECT)
 
 
 static void ao_tasks_set_property(GObject *object, guint prop_id,
 								  const GValue *value, GParamSpec *pspec)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(object);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private((AoTasks *)object);
 
 	switch (prop_id)
 	{
@@ -148,7 +140,6 @@ static void ao_tasks_class_init(AoTasksClass *klass)
 	g_object_class = G_OBJECT_CLASS(klass);
 	g_object_class->finalize = ao_tasks_finalize;
 	g_object_class->set_property = ao_tasks_set_property;
-	g_type_class_add_private(klass, sizeof(AoTasksPrivate));
 
 	g_object_class_install_property(g_object_class,
 									PROP_SCAN_ALL_DOCUMENTS,
@@ -186,7 +177,7 @@ static void ao_tasks_finalize(GObject *object)
 	g_return_if_fail(object != NULL);
 	g_return_if_fail(IS_AO_TASKS(object));
 
-	priv = AO_TASKS_GET_PRIVATE(object);
+	priv = ao_tasks_get_instance_private((AoTasks *)object);
 	g_strfreev(priv->tokens);
 
 	ao_tasks_hide(AO_TASKS(object));
@@ -200,7 +191,7 @@ static void ao_tasks_finalize(GObject *object)
 
 static gboolean ao_tasks_selection_changed_cb(gpointer t)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->tree));
 	GtkTreeIter iter;
 	GtkTreeModel *model;
@@ -239,7 +230,8 @@ static gboolean ao_tasks_selection_changed_cb(gpointer t)
 }
 
 
-static gboolean ao_tasks_button_press_cb(GtkWidget *widget, GdkEventButton *event, gpointer data)
+static gboolean ao_tasks_button_press_cb(GtkWidget *widget, GdkEventButton *event,
+										 gpointer data)
 {
 	if (event->button == 1)
 	{	/* allow reclicking of a treeview item */
@@ -247,7 +239,7 @@ static gboolean ao_tasks_button_press_cb(GtkWidget *widget, GdkEventButton *even
 	}
 	else if (event->button == 3)
 	{
-		AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(data);
+		AoTasksPrivate *priv = ao_tasks_get_instance_private(data);
 		gboolean has_selection = gtk_tree_selection_get_selected(
 			gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->tree)), NULL, NULL);
 		gtk_widget_set_sensitive(priv->popup_menu_delete_button, has_selection);
@@ -285,7 +277,7 @@ static gboolean ao_tasks_key_press_cb(GtkWidget *widget, GdkEventKey *event, gpo
 
 static void ao_tasks_hide(AoTasks *t)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (priv->page)
 	{
@@ -302,7 +294,7 @@ static void ao_tasks_hide(AoTasks *t)
 
 static void popup_delete_item_click_cb(GtkWidget *button, AoTasks *t)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 	GtkTreeIter iter;
 	GtkTreeModel *model;
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->tree));
@@ -356,7 +348,7 @@ static void popup_hide_item_click_cb(GtkWidget *button, AoTasks *t)
 static GtkWidget *create_popup_menu(AoTasks *t)
 {
 	GtkWidget *item, *menu;
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	menu = gtk_menu_new();
 
@@ -394,7 +386,7 @@ static void ao_tasks_show(AoTasks *t)
 	GtkTreeViewColumn *column;
 	GtkTreeSelection *selection;
 	GtkTreeSortable *sortable;
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	priv->store = gtk_list_store_new(TLIST_COL_MAX,
 		G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
@@ -484,7 +476,7 @@ static void ao_tasks_show(AoTasks *t)
 
 void ao_tasks_activate(AoTasks *t)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (priv->enable_tasks)
 	{
@@ -499,7 +491,7 @@ void ao_tasks_activate(AoTasks *t)
 
 void ao_tasks_remove(AoTasks *t, GeanyDocument *cur_doc)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 	GtkTreeModel *model = GTK_TREE_MODEL(priv->store);
 	GtkTreeIter iter;
 	gchar *filename;
@@ -533,7 +525,7 @@ void ao_tasks_remove(AoTasks *t, GeanyDocument *cur_doc)
 static void create_task(AoTasks *t, GeanyDocument *doc, gint line, const gchar *token,
 						const gchar *line_buf, const gchar *task_start, const gchar *display_name)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 	gchar *context, *tooltip;
 
 	/* retrieve the following line and use it for the tooltip */
@@ -561,7 +553,7 @@ static void update_tasks_for_doc(AoTasks *t, GeanyDocument *doc)
 	gint lexer, lines, line, last_pos = 0, style;
 	gchar *line_buf, *display_name, *task_start, *closing_comment = NULL;
 	gchar **token;
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (doc->is_valid)
 	{
@@ -608,7 +600,7 @@ static void update_tasks_for_doc(AoTasks *t, GeanyDocument *doc)
 
 void ao_tasks_update_single(AoTasks *t, GeanyDocument *cur_doc)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (! priv->active || ! priv->enable_tasks)
 		return;
@@ -625,7 +617,7 @@ void ao_tasks_update_single(AoTasks *t, GeanyDocument *cur_doc)
 static gboolean ao_tasks_select_task(GtkTreeModel *model, GtkTreePath *path,
 									 GtkTreeIter *iter, gpointer data)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(data);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(data);
 	gint line, selected_line;
 	gchar *filename = NULL;
 	const gchar *selected_filename = NULL;
@@ -660,7 +652,7 @@ static gboolean ao_tasks_select_task(GtkTreeModel *model, GtkTreePath *path,
 
 void ao_tasks_set_active(AoTasks *t)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (priv->enable_tasks)
 	{
@@ -672,7 +664,7 @@ void ao_tasks_set_active(AoTasks *t)
 
 void ao_tasks_update(AoTasks *t, GeanyDocument *cur_doc)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(t);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(t);
 
 	if (! priv->active || ! priv->enable_tasks)
 		return;
@@ -719,7 +711,7 @@ void ao_tasks_update(AoTasks *t, GeanyDocument *cur_doc)
 
 static void ao_tasks_init(AoTasks *self)
 {
-	AoTasksPrivate *priv = AO_TASKS_GET_PRIVATE(self);
+	AoTasksPrivate *priv = ao_tasks_get_instance_private(self);
 
 	priv->page = NULL;
 	priv->popup_menu = NULL;

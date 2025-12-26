@@ -23,7 +23,7 @@
 #include "reftex.h"
 
 
-void glatex_insert_bibtex_entry(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_bibtex_entry(G_GNUC_UNUSED GtkMenuItem *menuitem,
 						 gpointer gdata)
 {
 	gint i;

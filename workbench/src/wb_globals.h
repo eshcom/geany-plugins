@@ -19,14 +19,15 @@
 #ifndef __WB_GLOBALS_H__
 #define __WB_GLOBALS_H__
 
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
 #include "workbench.h"
 
 typedef struct
 {
-    GeanyPlugin *geany_plugin;
-    WORKBENCH   *opened_wb;
-}WB_GLOBALS;
+	GeanyPlugin	*geany_plugin;
+	WORKBENCH	*opened_wb;
+} WB_GLOBALS;
 
 extern WB_GLOBALS wb_globals;
 

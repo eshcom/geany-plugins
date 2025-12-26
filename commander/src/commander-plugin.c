@@ -17,23 +17,21 @@
  *  
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"       // for the gettext domain
+#endif
 
-#include <string.h>
-#include <glib.h>
 #include <glib/gi18n-lib.h>
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
+#include <geanyplugin.h>    // includes geany.h, gtkcompat.h, etc.
 
-#include <geanyplugin.h>
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;
 
 
 /* uncomment to display each row score (for debugging sort) */
 /*#define DISPLAY_SCORE 1*/
 
-
-GeanyPlugin      *geany_plugin;
-GeanyData        *geany_data;
 
 PLUGIN_VERSION_CHECK(226)
 
@@ -393,32 +391,26 @@ find_menubar (GtkContainer *container)
   return menubar;
 }
 
-static void
-fill_store (GtkListStore *store)
+static void fill_store(GtkListStore *store)
 {
-  GtkWidget  *menubar;
-  guint       i = 0;
-  
   /* menu items */
-  menubar = find_menubar (GTK_CONTAINER (geany_data->main_widgets->window));
-  store_populate_menu_items (store, GTK_MENU_SHELL (menubar), NULL);
+  GtkWidget *menubar = find_menubar(GTK_CONTAINER(geany->main_widgets->window));
+  store_populate_menu_items(store, GTK_MENU_SHELL(menubar), NULL);
   
   /* open files */
-  foreach_document (i) {
-    gchar *basename = g_path_get_basename (DOC_FILENAME (documents[i]));
-    gchar *label = g_markup_printf_escaped ("<big>%s</big>\n"
-                                            "<small><i>%s</i></small>",
-                                            basename,
-                                            DOC_FILENAME (documents[i]));
+  guint i = 0;
+  foreach_document(i) {
+    gchar *basename = g_path_get_basename(DOC_FILENAME(documents[i]));
+    gchar *label = g_markup_printf_escaped("<big>%s</big>\n<small><i>%s</i></small>",
+                                           basename, DOC_FILENAME(documents[i]));
     
-    gtk_list_store_insert_with_values (store, NULL, -1,
-                                       COL_LABEL, label,
-                                       COL_PATH, DOC_FILENAME (documents[i]),
-                                       COL_TYPE, COL_TYPE_FILE,
-                                       COL_DOCUMENT, documents[i],
-                                       -1);
-    g_free (basename);
-    g_free (label);
+    gtk_list_store_insert_with_values(store, NULL, -1,
+                                      COL_LABEL, label,
+                                      COL_PATH, DOC_FILENAME (documents[i]),
+                                      COL_TYPE, COL_TYPE_FILE,
+                                      COL_DOCUMENT, documents[i], -1);
+    g_free(basename);
+    g_free(label);
   }
 }
 
@@ -589,8 +581,8 @@ on_view_row_activated (GtkTreeView       *view,
         
         gtk_tree_model_get (model, &iter, COL_DOCUMENT, &doc, -1);
         page = document_get_notebook_page (doc);
-        gtk_notebook_set_current_page (GTK_NOTEBOOK (geany_data->main_widgets->notebook),
-                                       page);
+        gtk_notebook_set_current_page(GTK_NOTEBOOK(geany->main_widgets->notebook),
+                                      page);
         break;
       }
       
@@ -659,7 +651,7 @@ create_panel (void)
                                     "decorated", FALSE,
                                     "default-width", 500,
                                     "default-height", 200,
-                                    "transient-for", geany_data->main_widgets->window,
+                                    "transient-for", geany->main_widgets->window,
                                     "window-position", GTK_WIN_POS_CENTER_ON_PARENT,
                                     "type-hint", GDK_WINDOW_TYPE_HINT_DIALOG,
                                     "skip-taskbar-hint", TRUE,
@@ -754,50 +746,43 @@ on_kb_show_panel (GeanyKeyBinding  *kb,
   return TRUE;
 }
 
-static gboolean
-on_plugin_idle_init (gpointer dummy)
+static gboolean on_plugin_idle_init(gpointer dummy)
 {
-  create_panel ();
-  
+  create_panel();
   return FALSE;
 }
 
-void
-plugin_init (GeanyData *data)
+void plugin_init(GeanyData *data)
 {
-  GeanyKeyGroup *group;
+  GeanyKeyGroup *group = plugin_set_key_group(geany_plugin, PLUGIN, KB_COUNT, NULL);
   
-  group = plugin_set_key_group (geany_plugin, "commander", KB_COUNT, NULL);
-  keybindings_set_item_full (group, KB_SHOW_PANEL, 0, 0, "show_panel",
-                             _("Show Command Panel"), NULL,
-                             on_kb_show_panel, NULL, NULL);
-  keybindings_set_item_full (group, KB_SHOW_PANEL_COMMANDS, 0, 0,
-                             "show_panel_commands",
-                             _("Show Command Panel (Commands Only)"), NULL,
-                             on_kb_show_panel, (gpointer) "c:", NULL);
-  keybindings_set_item_full (group, KB_SHOW_PANEL_FILES, 0, 0,
-                             "show_panel_files",
-                             _("Show Command Panel (Files Only)"), NULL,
-                             on_kb_show_panel, (gpointer) "f:", NULL);
+  keybindings_set_item_full(group, KB_SHOW_PANEL, 0, 0, "show_panel",
+                            _("Show Command Panel"), NULL,
+                            on_kb_show_panel, NULL, NULL);
+  keybindings_set_item_full(group, KB_SHOW_PANEL_COMMANDS, 0, 0,
+                            "show_panel_commands",
+                            _("Show Command Panel (Commands Only)"), NULL,
+                            on_kb_show_panel, (gpointer) "c:", NULL);
+  keybindings_set_item_full(group, KB_SHOW_PANEL_FILES, 0, 0,
+                            "show_panel_files",
+                            _("Show Command Panel (Files Only)"), NULL,
+                            on_kb_show_panel, (gpointer) "f:", NULL);
   
-  /* delay for other plugins to have a chance to load before, so we will
-   * include their items */
-  plugin_idle_add (geany_plugin, on_plugin_idle_init, NULL);
+  /* delay for other plugins to have a chance to load before,
+   * so we will include their items */
+  plugin_idle_add(geany_plugin, on_plugin_idle_init, NULL);
 }
 
-void
-plugin_cleanup (void)
+void plugin_cleanup(void)
 {
-  if (plugin_data.panel) {
-    gtk_widget_destroy (plugin_data.panel);
-  }
-  if (plugin_data.last_path) {
-    gtk_tree_path_free (plugin_data.last_path);
-  }
+  if (plugin_data.panel)
+    gtk_widget_destroy(plugin_data.panel);
+  
+  if (plugin_data.last_path)
+    gtk_tree_path_free(plugin_data.last_path);
 }
 
-void
-plugin_help (void)
+void plugin_help(void)
 {
-  utils_open_browser (DOCDIR "/" PLUGIN "/README");
+  utils_open_browser(DOCDIR "/" PLUGIN "/README");
 }

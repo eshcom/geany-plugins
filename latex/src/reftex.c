@@ -19,7 +19,6 @@
  *      MA 02110-1301, USA.
  */
 
-#include <string.h>
 #include "reftex.h"
 #include "latexutils.h"
 

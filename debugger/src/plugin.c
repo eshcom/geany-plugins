@@ -24,9 +24,10 @@
  */
  
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "breakpoints.h"
 #include "callbacks.h"
@@ -42,8 +43,8 @@
 #include "pixbuf.h"
 
 /* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin		*geany_plugin;
-GeanyData			*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 /* vbox for keeping breaks/stack/watch notebook */
 static GtkWidget *hbox = NULL;
@@ -73,20 +74,16 @@ static void on_paned_mode_changed(GtkToggleButton *button, gpointer user_data)
 
 /* Called by Geany to initialize the plugin.
  * Note: data is the same as geany_data. */
-static gboolean plugin_debugger_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static gboolean plugin_debugger_init(GeanyPlugin *plugin,
+									 G_GNUC_UNUSED gpointer pdata)
 {
-	GtkWidget* vbox;
-	guint i;
-
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
-
-	plugin_module_make_resident(geany_plugin);
-
-	keys_init();
 	
+	plugin_module_make_resident(plugin);
+	keys_init();
 	pixbufs_init();
-
+	
 	/* main box */
 #if GTK_CHECK_VERSION(3, 0, 0)
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 7);
@@ -94,7 +91,7 @@ static gboolean plugin_debugger_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer
 	hbox = gtk_hbox_new(FALSE, 7);
 #endif
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 6);
-
+	
 	/* add target page */
 	tpage_init();
 	
@@ -103,44 +100,44 @@ static gboolean plugin_debugger_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer
 	
 	/* init markers */
 	markers_init();
-
+	
 	/* init debug */
 	debug_init();
-
+	
 	/* load config */
 	config_init();
-
+	
 	/* init paned */
 	dpaned_init();
 	tpage_pack_widgets(config_get_tabbed());
-
-	vbox = btnpanel_create(on_paned_mode_changed);
-
+	
+	GtkWidget *vbox = btnpanel_create(on_paned_mode_changed);
+	
 	gtk_box_pack_start(GTK_BOX(hbox), dpaned_get_paned(), TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 0);
-
+	
 	gtk_widget_show_all(hbox);
 	
 	gtk_notebook_append_page(
 		GTK_NOTEBOOK(geany->main_widgets->message_window_notebook),
 		hbox,
 		gtk_label_new(_("Debug")));
-
-	if (geany_data->app->project)
-	{
+	
+	if (geany->app->project)
 		config_update_project_keyfile();
-	}
-	config_set_debug_store(
-		config_get_save_to_project() && geany_data->app->project ? DEBUG_STORE_PROJECT : DEBUG_STORE_PLUGIN
-	);
-
+	
+	config_set_debug_store(config_get_save_to_project() &&
+						   geany->app->project ? DEBUG_STORE_PROJECT
+											   : DEBUG_STORE_PLUGIN);
 	/* set calltips for all currently opened documents */
+	guint i;
 	foreach_document(i)
 	{
-		scintilla_send_message(document_index(i)->editor->sci, SCI_SETMOUSEDWELLTIME, 500, 0);
-		scintilla_send_message(document_index(i)->editor->sci, SCI_CALLTIPUSESTYLE, 20, (long)NULL);
+		scintilla_send_message(document_index(i)->editor->sci,
+							   SCI_SETMOUSEDWELLTIME, 500, 0);
+		scintilla_send_message(document_index(i)->editor->sci,
+							   SCI_CALLTIPUSESTYLE, 20, (long)NULL);
 	}
-
 	return TRUE;
 }
 

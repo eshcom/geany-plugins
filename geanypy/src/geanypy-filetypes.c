@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -233,7 +237,7 @@ Filetype_get_sorted_by_title(PyObject *self, PyObject *args)
 
 	list = PyList_New(0);
 
-	for (iter = geany_data->filetypes_by_title; iter != NULL; iter = g_slist_next(iter))
+	for (iter = geany->filetypes_by_title; iter != NULL; iter = g_slist_next(iter))
 	{
 		if (!iter->data)
 			continue;

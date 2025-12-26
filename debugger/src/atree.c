@@ -23,10 +23,9 @@
  * 		Contains autos tree view functions.
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "atree.h"
-#include "watch_model.h"
 #include "vtree.h"
 
 /* pointer to a widget */
@@ -37,11 +36,12 @@ static GtkWidget *tree = NULL;
  * arguments:
  * 		expanded - handler to call when tree item is expanded
  */
-GtkWidget* atree_init(watch_expanded_callback expanded, watch_button_pressed buttonpressed)
+GtkWidget *atree_init(watch_expanded_callback expanded,
+					  watch_button_pressed buttonpressed)
 {
 	tree = vtree_create(NULL, NULL);
-	g_signal_connect(G_OBJECT(tree), "row-expanded", G_CALLBACK (expanded), NULL);
-	g_signal_connect(G_OBJECT(tree), "button-press-event", G_CALLBACK (buttonpressed), NULL);
-		
+	g_signal_connect(G_OBJECT(tree), "row-expanded", G_CALLBACK(expanded), NULL);
+	g_signal_connect(G_OBJECT(tree), "button-press-event", G_CALLBACK(buttonpressed), NULL);
+	
 	return tree;
 }

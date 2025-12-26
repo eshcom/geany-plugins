@@ -23,19 +23,11 @@
  *		Contains function to manipulate target page in debug notebook.
  */
 
-#include <string.h>
-
-#include <gtk/gtk.h>
-
-#include <sys/stat.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
-#include <gp_gtkcompat.h>
 
-extern GeanyData		*geany_data;
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "breakpoints.h"
 #include "utils.h"
@@ -47,6 +39,7 @@ extern GeanyData		*geany_data;
 #include "tabs.h"
 #include "envtree.h"
 #include "gui.h"
+
 
 /* boxes margins */
 #define SPACING 7

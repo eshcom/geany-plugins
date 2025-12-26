@@ -22,7 +22,6 @@
 #ifndef __DH_UTIL_H__
 #define __DH_UTIL_H__
 
-#include <gtk/gtk.h>
 #include <webkit/webkit.h>
 #include "dh-link.h"
 

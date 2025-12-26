@@ -18,21 +18,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"	// for the gettext domain
 #endif
 
-#include <string.h>
-
 #include "common.h"
+#include "plugme.h"		// This file must not depend on Scope
 
-#include <gp_gtkcompat.h>
-
-#include <geanyplugin.h>
-
-extern GeanyData *geany_data;
-
-/* This file must not depend on Scope */
-#include "plugme.h"
 
 static gchar *run_file_chooser(const gchar *title, GtkFileChooserAction action,
 		const gchar *utf8_path)

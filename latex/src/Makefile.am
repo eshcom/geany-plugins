@@ -30,7 +30,8 @@ latex_la_SOURCES = \
 	latexkeybindings.c \
 	letters.h
 
-latex_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"LaTeX\"
-latex_la_LIBADD = $(COMMONLIBS)
+latex_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"LaTeX\" \
+					-Wno-deprecated-declarations
+latex_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
 
 include $(top_srcdir)/build/cppcheck.mk

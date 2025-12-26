@@ -18,14 +18,11 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <geanyplugin.h>
-#include "geanyvc.h"
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #ifdef G_OS_WIN32
-#include <shlobj.h>
+	#include <shlobj.h>
 #endif
-
 
 enum
 {

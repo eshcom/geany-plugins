@@ -22,21 +22,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtk.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "geanydoc.h"
 
 /* These items are set by Geany before init() is called. */
-GeanyPlugin *geany_plugin;
-GeanyData *geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 static GtkWidget *keyb1;
 static GtkWidget *keyb2;
@@ -424,77 +420,60 @@ create_Configure(void)
 	return Configure;
 }
 
-void
-plugin_init(G_GNUC_UNUSED GeanyData * data)
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
-	GeanyKeyGroup *key_group;
-	gchar *kb_label1;
-	gchar *kb_label2;
-
-	kb_label1 = _("Document current word");
-	kb_label2 = _("Document interactive");
-
+	gchar *kb_label1 = _("Document current word");
+	gchar *kb_label2 = _("Document interactive");
+	
 	config_init();
-
+	
 	keyb1 = gtk_menu_item_new();
 	keyb2 = gtk_menu_item_new();
-
-	key_group = plugin_set_key_group(geany_plugin, "doc_chars", KB_COUNT, NULL);
+	
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT, NULL);
 	keybindings_set_item(key_group, KB_DOCUMENT_WORD, kb_doc,
 				0, 0, kb_label1, kb_label1, keyb1);
 	keybindings_set_item(key_group, KB_DOCUMENT_WORD_ASK, kb_doc_ask,
 				0, 0, kb_label2, kb_label2, keyb2);
 }
 
-static void
-init_Configure(GtkWidget * dialog)
+static void init_Configure(GtkWidget *dialog)
 {
-	guint i;
-	GtkWidget *cbTypes;
-
-	cbTypes = ui_lookup_widget(dialog, "comboboxType");
+	GtkWidget *cbTypes = ui_lookup_widget(dialog, "comboboxType");
 	g_object_set(cbTypes, "wrap-width", 3, NULL);
-
-	for (i = 0; i < geany->filetypes_array->len; i++)
-	{
+	
+	for (guint i = 0; i < geany->filetypes_array->len; i++)
 		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(cbTypes),
-					  ((struct GeanyFiletype *) (filetypes[i]))->
-					  name);
-	}
+									   ((struct GeanyFiletype *)(filetypes[i]))->name);
+	
 	g_object_set_data(G_OBJECT(cbTypes), "config", config_clone());
 	g_object_set_data(G_OBJECT(cbTypes), "current", NULL);
 	gtk_combo_box_set_active(GTK_COMBO_BOX(cbTypes), 0);
 }
 
-void
-plugin_configure_single(G_GNUC_UNUSED GtkWidget * parent)
+void plugin_configure_single(G_GNUC_UNUSED GtkWidget *parent)
 {
-	int ret;
-	GtkWidget *dialog;
-	GtkWidget *cbTypes;
-	GKeyFile *config;
-	gchar *current;
-
 	/* example configuration dialog */
-	dialog = create_Configure();
+	GtkWidget *dialog = create_Configure();
 	init_Configure(dialog);
-
-	cbTypes = ui_lookup_widget(dialog, "comboboxType");
-
+	
+	GtkWidget *cbTypes = ui_lookup_widget(dialog, "comboboxType");
+	
 	/* run the dialog and check for the response code */
-
-	ret = gtk_dialog_run(GTK_DIALOG(dialog));
-	config = (GKeyFile *) g_object_get_data(G_OBJECT(cbTypes), "config");
-	current = g_object_get_data(G_OBJECT(cbTypes), "current");
+	
+	gint ret = gtk_dialog_run(GTK_DIALOG(dialog));
+	GKeyFile *config = (GKeyFile *)g_object_get_data(G_OBJECT(cbTypes), "config");
+	gchar *current = g_object_get_data(G_OBJECT(cbTypes), "current");
+	
 	if (ret == GTK_RESPONSE_OK)
 	{
 		on_comboboxType_changed(GTK_COMBO_BOX(cbTypes), NULL);
 		config_set(config);
 	}
 	else
-	{
 		g_key_file_free(config);
-	}
+	
 	g_free(current);
 	gtk_widget_destroy(dialog);
 }

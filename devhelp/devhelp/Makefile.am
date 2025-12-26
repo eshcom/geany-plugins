@@ -60,21 +60,13 @@ libdevhelp_2_la_SOURCES = \
 	ige-conf-private.h \
 	$(dh_headers)
 
-libdevhelp_2_la_CPPFLAGS = \
-	-I$(top_srcdir) \
-	-DLOCALEDIR=\""$(datadir)/locale"\" \
-	-DDATADIR=\""$(datadir)"\" \
-	-DG_LOG_DOMAIN=\"Devhelp\" \
-	$(DEVHELP_CPPFLAGS)
-
-libdevhelp_2_la_CFLAGS = \
-	$(DEVHELP_CFLAGS)
-
-libdevhelp_2_la_LIBADD = \
-	$(DEVHELP_LIBS)
-
-libdevhelp_2_la_LDFLAGS = \
-	-no-undefined
+libdevhelp_2_la_CPPFLAGS = -I$(top_srcdir) -DLOCALEDIR=\""$(datadir)/locale"\" \
+						   -DDATADIR=\""$(datadir)"\" -DG_LOG_DOMAIN=\"Devhelp\" \
+						   $(DEVHELP_CPPFLAGS)
+libdevhelp_2_la_CFLAGS = $(DEVHELP_CFLAGS)
+libdevhelp_2_la_LIBADD = $(DEVHELP_LIBS) \
+						 $(top_builddir)/utils/src/libgeanypluginutils.la
+libdevhelp_2_la_LDFLAGS = -no-undefined
 
 dh-marshal.h: dh-marshal.list
 	$(AM_V_GEN)$(GLIB_GENMARSHAL) --prefix=_dh_marshal --header --output=$@ dh-marshal.list

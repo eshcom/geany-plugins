@@ -30,8 +30,8 @@
 void config_init(void);
 void config_uninit(void);
 GKeyFile *config_clone(void);
-void config_set(GKeyFile * cfg);
-gchar *config_get_command(const gchar * lang, gint cmd_num, gboolean * intern);
+void config_set(GKeyFile *cfg);
+gchar *config_get_command(const gchar *lang, gint cmd_num, gboolean *intern);
 
 
 #endif

@@ -22,21 +22,19 @@
 #ifndef BPTREE_H
 #define BPTREE_H
 
-#include <glib.h>
-
 #include "breakpoint.h"
 #include "breakpoints.h"
 
-gboolean		bptree_init(move_to_line_cb callback);
-void			bptree_destroy(void);
-void 			bptree_add_breakpoint(breakpoint* bp);
-void 			bptree_update_breakpoint(breakpoint* bp);
-void 			bptree_remove_breakpoint(breakpoint* bp);
-void 			bptree_set_condition(breakpoint* bp);
-void 			bptree_set_hitscount(breakpoint* bp);
-void 			bptree_set_enabled(breakpoint* bp);
-gchar*			bptree_get_condition(breakpoint* bp);
-void 			bptree_set_readonly(gboolean readonly);
-void			bptree_update_file_nodes(void);
+gboolean bptree_init(move_to_line_cb callback);
+void bptree_destroy(void);
+void bptree_add_breakpoint(breakpoint *bp);
+void bptree_update_breakpoint(breakpoint *bp);
+void bptree_remove_breakpoint(breakpoint *bp);
+void bptree_set_condition(breakpoint *bp);
+void bptree_set_hitscount(breakpoint *bp);
+void bptree_set_enabled(breakpoint *bp);
+gchar *bptree_get_condition(breakpoint *bp);
+void bptree_set_readonly(gboolean readonly);
+void bptree_update_file_nodes(void);
 
 #endif /* guard */

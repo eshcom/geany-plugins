@@ -17,13 +17,10 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "common.h"
 
 /* Wordchars defining possible signs in an expression. */
-#define SCOPE_EXPR_WORDCHARS	"_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.->[]"
+#define SCOPE_EXPR_WORDCHARS "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.->[]"
 
 static void tooltip_trigger(void)
 {

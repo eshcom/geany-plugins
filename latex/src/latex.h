@@ -25,8 +25,8 @@
 #ifndef LATEX_H
 #define LATEX_H
 
-#include <geanyplugin.h>
-#include <gtk/gtk.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
 #include "datatypes.h"
 #include "templates.h"
 #include "letters.h"
@@ -39,14 +39,11 @@
 #include "latexstructure.h"
 #include "latexkeybindings.h"
 
-#include <string.h>
-
-typedef void (*MenuCallback) (G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata);
+extern GeanyData *geany_data;
 
 
-extern GeanyPlugin	*geany_plugin;
-extern GeanyData	*geany_data;
-
+typedef void (*MenuCallback)(G_GNUC_UNUSED GtkMenuItem *menuitem,
+							 G_GNUC_UNUSED gpointer gdata);
 
 #define create_sub_menu(base_menu, menu, item, title) \
 		(menu) = gtk_menu_new(); \
@@ -62,15 +59,15 @@ extern gboolean glatex_autobraces_active;
 extern gboolean glatex_lowercase_on_smallcaps;
 
 gint glatex_count_menu_entries(SubMenuTemplate *tmp, gint categorie);
-void glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 	 G_GNUC_UNUSED gpointer gdata);
-void glatex_insert_label_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_label_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 	 G_GNUC_UNUSED gpointer gdata);
-void glatex_insert_ref_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_ref_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 	 G_GNUC_UNUSED gpointer gdata);
-void glatex_insert_usepackage_dialog(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_usepackage_dialog(G_GNUC_UNUSED GtkMenuItem *menuitem,
 	 G_GNUC_UNUSED gpointer gdata);
-void glatex_insert_command_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_command_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 	 G_GNUC_UNUSED gpointer gdata);
-void on_insert_bibtex_dialog_activate(GtkMenuItem * menuitem, gpointer gdata);
+void on_insert_bibtex_dialog_activate(GtkMenuItem *menuitem, gpointer gdata);
 #endif

@@ -18,13 +18,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
 #include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
 
 #include "common.h"
 
@@ -32,16 +30,18 @@
 #define DS_COPY (DS_BASICS | DS_EXTRA_1)
 
 #ifdef G_OS_UNIX
-#include <vte/vte.h>
-#include <gp_vtecompat.h>
+	#include <vte/vte.h>
+	#include <gp_vtecompat.h>
 /* instead of detecting N kinds of *nix */
 #if defined(HAVE_UTIL_H)
-#include <util.h>
+	#include <util.h>
 #elif defined(HAVE_LIBUTIL_H)
-#include <libutil.h>
+	#include <libutil.h>
 #elif defined(HAVE_PTY_H)
-#include <pty.h>
+	#include <pty.h>
 #endif
+
+
 int grantpt(int fd);
 int unlockpt(int fd);
 
@@ -385,29 +385,30 @@ static MenuInfo console_menu_info = { console_menu_items, console_menu_extra_sta
 
 void conterm_load_config(void)
 {
-	gchar *configfile = g_build_filename(geany_data->app->configdir, "geany.conf", NULL);
-	GKeyFile *config = g_key_file_new();
-	gchar *tmp_string;
-
-	g_key_file_load_from_file(config, configfile, G_KEY_FILE_NONE, NULL);
+	gchar *configfile = get_geany_configfile();
+	GKeyFile *config = load_config_from_file(configfile, NULL);
+	
 	pref_vte_blinken = utils_get_setting_boolean(config, "VTE", "cursor_blinks", FALSE);
 	pref_vte_emulation = utils_get_setting_string(config, "VTE", "emulation", "xterm");
 	pref_vte_font = utils_get_setting_string(config, "VTE", "font", "Monospace 10");
 	pref_vte_scrollback = utils_get_setting_integer(config, "VTE", "scrollback_lines", 500);
-	tmp_string = utils_get_setting_string(config, "VTE", "colour_fore", "#ffffff");
+	
+	gchar *tmp = utils_get_setting_string(config, "VTE", "colour_fore", "#ffffff");
 #if !GTK_CHECK_VERSION(3, 14, 0)
-	gdk_color_parse(tmp_string, &pref_vte_colour_fore);
+	gdk_color_parse(tmp, &pref_vte_colour_fore);
 #else
-	gdk_rgba_parse(&pref_vte_colour_fore, tmp_string);
+	gdk_rgba_parse(&pref_vte_colour_fore, tmp);
 #endif
-	g_free(tmp_string);
-	tmp_string = utils_get_setting_string(config, "VTE", "colour_back", "#000000");
+	g_free(tmp);
+	
+	tmp = utils_get_setting_string(config, "VTE", "colour_back", "#000000");
 #if !GTK_CHECK_VERSION(3, 14, 0)
-	gdk_color_parse(tmp_string, &pref_vte_colour_back);
+	gdk_color_parse(tmp, &pref_vte_colour_back);
 #else
-	gdk_rgba_parse(&pref_vte_colour_back, tmp_string);
+	gdk_rgba_parse(&pref_vte_colour_back, tmp);
 #endif
-	g_free(tmp_string);
+	g_free(tmp);
+	
 	g_key_file_free(config);
 	g_free(configfile);
 }

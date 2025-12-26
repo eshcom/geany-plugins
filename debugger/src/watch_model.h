@@ -22,9 +22,6 @@
 #ifndef WATCH_MODEL_H
 #define WATCH_MODEL_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
 /* tree view columns */
 enum
 {
@@ -48,12 +45,12 @@ typedef gboolean (*watch_button_pressed)(GtkWidget *treeview, GdkEventButton *ev
 typedef void (*watch_render_name)(GtkTreeViewColumn *tree_column, GtkCellRenderer *cell, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
 typedef void (*watch_expression_changed)(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer user_data);
 
-void	update_variables(GtkTreeView *tree, GtkTreeIter *parent, GList *vars);
-void	clear_watch_values(GtkTreeView *tree);
-GList*	get_root_items(GtkTreeView *tree);
-void	change_watch(GtkTreeView *tree, GtkTreeIter *iter, gpointer var);
-void	free_variables_list(GList *vars);
-void	variable_set_name_only(GtkTreeStore *store, GtkTreeIter *iter, gchar *name);
-void	expand_stub(GtkTreeView *tree, GtkTreeIter *parent, GList *vars);
+void update_variables(GtkTreeView *tree, GtkTreeIter *parent, GList *vars);
+void clear_watch_values(GtkTreeView *tree);
+GList *get_root_items(GtkTreeView *tree);
+void change_watch(GtkTreeView *tree, GtkTreeIter *iter, gpointer var);
+void free_variables_list(GList *vars);
+void variable_set_name_only(GtkTreeStore *store, GtkTreeIter *iter, gchar *name);
+void expand_stub(GtkTreeView *tree, GtkTreeIter *parent, GList *vars);
 
 #endif /* guard */

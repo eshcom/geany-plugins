@@ -13,8 +13,8 @@ codenav_la_SOURCES = \
 	utils.c \
 	utils.h
 
-codenav_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"CodeNavigation\"
-codenav_la_LIBADD = $(COMMONLIBS)
-
+codenav_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"CodeNavigation\" \
+					  -Wno-deprecated-declarations
+codenav_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
 
 include $(top_srcdir)/build/cppcheck.mk

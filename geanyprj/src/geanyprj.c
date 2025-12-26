@@ -20,19 +20,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_LOCALE_H
-# include <locale.h>
-#endif
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include <sys/time.h>
-#include <string.h>
+#ifdef HAVE_LOCALE_H
+	#include <locale.h>
+#endif
 
 #include "geanyprj.h"
+#include "../../utils/src/common.h"
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 PLUGIN_SET_TRANSLATABLE_INFO(LOCALEDIR, GETTEXT_PACKAGE,
@@ -42,12 +43,9 @@ PLUGIN_SET_TRANSLATABLE_INFO(LOCALEDIR, GETTEXT_PACKAGE,
 	VERSION,
 	"Yura Siamashka <yurand2@gmail.com>")
 
-GeanyPlugin    *geany_plugin;
-GeanyData      *geany_data;
 
-
-static gchar    *config_file;
-static gboolean  display_sidebar = TRUE;
+static gchar *config_file;
+static gboolean display_sidebar = TRUE;
 
 
 /* Keybinding(s) */
@@ -60,64 +58,58 @@ enum
 
 static void reload_project(void)
 {
-	gchar *dir;
-	gchar *proj;
-	GeanyDocument *doc;
-
 	debug("%s\n", __FUNCTION__);
-
-	doc = document_get_current();
-	if (doc == NULL || doc->file_name == NULL)
+	
+	GeanyDocument *doc = document_get_current();
+	if (!doc || !doc->file_name)
 		return;
-
-	dir = g_path_get_dirname(doc->file_name);
-	proj = find_file_path(dir, ".geanyprj");
-
+	
+	gchar *dir = g_path_get_dirname(doc->file_name);
+	gchar *proj = find_file_path(dir, ".geanyprj");
+	
 	if (!proj)
 	{
 		if (g_current_project)
 			xproject_close(TRUE);
 		return;
 	}
-
+	
 	if (!g_current_project)
-	{
 		xproject_open(proj);
-	}
 	else if (strcmp(proj, g_current_project->path) != 0)
 	{
 		xproject_close(TRUE);
 		xproject_open(proj);
 	}
-	if (proj)
-		g_free(proj);
+	if (proj) g_free(proj);
 }
 
 
-static void on_doc_save(G_GNUC_UNUSED GObject *obj, GeanyDocument *doc, G_GNUC_UNUSED gpointer user_data)
+static void on_doc_save(G_GNUC_UNUSED GObject *obj, GeanyDocument *doc,
+						G_GNUC_UNUSED gpointer user_data)
 {
-	gchar *name;
-
 	g_return_if_fail(doc != NULL && doc->file_name != NULL);
-
-	name = g_path_get_basename(doc->file_name);
+	
+	gchar *name = g_path_get_basename(doc->file_name);
+	
 	if (g_current_project && strcmp(name, ".geanyprj") == 0)
-	{
 		xproject_close(FALSE);
-	}
+	
 	reload_project();
 	xproject_update_tag(doc->file_name);
 }
 
 
-static void on_doc_open(G_GNUC_UNUSED GObject *obj, G_GNUC_UNUSED GeanyDocument *doc,
+static void on_doc_open(G_GNUC_UNUSED GObject *obj,
+						G_GNUC_UNUSED GeanyDocument *doc,
 						G_GNUC_UNUSED gpointer user_data)
 {
 	reload_project();
 }
 
 
-static void on_doc_activate(G_GNUC_UNUSED GObject *obj, G_GNUC_UNUSED GeanyDocument *doc,
+static void on_doc_activate(G_GNUC_UNUSED GObject *obj,
+							G_GNUC_UNUSED GeanyDocument *doc,
 							G_GNUC_UNUSED gpointer user_data)
 {
 	reload_project();
@@ -141,58 +133,37 @@ static void kb_find_in_project(guint key_id)
 
 static void load_settings(void)
 {
-	GKeyFile *config = g_key_file_new();
-	GError   *err    = NULL;
-	gboolean  tmp;
-
-	config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-		"geanyprj", G_DIR_SEPARATOR_S, "geanyprj.conf", NULL);
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-	tmp = g_key_file_get_boolean(config, "geanyprj", "display_sidebar", &err);
-
-	if (err)
-		g_error_free(err);
-	else
-		display_sidebar = tmp;
-
+	config_file = get_config_filepath(PLUGIN, NULL);
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	GError *err = NULL;
+	gboolean tmp = g_key_file_get_boolean(config, CONFIG_SECTION, "display_sidebar",
+										  &err);
+	if (err) g_error_free(err);
+	else display_sidebar = tmp;
+	
 	g_key_file_free(config);
 }
 
 
 static void save_settings(void)
 {
-	GKeyFile *config = g_key_file_new();
-	gchar    *data;
-	gchar    *config_dir = g_path_get_dirname(config_file);
-
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-	g_key_file_set_boolean(config, "geanyprj", "display_sidebar", display_sidebar);
-
-	if (! g_file_test(config_dir, G_FILE_TEST_IS_DIR) && utils_mkdir(config_dir, TRUE) != 0)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-			_("Plugin configuration directory could not be created."));
-	}
-	else
-	{
-		/* write config to file */
-		data = g_key_file_to_data(config, NULL, NULL);
-		utils_write_file(config_file, data);
-		g_free(data);
-	}
-	g_free(config_dir);
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	g_key_file_set_boolean(config, CONFIG_SECTION, "display_sidebar", display_sidebar);
+	
+	write_config_to_file(config, config_file, MSGBOX);
 	g_key_file_free(config);
 }
 
 
-static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, G_GNUC_UNUSED gint response, GtkWidget *checkbox)
+static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog,
+								  G_GNUC_UNUSED gint response, GtkWidget *checkbox)
 {
 	gboolean old_display_sidebar = display_sidebar;
-
+	
 	display_sidebar = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox));
-
+	
 	if (display_sidebar ^ old_display_sidebar)
 	{
 		if (display_sidebar)
@@ -201,9 +172,8 @@ static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, G_GNUC_UNUSED
 			sidebar_refresh();
 		}
 		else
-		{
 			destroy_sidebar();
-		}
+		
 		save_settings();
 	}
 }
@@ -212,43 +182,35 @@ static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, G_GNUC_UNUSED
 /* Called by Geany to initialize the plugin */
 void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
-	GeanyKeyGroup *key_group;
-
 	load_settings();
 	tools_menu_init();
-
+	
 	xproject_init();
-	if (display_sidebar)
-		create_sidebar();
+	if (display_sidebar) create_sidebar();
 	reload_project();
-
-	key_group = plugin_set_key_group(geany_plugin, "geanyprj", KB_COUNT, NULL);
-	keybindings_set_item(key_group, KB_FIND_IN_PROJECT,
-		kb_find_in_project, 0, 0, "find_in_project",
-			_("Find a text in geanyprj's project"), NULL);
+	
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT, NULL);
+	keybindings_set_item(key_group, KB_FIND_IN_PROJECT, kb_find_in_project,
+		0, 0, "find_in_project", _("Find a text in geanyprj's project"), NULL);
 }
 
 
-/* Called by Geany to show the plugin's configure dialog. This function is always called after
- * plugin_init() was called.
+/* Called by Geany to show the plugin's configure dialog.
+ * This function is always called after plugin_init() was called.
  */
 GtkWidget *plugin_configure(GtkDialog *dialog)
 {
-	GtkWidget *vbox;
-	GtkWidget *checkbox;
-
-	vbox = gtk_vbox_new(FALSE, 6);
-
-	checkbox = gtk_check_button_new_with_label(_("Display sidebar"));
+	GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+	GtkWidget *checkbox = gtk_check_button_new_with_label(_("Display sidebar"));
+	
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbox), display_sidebar);
-
 	gtk_box_pack_start(GTK_BOX(vbox), checkbox, FALSE, FALSE, 0);
-
 	gtk_widget_show_all(vbox);
-
+	
 	/* Connect a callback for when the user clicks a dialog button */
 	g_signal_connect(dialog, "response", G_CALLBACK(on_configure_response), checkbox);
-
+	
 	return vbox;
 }
 
@@ -257,13 +219,13 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 void plugin_cleanup(void)
 {
 	tools_menu_uninit();
-
+	
 	if (g_current_project)
 		geany_project_free(g_current_project);
 	g_current_project = NULL;
-
+	
 	g_free(config_file);
-
+	
 	xproject_cleanup();
 	destroy_sidebar();
 }

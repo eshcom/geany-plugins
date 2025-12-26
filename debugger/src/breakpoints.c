@@ -25,9 +25,7 @@
  * 		entries in breaks tree view in the debugger panel 
  */
 
-#include <string.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "breakpoints.h"
 #include "utils.h"

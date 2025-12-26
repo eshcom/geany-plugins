@@ -23,20 +23,16 @@
  *		Contains function to manipulate stack trace tree view.
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "stree.h"
-#include "breakpoints.h"
 #include "utils.h"
 #include "debug_module.h"
 #include "pixbuf.h"
-
 #include "cell_renderers/cellrendererframeicon.h"
 
 /* Tree view columns */

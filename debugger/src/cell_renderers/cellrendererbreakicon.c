@@ -24,8 +24,7 @@
  * 		a breakpoint is enabled or disabled
  */
 
-#include <string.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "cellrendererbreakicon.h"
 

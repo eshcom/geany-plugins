@@ -27,7 +27,7 @@ G_BEGIN_DECLS
    vte_terminal_copy_clipboard_format starting from version 0.50 */
 #if VTE_CHECK_VERSION(0, 50, 0)
 #define vte_terminal_copy_clipboard(terminal) \
-        vte_terminal_copy_clipboard_format(terminal, VTE_FORMAT_TEXT)
+		vte_terminal_copy_clipboard_format(terminal, VTE_FORMAT_TEXT)
 #endif
 
 /* Version info for VTE is incomplete so we use all the macros below
@@ -39,17 +39,17 @@ G_BEGIN_DECLS
 /* Replace call to vte_terminal_set_font_from_string() with a call to
    gp_vtecompat_set_font_from_string() starting from version 0.26.2 */
 #define vte_terminal_set_font_from_string(vte, font) \
-        gp_vtecompat_set_font_from_string(vte, font)
+		gp_vtecompat_set_font_from_string(vte, font)
 
 /* Replace call to vte_pty_new_foreign() with a call to
    vte_pty_new_foreign_sync() starting from version 0.26.2 */
 #define vte_pty_new_foreign(pty, error) \
-        vte_pty_new_foreign_sync(pty, NULL, error)
+		vte_pty_new_foreign_sync(pty, NULL, error)
 
 /* Replace call to vte_terminal_set_pty_object() with a call to
    vte_terminal_set_pty() starting from version 0.26.2 */
 #define vte_terminal_set_pty_object(terminal, pty) \
-        vte_terminal_set_pty(terminal, pty)
+		vte_terminal_set_pty(terminal, pty)
 
 void gp_vtecompat_set_font_from_string(VteTerminal *vte, char *font);
 #endif

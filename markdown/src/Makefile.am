@@ -16,16 +16,13 @@ noinst_HEADERS = \
 	markdown-gtk-compat.h
 
 
-markdown_la_CFLAGS = \
-	$(AM_CFLAGS) \
-	$(MARKDOWN_CFLAGS) \
-	-DMARKDOWN_DOC_DIR=PLUGINDOCDIR \
-	-DMARKDOWN_HELP_FILE=\"$(GP_DOCDIR)/$(plugin)/html/help.html\"
-
-markdown_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Markdown\"
-markdown_la_LIBADD = \
-	$(COMMONLIBS) \
-	$(MARKDOWN_LIBS)
+markdown_la_CFLAGS = $(AM_CFLAGS) $(MARKDOWN_CFLAGS) \
+					 -DMARKDOWN_DOC_DIR=PLUGINDOCDIR \
+					 -DMARKDOWN_HELP_FILE=\"$(GP_DOCDIR)/$(plugin)/html/help.html\"
+markdown_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Markdown\" \
+					   -Wno-deprecated-declarations
+markdown_la_LIBADD = $(COMMONLIBS) $(MARKDOWN_LIBS) \
+					 $(top_builddir)/utils/src/libgeanypluginutils.la
 
 if MARKDOWN_PEG_MARKDOWN
 markdown_la_CFLAGS += -DFULL_PRICE -I$(top_srcdir)/markdown/peg-markdown

@@ -22,24 +22,21 @@
 #ifndef STREE_H
 #define STREE_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
 #include "breakpoints.h"
-#include "debug_module.h"
 
-GtkWidget*		stree_init(move_to_line_cb ml, select_thread_cb st, select_frame_cb sf);
-void			stree_destroy(void);
+GtkWidget *stree_init(move_to_line_cb ml, select_thread_cb st, select_frame_cb sf);
 
-void 			stree_add(GList *frames);
-void 			stree_clear(void);
+void stree_destroy(void);
 
-void 			stree_add_thread(int thread_id);
-void 			stree_remove_thread(int thread_id);
+void stree_add(GList *frames);
+void stree_clear(void);
 
-void 			stree_select_first_frame(gboolean make_active);
-void 			stree_remove_frames(void);
+void stree_add_thread(int thread_id);
+void stree_remove_thread(int thread_id);
 
-void			stree_set_active_thread_id(int thread_id);
+void stree_select_first_frame(gboolean make_active);
+void stree_remove_frames(void);
+
+void stree_set_active_thread_id(int thread_id);
 
 #endif /* guard */

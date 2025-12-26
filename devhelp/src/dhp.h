@@ -22,17 +22,17 @@
 #ifndef DEVHELP_PLUGIN_COMMON_H
 #define DEVHELP_PLUGIN_COMMON_H
 
-#include <gtk/gtk.h>
 #include <webkit/webkitwebview.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;
+
 
 G_BEGIN_DECLS
 
 
-#ifndef DHPLUG_DATA_DIR
-#define DHPLUG_DATA_DIR "/usr/local/share/geany-devhelp"
-#endif
-
-#define DHPLUG_WEBVIEW_HOME_FILE DHPLUG_DATA_DIR "/home.html"
+#define DHPLUG_WEBVIEW_HOME_FILE PLUGINDATADIR "/home.html"
 #define DHPLUG_MAX_LABEL_TAG 30 /* never search for more than this many chars */
 
 #define DEVHELP_PLUGIN_WEBVIEW_TAB_LABEL	_("Documentation")
@@ -53,14 +53,14 @@ typedef struct	_DevhelpPluginPrivate	DevhelpPluginPrivate;
 
 struct _DevhelpPlugin
 {
-    GObject parent;
-    DevhelpPluginPrivate *priv;
+	GObject parent;
+	DevhelpPluginPrivate *priv;
 };
 
 
 struct _DevhelpPluginClass
 {
-    GObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 

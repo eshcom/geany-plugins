@@ -23,8 +23,7 @@
  * 		Functions for creating new breakpoints. 
  */
 
-#include <gtk/gtk.h>
-#include <memory.h>
+#include <gtkcompat.h>
 #include "breakpoint.h"
 
 /*

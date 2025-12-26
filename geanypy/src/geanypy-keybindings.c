@@ -19,17 +19,15 @@
  * MA 02110-1301, USA.
  */
 
-
 #include "geanypy.h"
 #include "geanypy-keybindings.h"
 
-#include <glib.h>
 
 static gboolean call_key(gpointer *unused, guint key_id, gpointer data)
 {
 	PyObject *callback = data;
 	PyObject *args;
-
+	
 	args = Py_BuildValue("(i)", key_id);
 	PyObject_CallObject(callback, args);
 	Py_DECREF(args);
@@ -66,8 +64,8 @@ Keybindings_set_key_group(PyObject *self, PyObject *args, PyObject *kwargs)
 		{
 			Py_INCREF(py_callback);
 			group = plugin_set_key_group_full(plugin, section_name, count,
-			                                  (GeanyKeyGroupFunc) call_key, py_callback,
-			                                  (GDestroyNotify) Py_DecRef);
+											  (GeanyKeyGroupFunc) call_key, py_callback,
+											  (GDestroyNotify) Py_DecRef);
 		}
 		else
 			group = plugin_set_key_group(plugin, section_name, count, NULL);
@@ -106,9 +104,9 @@ KeyGroup_add_key_item(KeyGroup *self, PyObject *args, PyObject *kwargs)
 		{
 			Py_INCREF(py_callback);
 			item = keybindings_set_item_full(self->kb_group, id, (guint) key,
-			                                 (GdkModifierType) mod, name, label, menu_item,
-			                                 (GeanyKeyBindingFunc) call_key, py_callback,
-			                                 (GDestroyNotify) Py_DecRef);
+											 (GdkModifierType) mod, name, label, menu_item,
+											 (GeanyKeyBindingFunc) call_key, py_callback,
+											 (GDestroyNotify) Py_DecRef);
 		}
 		else
 		{
@@ -116,7 +114,7 @@ KeyGroup_add_key_item(KeyGroup *self, PyObject *args, PyObject *kwargs)
 				g_warning("Either KeyGroup or the Keybinding must have a callback\n");
 			else
 				item = keybindings_set_item(self->kb_group, id, NULL, (guint) key,
-				                            (GdkModifierType) mod, name, label, menu_item);
+											(GdkModifierType) mod, name, label, menu_item);
 		}
 		Py_XDECREF(py_menu_item);
 

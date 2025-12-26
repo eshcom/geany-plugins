@@ -19,7 +19,6 @@
 #ifndef __WB_WORKBENCH_H__
 #define __WB_WORKBENCH_H__
 
-#include <glib.h>
 #include "wb_project.h"
 #include "wb_monitor.h"
 
@@ -28,7 +27,7 @@ typedef enum
 	PROJECT_ENTRY_STATUS_UNKNOWN,
 	PROJECT_ENTRY_STATUS_OK,
 	PROJECT_ENTRY_STATUS_NOT_FOUND,
-}PROJECT_ENTRY_STATUS;
+} PROJECT_ENTRY_STATUS;
 
 typedef struct S_WORKBENCH WORKBENCH;
 

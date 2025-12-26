@@ -1,4 +1,3 @@
-
 /*
  * glspi_run.c - This file is part of the Lua scripting plugin for the Geany IDE
  * See the file "geanylua.c" for copyright information.
@@ -7,9 +6,7 @@
 #define NEED_FAIL_ARG_TYPE
 #include "glspi.h"
 
-
-static KeyfileAssignFunc glspi_kfile_assign=NULL;
-
+static KeyfileAssignFunc glspi_kfile_assign = NULL;
 
 /*
 	If a script gets caught in a tight loop and the timeout expires,
@@ -27,7 +24,6 @@ static void repaint_scintilla(void)
 		gdk_window_process_updates(gtk_widget_get_window(GTK_WIDGET(doc->editor->sci)), TRUE);
 	}
 }
-
 
 
 /* Internal yes-or-no question box (not used by scripts) */
@@ -71,7 +67,6 @@ static gboolean glspi_goto_error(const gchar *fn, gint line)
 }
 
 
-
 /*
 	Display a message box showing any script error...
 	Depending on the type of error, Lua will sometimes prepend the filename
@@ -106,9 +101,6 @@ static void glspi_script_error(const gchar *script_file, const gchar *msg, gbool
 	}
 	gtk_widget_destroy(dialog);
 }
-
-
-
 
 
 typedef struct _StateInfo {
@@ -165,7 +157,6 @@ static gint glspi_timeout(lua_State* L)
 }
 
 
-
 static gint glspi_yield(lua_State* L)
 {
 	while (gtk_events_pending()) { gtk_main_iteration(); }
@@ -217,7 +208,6 @@ static void debug_hook(lua_State *L, lua_Debug *ar)
 }
 
 
-
 /*
 	Pause the run timer, while dialogs are displayed. Note that we
 	purposely add 1/10 of a second to our elapsed time here.
@@ -238,8 +228,6 @@ static void glspi_pause_timer(gboolean pause, gpointer user_data)
 		}
 	}
 }
-
-
 
 
 static lua_State *glspi_state_new(void)
@@ -278,16 +266,12 @@ static void glspi_state_done(lua_State *L)
 }
 
 
-
 static const struct luaL_reg glspi_timer_funcs[] = {
 	{"timeout",  glspi_timeout},
 	{"yield",    glspi_yield},
 	{"optimize", glspi_optimize},
 	{NULL,NULL}
 };
-
-
-
 
 
 /* Catch and report script errors */
@@ -327,7 +311,6 @@ static void set_string_token(lua_State *L, const gchar*name, const gchar*value)
 }
 
 
-
 static void set_numeric_token(lua_State *L, const gchar*name, gint value)
 {
 	lua_getglobal(L, LUA_MODULE_NAME);
@@ -339,7 +322,6 @@ static void set_numeric_token(lua_State *L, const gchar*name, gint value)
 		g_printerr("*** %s: Failed to set value for %s\n", PLUGIN_NAME, name);
 	}
 }
-
 
 
 static void set_boolean_token(lua_State *L, const gchar*name, gboolean value)
@@ -355,7 +337,6 @@ static void set_boolean_token(lua_State *L, const gchar*name, gboolean value)
 }
 
 
-
 static void set_keyfile_token(lua_State *L, const gchar*name, GKeyFile* value)
 {
 	if (!value) {return;}
@@ -368,7 +349,6 @@ static void set_keyfile_token(lua_State *L, const gchar*name, GKeyFile* value)
 		g_printerr("*** %s: Failed to set value for %s\n", PLUGIN_NAME, name);
 	}
 }
-
 
 
 static void show_error(lua_State *L, const gchar *script_file)
@@ -388,7 +368,6 @@ static void show_error(lua_State *L, const gchar *script_file)
 	}
 	if (fn) g_free(fn);
 }
-
 
 
 static gint glspi_init_module(lua_State *L, const gchar *script_file, gint caller, GKeyFile*proj, const gchar*script_dir)
@@ -412,7 +391,6 @@ static gint glspi_init_module(lua_State *L, const gchar *script_file, gint calle
 }
 
 
-
 /*
 	Function to load this module into the standalone lua interpreter.
 	The only reason you would ever want to do this is to re-generate
@@ -424,7 +402,6 @@ gint luaopen_libgeanylua(lua_State *L)
 {
 	return glspi_init_module(L, "", 0, NULL, NULL);
 }
-
 
 
 /* Load and run the script */
@@ -466,4 +443,3 @@ void glspi_run_script(const gchar *script_file, gint caller, GKeyFile*proj, cons
 	}
 	glspi_state_done(L);
 }
-

@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -25,7 +29,7 @@ static int
 TemplatePrefs_init(TemplatePrefs *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->template_prefs = geany_data->template_prefs;
+	self->template_prefs = geany->template_prefs;
 	return 0;
 }
 

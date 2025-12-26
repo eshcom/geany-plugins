@@ -24,24 +24,18 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "codenavigation.h"
-
 /* Function which returns a newly-allocated string containing the
- * extension of the file path which is given, or NULL if it did not found any extension.
+ * extension of the file path which is given,
+ * or NULL if it did not found any extension.
  */
-gchar*
-get_extension(gchar* path);
+gchar *get_extension(const gchar *path);
 
-/* Copy a path and remove the extension
- */
-gchar*
-copy_and_remove_extension(gchar* path);
+/* Copy a path and remove the extension */
+gchar *copy_and_remove_extension(const gchar *path);
 
 /* Comparison of strings, for use with g_slist_find_custom */
-gint
-compare_strings(const gchar* a, const gchar* b);
+gint compare_strings(const gchar *a, const gchar *b);
 
-gint
-strrpos(const gchar *haystack, const gchar *needle);
+gint strrpos(const gchar *haystack, const gchar *needle);
 
 #endif /* UTILS_H */

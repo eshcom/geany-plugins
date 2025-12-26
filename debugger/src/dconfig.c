@@ -24,16 +24,11 @@
  *		Plugin panel and debug session configs
  */
  
-#include <unistd.h>
-#include <sys/stat.h>
-
-#include <glib/gstdio.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
-extern GeanyData *geany_data;
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "dconfig.h"
 #include "tabs.h"
@@ -43,6 +38,11 @@ extern GeanyData *geany_data;
 #include "wtree.h"
 #include "tpage.h"
 #include "bptree.h"
+
+#include "../../utils/src/common.h"
+
+extern GeanyData *geany_data;
+
 
 /* keyfile debug group name */
 #define DEBUGGER_GROUP "debugger"
@@ -59,8 +59,8 @@ static gchar *plugin_config_path = NULL;
 static debug_store dstore = DEBUG_STORE_PLUGIN;
 
 /* GKeyFile's for a project and plugin config */
-static GKeyFile *keyfile_plugin = NULL;
-static GKeyFile *keyfile_project = NULL;
+static GKeyFile *plugin_config = NULL;
+static GKeyFile *project_config = NULL;
 
 /* flag that indicates that debug session is being loaded to controls
  * to prevent change state to modified from GUI callbacks */
@@ -77,30 +77,13 @@ static gboolean debug_config_changed = FALSE;
 static gboolean panel_config_changed = FALSE;
 
 /*
- *	creates a copy of a specified keyfile
- */
-static GKeyFile *create_copy_keyfile(GKeyFile *keyfile)
-{
-	GKeyFile *copy;
-	gchar *data;
-	gsize length;
-
-	data = g_key_file_to_data(keyfile, &length, NULL);
-	copy = g_key_file_new();
-	g_key_file_load_from_data(copy, data, length, G_KEY_FILE_NONE, NULL);
-	g_free(data);
-
-	return copy;
-}
-
-/*
  * loads debug session from a keyfile and updates GUI 
  */
 static void debug_load_from_keyfile(GKeyFile *keyfile)
 {
 	gchar *value;
 	int i, count;
-
+	
 	debug_config_loading = TRUE;
 	
 	/* target */
@@ -179,36 +162,32 @@ static void debug_load_from_keyfile(GKeyFile *keyfile)
  */
 static void save_to_keyfile(GKeyFile *keyfile)
 {
-	GList *_env, *watches, *_breaks, *iter;
-	int env_index, watch_index, bp_index;
-	
 	g_key_file_remove_group(keyfile, DEBUGGER_GROUP, NULL);
-	
 	g_key_file_set_string(keyfile, DEBUGGER_GROUP, "target", tpage_get_target());
 	g_key_file_set_string(keyfile, DEBUGGER_GROUP, "debugger", tpage_get_debugger());
 	g_key_file_set_string(keyfile, DEBUGGER_GROUP, "arguments", tpage_get_commandline());
 	
 	/* environment */
-	_env = tpage_get_environment();
-	g_key_file_set_integer(keyfile, DEBUGGER_GROUP, "envvar_count", g_list_length(_env) / 2);
-	iter = _env;
-	env_index = 0;
+	GList *_env = tpage_get_environment();
+	g_key_file_set_integer(keyfile, DEBUGGER_GROUP, "envvar_count",
+						   g_list_length(_env) / 2);
+	GList *iter = _env;
+	int env_index = 0;
 	while(iter)
 	{
-		gchar *name, *value;
 		gchar *env_name_id = g_strdup_printf("envvar_%i_name", env_index);
 		gchar *env_value_id = g_strdup_printf("envvar_%i_value", env_index);
-
-		name = (gchar*)iter->data;
+		
+		gchar *name = (gchar *)iter->data;
 		iter = iter->next;
-		value = (gchar*)iter->data;
-
+		gchar *value = (gchar *)iter->data;
+		
 		g_key_file_set_string(keyfile, DEBUGGER_GROUP, env_name_id, name);
 		g_key_file_set_string(keyfile, DEBUGGER_GROUP, env_value_id, value);
-
+		
 		g_free(env_name_id);
 		g_free(env_value_id);
-
+		
 		env_index++;
 		iter = iter->next;
 	}
@@ -216,9 +195,9 @@ static void save_to_keyfile(GKeyFile *keyfile)
 	g_list_free(_env);
 	
 	/* watches */
-	watches = wtree_get_watches();
+	GList *watches = wtree_get_watches();
 	g_key_file_set_integer(keyfile, DEBUGGER_GROUP, "watches_count", g_list_length(watches));
-	watch_index = 0;
+	int watch_index = 0;
 	for (iter = watches; iter; iter = iter->next)
 	{
 		gchar *watch = (gchar*)iter->data;
@@ -234,9 +213,9 @@ static void save_to_keyfile(GKeyFile *keyfile)
 	g_list_free(watches);
 
 	/* breakpoints */
-	_breaks = breaks_get_all();
+	GList *_breaks = breaks_get_all();
 	g_key_file_set_integer(keyfile, DEBUGGER_GROUP, "breaks_count", g_list_length(_breaks));
-	bp_index = 0;
+	int bp_index = 0;
 	for (iter = _breaks; iter; iter = iter->next)
 	{
 		breakpoint *bp = (breakpoint*)iter->data;
@@ -273,41 +252,27 @@ static gpointer saving_thread_func(gpointer data)
 	g_mutex_lock(&change_config_mutex);
 	do
 	{
-		if (
-			panel_config_changed ||
-			(debug_config_changed && DEBUG_STORE_PLUGIN == dstore)
-		)
+		if (panel_config_changed ||
+			(debug_config_changed && DEBUG_STORE_PLUGIN == dstore))
 		{
-			gchar *config_data;
-
 			/* if all saving is going to be done to a plugin keyfile */
 			if (debug_config_changed)
 			{
-				save_to_keyfile(keyfile_plugin);
+				save_to_keyfile(plugin_config);
 				debug_config_changed = FALSE;
 			}
-			
-			config_data = g_key_file_to_data(keyfile_plugin, NULL, NULL);
-			g_file_set_contents(plugin_config_path, config_data, -1, NULL);
-			g_free(config_data);
-
+			write_config_to_file(plugin_config, plugin_config_path, SYSLOG);
 			panel_config_changed = FALSE;
 		}
 		
 		if (debug_config_changed && DEBUG_STORE_PROJECT == dstore)
 		{
-			gchar *config_data;
-
 			/* if debug is saved into a project and has been changed */
-			save_to_keyfile(keyfile_project);
-
-			config_data = g_key_file_to_data(keyfile_project, NULL, NULL);
-			g_file_set_contents(geany_data->app->project->file_name, config_data, -1, NULL);
-			g_free(config_data);
-		
+			save_to_keyfile(project_config);
+			write_config_to_file(project_config, geany->app->project->file_name, SYSLOG);
 			debug_config_changed = FALSE;
 		}
-
+		
 		interval = g_get_monotonic_time() + SAVING_INTERVAL;
 	}
 	while (!g_cond_wait_until(&cond, &change_config_mutex, interval));
@@ -346,40 +311,40 @@ void config_set_panel(int config_part, gpointer config_value, ...)
 		{
 			case CP_TABBED_MODE:
 			{
-				g_key_file_set_boolean(keyfile_plugin, "tabbed_mode", "enabled", *((gboolean*)config_value));
+				g_key_file_set_boolean(plugin_config, "tabbed_mode", "enabled", *((gboolean*)config_value));
 				break;
 			}
 			case CP_OT_TABS:
 			{
 				int *array = (int*)config_value;
-				g_key_file_set_integer_list(keyfile_plugin, "one_panel_mode", "tabs", array + 1, array[0]);
+				g_key_file_set_integer_list(plugin_config, "one_panel_mode", "tabs", array + 1, array[0]);
 				break;
 			}
 			case CP_OT_SELECTED:
 			{
-				g_key_file_set_integer(keyfile_plugin, "one_panel_mode", "selected_tab_index", *((int*)config_value));
+				g_key_file_set_integer(plugin_config, "one_panel_mode", "selected_tab_index", *((int*)config_value));
 				break;
 			}
 			case CP_TT_LTABS:
 			{
 				int *array = (int*)config_value;
-				g_key_file_set_integer_list(keyfile_plugin, "two_panels_mode", "left_tabs", array + 1, array[0]);
+				g_key_file_set_integer_list(plugin_config, "two_panels_mode", "left_tabs", array + 1, array[0]);
 				break;
 			}
 			case CP_TT_LSELECTED:
 			{
-				g_key_file_set_integer(keyfile_plugin, "two_panels_mode", "left_selected_tab_index", *((int*)config_value));
+				g_key_file_set_integer(plugin_config, "two_panels_mode", "left_selected_tab_index", *((int*)config_value));
 				break;
 			}
 			case CP_TT_RTABS:
 			{
 				int *array = (int*)config_value;
-				g_key_file_set_integer_list(keyfile_plugin, "two_panels_mode", "right_tabs", array + 1, array[0]);
+				g_key_file_set_integer_list(plugin_config, "two_panels_mode", "right_tabs", array + 1, array[0]);
 				break;
 			}
 			case CP_TT_RSELECTED:
 			{
-				g_key_file_set_integer(keyfile_plugin, "two_panels_mode", "right_selected_tab_index", *((int*)config_value));
+				g_key_file_set_integer(plugin_config, "two_panels_mode", "right_selected_tab_index", *((int*)config_value));
 				break;
 			}
 		}
@@ -420,7 +385,7 @@ static void config_set_panel_defaults(GKeyFile *keyfile)
 	int left_tabs[] = { TID_TARGET, TID_BREAKS, TID_AUTOS, TID_WATCH };
 	int right_tabs[] = { TID_STACK, TID_TERMINAL, TID_MESSAGES };
 
-	g_key_file_set_boolean(keyfile_plugin, "tabbed_mode", "enabled", FALSE);
+	g_key_file_set_boolean(plugin_config, "tabbed_mode", "enabled", FALSE);
 	/* all tabs */
 	g_key_file_set_integer_list(keyfile, "one_panel_mode", "tabs", all_tabs, sizeof(all_tabs) / sizeof(int));
 	g_key_file_set_integer(keyfile, "one_panel_mode", "selected_tab_index", 0);
@@ -440,23 +405,16 @@ static void config_set_panel_defaults(GKeyFile *keyfile)
 void config_init(void)
 {
 	/* read config */
-	gchar *config_dir = g_build_path(G_DIR_SEPARATOR_S, geany_data->app->configdir, "plugins", "debugger", NULL);
-	plugin_config_path = g_build_path(G_DIR_SEPARATOR_S, config_dir, "debugger.conf", NULL);
+	plugin_config_path = get_config_filepath(PLUGIN, NULL);
 	
-	g_mkdir_with_parents(config_dir, S_IRUSR | S_IWUSR | S_IXUSR);
-	g_free(config_dir);
-
-	keyfile_plugin = g_key_file_new();
-	if (!g_key_file_load_from_file(keyfile_plugin, plugin_config_path, G_KEY_FILE_NONE, NULL))
+	gboolean result = FALSE;
+	plugin_config = load_config_from_file(plugin_config_path, &result);
+	if (!result)
 	{
-		gchar *data;
-
-		config_set_panel_defaults(keyfile_plugin);
-		data = g_key_file_to_data(keyfile_plugin, NULL, NULL);
-		g_file_set_contents(plugin_config_path, data, -1, NULL);
-		g_free(data);
+		config_set_panel_defaults(plugin_config);
+		write_config_to_file(plugin_config, plugin_config_path, SYSLOG);
 	}
-
+	
 	g_mutex_init(&change_config_mutex);
 	g_cond_init(&cond);
 	saving_thread = g_thread_new(NULL, saving_thread_func, NULL);
@@ -475,11 +433,11 @@ void config_destroy(void)
 
 	g_free(plugin_config_path);
 	
-	g_key_file_free(keyfile_plugin);
-	if(keyfile_project)
+	g_key_file_free(plugin_config);
+	if(project_config)
 	{
-		g_key_file_free(keyfile_project);
-		keyfile_project = NULL;
+		g_key_file_free(project_config);
+		project_config = NULL;
 	}
 }
 
@@ -489,36 +447,36 @@ void config_destroy(void)
 /* saving option */
 gboolean config_get_save_to_project(void)
 {
-	return g_key_file_get_boolean(keyfile_plugin, "saving_settings", "save_to_project", NULL);
+	return g_key_file_get_boolean(plugin_config, "saving_settings", "save_to_project", NULL);
 }
 /* panel config */
 gboolean config_get_tabbed(void)
 {
-	return g_key_file_get_boolean(keyfile_plugin, "tabbed_mode", "enabled", NULL);
+	return g_key_file_get_boolean(plugin_config, "tabbed_mode", "enabled", NULL);
 }
 int* config_get_tabs(gsize *length)
 {
-	return g_key_file_get_integer_list(keyfile_plugin, "one_panel_mode", "tabs", length, NULL);
+	return g_key_file_get_integer_list(plugin_config, "one_panel_mode", "tabs", length, NULL);
 }
 int config_get_selected_tab_index(void)
 {
-	return g_key_file_get_integer(keyfile_plugin, "one_panel_mode", "selected_tab_index", NULL);
+	return g_key_file_get_integer(plugin_config, "one_panel_mode", "selected_tab_index", NULL);
 }
 int* config_get_left_tabs(gsize *length)
 {
-	return g_key_file_get_integer_list(keyfile_plugin, "two_panels_mode", "left_tabs", length, NULL);
+	return g_key_file_get_integer_list(plugin_config, "two_panels_mode", "left_tabs", length, NULL);
 }
 int config_get_left_selected_tab_index(void)
 {
-	return g_key_file_get_integer(keyfile_plugin, "two_panels_mode", "left_selected_tab_index", NULL);
+	return g_key_file_get_integer(plugin_config, "two_panels_mode", "left_selected_tab_index", NULL);
 }
 int* config_get_right_tabs(gsize *length)
 {
-	return g_key_file_get_integer_list(keyfile_plugin, "two_panels_mode", "right_tabs", length, NULL);
+	return g_key_file_get_integer_list(plugin_config, "two_panels_mode", "right_tabs", length, NULL);
 }
 int	config_get_right_selected_tab_index(void)
 {
-	return g_key_file_get_integer(keyfile_plugin, "two_panels_mode", "right_selected_tab_index", NULL);
+	return g_key_file_get_integer(plugin_config, "two_panels_mode", "right_selected_tab_index", NULL);
 }
 
 /*
@@ -527,42 +485,33 @@ int	config_get_right_selected_tab_index(void)
  */
 void config_set_debug_store(debug_store store)
 {
-	GKeyFile *keyfile;
-
 	dstore = store;
-
+	
 	tpage_clear();
 	wtree_remove_all();
 	breaks_remove_all();
-
-	keyfile = DEBUG_STORE_PROJECT == dstore ? keyfile_project : keyfile_plugin;
+	
+	GKeyFile *keyfile = DEBUG_STORE_PROJECT == dstore ? project_config
+													  : plugin_config;
 	if (!g_key_file_has_group(keyfile, DEBUGGER_GROUP))
 	{
-		gchar *data, *file;
-
+		gchar *file = DEBUG_STORE_PROJECT == dstore ? geany->app->project->file_name
+													: plugin_config_path;
 		config_set_debug_defaults(keyfile);
-		data = g_key_file_to_data(keyfile, NULL, NULL);
-
-		file = DEBUG_STORE_PROJECT == dstore ? geany_data->app->project->file_name : plugin_config_path;
-		g_file_set_contents(file, data, -1, NULL);
-
-		g_free(data);
+		write_config_to_file(keyfile, file, SYSLOG);
 	}
-	
 	debug_load_from_keyfile(keyfile);
 }
 
 /*
- *	updates keyfile_project from a current geany project path
+ *	updates project_config from a current geany project path
  */
 void config_update_project_keyfile(void)
 {
-	if (keyfile_project)
-	{
-		g_key_file_free(keyfile_project);
-	}
-	keyfile_project = g_key_file_new();
-	g_key_file_load_from_file(keyfile_project, geany_data->app->project->file_name, G_KEY_FILE_NONE, NULL);
+	if (project_config)
+		g_key_file_free(project_config);
+	
+	project_config = load_config_from_file(geany->app->project->file_name, NULL);
 }
 
 /*
@@ -571,11 +520,9 @@ void config_update_project_keyfile(void)
 void config_on_project_open(GObject *obj, GKeyFile *config, gpointer user_data)
 {
 	config_update_project_keyfile();
-
+	
 	if (config_get_save_to_project())
-	{
 		config_set_debug_store(DEBUG_STORE_PROJECT);
-	}
 }
 
 /*
@@ -591,11 +538,8 @@ void config_on_project_close(GObject *obj, gpointer user_data)
 			debug_stop();
 			
 			while (DBS_IDLE != debug_get_state())
-			{
 				g_main_context_iteration(NULL, FALSE);
-			}
 		}
-
 		config_set_debug_store(DEBUG_STORE_PLUGIN);
 	}
 }
@@ -623,11 +567,10 @@ void config_on_project_save(GObject *obj, GKeyFile *config, gpointer user_data)
 		}
 
 		/* update local keyfile */
-		if (keyfile_project)
-		{
-			g_key_file_free(keyfile_project);
-		}
-		keyfile_project = create_copy_keyfile(config);
+		if (project_config)
+			g_key_file_free(project_config);
+		
+		project_config = create_copy_config(config);
 	}
 }
 
@@ -639,24 +582,21 @@ static void on_configure_response(GtkDialog* dialog, gint response, gpointer use
 	gboolean newvalue = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(save_to_project_btn));
 	if (newvalue ^ config_get_save_to_project())
 	{
-		g_key_file_set_boolean(keyfile_plugin, "saving_settings", "save_to_project", newvalue);
+		g_key_file_set_boolean(plugin_config, "saving_settings", "save_to_project", newvalue);
 
 		g_mutex_lock(&change_config_mutex);
 		panel_config_changed = TRUE;
 		g_mutex_unlock(&change_config_mutex);
 
-		if (geany_data->app->project)
+		if (geany->app->project)
 		{
 			if (DBS_IDLE != debug_get_state())
 			{
 				debug_stop();
 				
 				while (DBS_IDLE != debug_get_state())
-				{
 					g_main_context_iteration(NULL, FALSE);
-				}
 			}
-
 			config_set_debug_store(newvalue ? DEBUG_STORE_PROJECT : DEBUG_STORE_PLUGIN);
 		}
 	}

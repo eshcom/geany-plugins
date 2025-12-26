@@ -74,7 +74,6 @@ extern GdkRGBA pref_vte_colour_back;
 #endif
 
 void prefs_apply(GeanyDocument *doc);
-char *prefs_file_name(void);
 
 void prefs_init(void);
 void prefs_finalize(void);

@@ -10,7 +10,8 @@ lineoperations_la_SOURCES = \
 	lo_prefs.c \
 	lineoperations.c
 
-lineoperations_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"LineOperations\"
+lineoperations_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"LineOperations\" \
+							 -Wno-deprecated-declarations
 lineoperations_la_LIBADD = $(COMMONLIBS) \
 						   $(top_builddir)/utils/src/libgeanypluginutils.la
 

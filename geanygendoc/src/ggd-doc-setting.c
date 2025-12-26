@@ -18,14 +18,9 @@
  *  
  */
 
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-doc-setting.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <glib.h>
-#include <ctpl/ctpl.h>
-#include <geanyplugin.h>
 
 
 /**

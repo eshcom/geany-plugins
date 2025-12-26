@@ -16,20 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <glib/gstdio.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"				// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <glib/gstdio.h>
+#include <geanyplugin.h>			// includes geany.h, gtkcompat.h, etc.
 
 #include "prjorg-utils.h"
 #include "prjorg-project.h"
+#include "../../utils/src/common.h"
 
-extern GeanyPlugin *geany_plugin;
-extern GeanyData *geany_data;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 typedef struct
 {
@@ -157,14 +157,14 @@ static gint prjorg_project_rescan_root(PrjOrgRoot *root)
 	g_ptr_array_free(source_files, TRUE);
 	g_hash_table_remove_all(root->file_table);
 
-	if (!geany_data->app->project->file_patterns || !geany_data->app->project->file_patterns[0])
+	if (!geany->app->project->file_patterns || !geany->app->project->file_patterns[0])
 	{
 		gchar **all_pattern = g_strsplit ("*", " ", -1);
 		pattern_list = get_precompiled_patterns(all_pattern);
 		g_strfreev(all_pattern);
 	}
 	else
-		pattern_list = get_precompiled_patterns(geany_data->app->project->file_patterns);
+		pattern_list = get_precompiled_patterns(geany->app->project->file_patterns);
 
 	ignored_dirs_list = get_precompiled_patterns(prj_org->ignored_dirs_patterns);
 	ignored_file_list = get_precompiled_patterns(prj_org->ignored_file_patterns);
@@ -214,7 +214,7 @@ static gboolean match_basename(gconstpointer pft, gconstpointer user_data)
 	{
 		GPatternSpec *pattern = g_pattern_spec_new(ft->pattern[j]);
 
-		if (g_pattern_match_string(pattern, utf8_base_filename))
+		if (g_pattern_spec_match_string(pattern, utf8_base_filename))
 		{
 			ret = TRUE;
 			g_pattern_spec_free(pattern);
@@ -251,7 +251,7 @@ static GeanyFiletype *filetypes_detect(const gchar *utf8_filename)
 		SETPTR(utf8_base_filename, g_utf8_strdown(utf8_base_filename, -1));
 #endif
 
-		for (i = 0; i < geany_data->filetypes_array->len; i++)
+		for (i = 0; i < geany->filetypes_array->len; i++)
 		{
 			GeanyFiletype *ftype = filetypes[i];
 
@@ -356,23 +356,22 @@ static void update_project(
 }
 
 
-void prjorg_project_save(GKeyFile * key_file)
+void prjorg_project_save(GKeyFile *config)
 {
 	GPtrArray *array;
 	GSList *elem = NULL, *lst;
-
-	if (!prj_org)
-		return;
-
-	g_key_file_set_string_list(key_file, "prjorg", "source_patterns",
+	
+	if (!prj_org) return;
+	
+	g_key_file_set_string_list(config, CONFIG_SECTION, "source_patterns",
 		(const gchar**) prj_org->source_patterns, g_strv_length(prj_org->source_patterns));
-	g_key_file_set_string_list(key_file, "prjorg", "header_patterns",
+	g_key_file_set_string_list(config, CONFIG_SECTION, "header_patterns",
 		(const gchar**) prj_org->header_patterns, g_strv_length(prj_org->header_patterns));
-	g_key_file_set_string_list(key_file, "prjorg", "ignored_dirs_patterns",
+	g_key_file_set_string_list(config, CONFIG_SECTION, "ignored_dirs_patterns",
 		(const gchar**) prj_org->ignored_dirs_patterns, g_strv_length(prj_org->ignored_dirs_patterns));
-	g_key_file_set_string_list(key_file, "prjorg", "ignored_file_patterns",
+	g_key_file_set_string_list(config, CONFIG_SECTION, "ignored_file_patterns",
 		(const gchar**) prj_org->ignored_file_patterns, g_strv_length(prj_org->ignored_file_patterns));
-	g_key_file_set_integer(key_file, "prjorg", "generate_tag_prefs", prj_org->generate_tag_prefs);
+	g_key_file_set_integer(config, CONFIG_SECTION, "generate_tag_prefs", prj_org->generate_tag_prefs);
 
 	array = g_ptr_array_new();
 	lst = prj_org->roots->next;
@@ -381,7 +380,8 @@ void prjorg_project_save(GKeyFile * key_file)
 		PrjOrgRoot *root = elem->data;
 		g_ptr_array_add(array, root->base_dir);
 	}
-	g_key_file_set_string_list(key_file, "prjorg", "external_dirs", (const gchar * const *)array->pdata, array->len);
+	g_key_file_set_string_list(config, CONFIG_SECTION, "external_dirs",
+							   (const gchar * const *)array->pdata, array->len);
 	g_ptr_array_free(array, TRUE);
 }
 
@@ -465,7 +465,7 @@ void prjorg_project_remove_external_dir(const gchar *utf8_dirname)
 }
 
 
-void prjorg_project_open(GKeyFile * key_file)
+void prjorg_project_open(GKeyFile *config)
 {
 	gchar **source_patterns, **header_patterns, **ignored_dirs_patterns, **ignored_file_patterns, **external_dirs, **dir_ptr, *last_name;
 	gint generate_tag_prefs;
@@ -483,21 +483,21 @@ void prjorg_project_open(GKeyFile * key_file)
 	prj_org->ignored_file_patterns = NULL;
 	prj_org->generate_tag_prefs = PrjOrgTagAuto;
 
-	source_patterns = g_key_file_get_string_list(key_file, "prjorg", "source_patterns", NULL, NULL);
+	source_patterns = g_key_file_get_string_list(config, CONFIG_SECTION, "source_patterns", NULL, NULL);
 	if (!source_patterns)
 		source_patterns = g_strsplit("*.c *.C *.cpp *.cxx *.c++ *.cc *.m", " ", -1);
-	header_patterns = g_key_file_get_string_list(key_file, "prjorg", "header_patterns", NULL, NULL);
+	header_patterns = g_key_file_get_string_list(config, CONFIG_SECTION, "header_patterns", NULL, NULL);
 	if (!header_patterns)
 		header_patterns = g_strsplit("*.h *.H *.hpp *.hxx *.h++ *.hh", " ", -1);
-	ignored_dirs_patterns = g_key_file_get_string_list(key_file, "prjorg", "ignored_dirs_patterns", NULL, NULL);
+	ignored_dirs_patterns = g_key_file_get_string_list(config, CONFIG_SECTION, "ignored_dirs_patterns", NULL, NULL);
 	if (!ignored_dirs_patterns)
 		ignored_dirs_patterns = g_strsplit(".* CVS", " ", -1);
-	ignored_file_patterns = g_key_file_get_string_list(key_file, "prjorg", "ignored_file_patterns", NULL, NULL);
+	ignored_file_patterns = g_key_file_get_string_list(config, CONFIG_SECTION, "ignored_file_patterns", NULL, NULL);
 	if (!ignored_file_patterns)
 		ignored_file_patterns = g_strsplit("*.o *.obj *.a *.lib *.so *.dll *.lo *.la *.class *.jar *.pyc *.mo *.gmo", " ", -1);
-	generate_tag_prefs = utils_get_setting_integer(key_file, "prjorg", "generate_tag_prefs", PrjOrgTagAuto);
+	generate_tag_prefs = utils_get_setting_integer(config, CONFIG_SECTION, "generate_tag_prefs", PrjOrgTagAuto);
 
-	external_dirs = g_key_file_get_string_list(key_file, "prjorg", "external_dirs", NULL, NULL);
+	external_dirs = g_key_file_get_string_list(config, CONFIG_SECTION, "external_dirs", NULL, NULL);
 	foreach_strv (dir_ptr, external_dirs)
 		ext_list = g_slist_prepend(ext_list, *dir_ptr);
 	ext_list = g_slist_sort(ext_list, (GCompareFunc)g_strcmp0);
@@ -689,7 +689,7 @@ gboolean prjorg_project_is_in_project(const gchar *utf8_filename)
 {
 	GSList *elem = NULL;
 
-	if (!utf8_filename || !prj_org || !geany_data->app->project || !prj_org->roots)
+	if (!utf8_filename || !prj_org || !geany->app->project || !prj_org->roots)
 		return FALSE;
 
 	foreach_slist (elem, prj_org->roots)

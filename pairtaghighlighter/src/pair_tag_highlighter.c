@@ -12,9 +12,13 @@
 	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>	// includes geany.h
-#include "Scintilla.h"		// for the SCNotification struct
-#include "SciLexer.h"
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+#include <Scintilla.h>		// for the SCNotification struct
+#include <SciLexer.h>
+
+/* These items are set by Geany before plugin_init() is called. */
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;
 
 
 #define INDICATOR_TAGMATCH 9
@@ -30,10 +34,6 @@ enum {
 	KB_MATCH_TAG,
 	KB_COUNT
 };
-
-/* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
 
 /* Is needed for clearing highlighting after moving cursor out
  * from the tag */
@@ -438,18 +438,19 @@ PluginCallback plugin_callbacks[] =
 
 void plugin_init(GeanyData *data)
 {
-	GeanyKeyGroup *group;
-	group = plugin_set_key_group (geany_plugin, "Pair Tag Highlighter", KB_COUNT, NULL);
-	keybindings_set_item (group, KB_MATCH_TAG, on_kb_goto_matching_tag,
-						0, 0, "goto_matching_tag", _("Go To Matching Tag"), NULL);
+	GeanyKeyGroup *group = plugin_set_key_group(geany_plugin, PLUGIN,
+												KB_COUNT, NULL);
+	keybindings_set_item(group, KB_MATCH_TAG, on_kb_goto_matching_tag,
+						 0, 0, "goto_matching_tag", _("Go To Matching Tag"), NULL);
 }
 
 void plugin_cleanup(void)
 {
 	GeanyDocument *doc = document_get_current();
-	if (doc)
-	{
-		clear_previous_highlighting(doc->editor->sci, highlightedBrackets[0], highlightedBrackets[1]);
-		clear_previous_highlighting(doc->editor->sci, highlightedBrackets[2], highlightedBrackets[3]);
-	}
+	if (!doc) return;
+	
+	clear_previous_highlighting(doc->editor->sci, highlightedBrackets[0],
+												  highlightedBrackets[1]);
+	clear_previous_highlighting(doc->editor->sci, highlightedBrackets[2],
+												  highlightedBrackets[3]);
 }

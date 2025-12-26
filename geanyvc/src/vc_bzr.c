@@ -19,12 +19,9 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
 #include "geanyvc.h"
-
-extern GeanyData *geany_data;
-
 
 static const gchar *BZR_CMD_DIFF_FILE[] = { "bzr", "diff", BASENAME, NULL };
 static const gchar *BZR_CMD_DIFF_DIR[] = { "bzr", "diff", ABS_DIRNAME, NULL };

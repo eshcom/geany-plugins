@@ -19,8 +19,6 @@ Boston, MA 02111-1307, USA.
 #ifndef __EGG_FIND_BAR_H__
 #define __EGG_FIND_BAR_H__
 
-#include <gtk/gtk.h>
-
 G_BEGIN_DECLS
 
 #define EGG_TYPE_FIND_BAR            (egg_find_bar_get_type ())

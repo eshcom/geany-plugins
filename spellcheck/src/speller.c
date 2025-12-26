@@ -23,24 +23,20 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-#include <scintilla/SciLexer.h>
-
-#include <string.h>
 #include <ctype.h>
 #include <enchant.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+#include <scintilla/SciLexer.h>
 
-#include "speller.h"
 #include "scplugin.h"
-
+#include "speller.h"
 
 
 static EnchantBroker *sc_speller_broker = NULL;
 static EnchantDict *sc_speller_dict = NULL;
-
 
 
 static void dict_describe(const gchar* const lang, const gchar* const name,
@@ -65,10 +61,7 @@ static gchar *strip_word(const gchar *word_to_check, gint *result_offset)
 	gchar *word = g_strdup(word_to_check);
 	gchar *word_start = word;
 	gchar *word_end;
-	gint offset = 0;
-	gint word_len;
-	gint new_word_len;
-
+	
 	/* strip from the left */
 	do
 	{
@@ -80,10 +73,11 @@ static gchar *strip_word(const gchar *word_to_check, gint *result_offset)
 		else
 			break;
 	} while (c != (gunichar) -1 && c != 0 && *word != '\0');
-	word_len = strlen(word_to_check);
-	offset = word - word_start;
-	new_word_len = word_len - offset;
-
+	
+	gint word_len = strlen(word_to_check);
+	gint offset = word - word_start;
+	gint new_word_len = word_len - offset;
+	
 	if (new_word_len <= 0)
 	{	/* empty or only punctuation in input string */
 		*result_offset = 0;
@@ -91,7 +85,7 @@ static gchar *strip_word(const gchar *word_to_check, gint *result_offset)
 		return NULL;
 	}
 	/* move the string in-place and truncate it */
-	g_memmove(word_start, word, new_word_len);
+	memmove(word_start, word, new_word_len);
 	word = word_start;
 	word[new_word_len] = '\0';
 	if (EMPTY(word))
@@ -112,10 +106,10 @@ static gchar *strip_word(const gchar *word_to_check, gint *result_offset)
 		else
 			break;
 	} while (c != (gunichar) -1 && word_end >= word);
-
+	
 	if (result_offset != NULL)
 		*result_offset = offset;
-
+	
 	return word;
 }
 

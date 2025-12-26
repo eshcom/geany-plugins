@@ -20,8 +20,9 @@
  * This file contains all the code for handling the "Search projects"
  * menu item/action.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "wb_globals.h"
@@ -29,12 +30,14 @@
 #include "sidebar.h"
 #include "menu.h"
 
+#include "../../utils/src/common.h"
+
 
 typedef enum
 {
 	SCAN_DIR_STATE_ENTER,
 	SCAN_DIR_STATE_CONTINUE,
-}SCAN_DIR_STATE;
+} SCAN_DIR_STATE;
 
 
 enum
@@ -51,7 +54,7 @@ typedef struct
 	gchar *locale_path;
 	gchar *real_path;
 	GDir *dir;
-}SCAN_DIR_STATE_DATA;
+} SCAN_DIR_STATE_DATA;
 
 
 typedef struct
@@ -61,7 +64,7 @@ typedef struct
 	glong prj_count;
 	GHashTable *visited_paths;
 	GPtrArray *data;
-}SCAN_DIR_PARAMS;
+} SCAN_DIR_PARAMS;
 
 
 typedef struct S_SEARCH_PROJECTS_DIALOG
@@ -75,7 +78,7 @@ typedef struct S_SEARCH_PROJECTS_DIALOG
 	GtkWidget *list_view;
 	GtkListStore *list_store;
 	SCAN_DIR_PARAMS *params;
-}SEARCH_PROJECTS_DIALOG;
+} SEARCH_PROJECTS_DIALOG;
 
 
 /** Shows the dialog "Select search directory".
@@ -91,7 +94,7 @@ static gchar *dialogs_select_search_directory(void)
 	GtkWidget *dialog;
 
 	dialog = gtk_file_chooser_dialog_new(_("Select search directory"),
-		GTK_WINDOW(wb_globals.geany_plugin->geany_data->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+		GTK_WINDOW(wb_globals.geany_plugin->geany->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
 		_("_Cancel"), GTK_RESPONSE_CANCEL,
 		_("_Add"), GTK_RESPONSE_ACCEPT, NULL);
 
@@ -147,9 +150,9 @@ static void search_projects_shutdown(SEARCH_PROJECTS_DIALOG *data)
 {
 	/* Close and free dialog. */
 	gtk_widget_destroy(GTK_WIDGET(data->dialog));
-
+	
 	menu_set_context(MENU_CONTEXT_WB_OPENED);
-
+	
 	/* Free data. */
 	search_projects_free_data(data);
 }
@@ -165,7 +168,7 @@ static void dialog_on_button_pressed(GtkDialog *dialog, gint response_id,
 	GtkTreeIter iter;
 	GError *error = NULL;
 	SEARCH_PROJECTS_DIALOG *data = user_data;
-
+	
 	if (response_id == GTK_RESPONSE_ACCEPT)
 	{
 		model = gtk_tree_view_get_model(GTK_TREE_VIEW(data->list_view));
@@ -174,32 +177,25 @@ static void dialog_on_button_pressed(GtkDialog *dialog, gint response_id,
 			do
 			{
 				gtk_tree_model_get(model, &iter, SEARCH_PROJECTS_COLUMN_IMPORT, &value, -1);
-				if (value == TRUE)
+				if (value)
 				{
 					gtk_tree_model_get(model, &iter, SEARCH_PROJECTS_COLUMN_PATH, &filename, -1);
 					workbench_add_project(wb_globals.opened_wb, filename);
 				}
-			}while (gtk_tree_model_iter_next(model, &iter));
+			} while (gtk_tree_model_iter_next(model, &iter));
 		}
-
+		
 		/* Save the workbench file (.geanywb). */
 		if (!workbench_save(wb_globals.opened_wb, &error))
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_INFO, _("Could not save workbench file: %s"), error->message);
-		}
+			dialogs_show_msgbox(GTK_MESSAGE_INFO, _("Could not save workbench file: %s"),
+								error ? error->message : NULL);
 		sidebar_update(SIDEBAR_CONTEXT_PROJECT_ADDED, NULL);
 	}
-
-
-	if (response_id == GTK_RESPONSE_ACCEPT ||
-		response_id == GTK_RESPONSE_CANCEL ||
-		data->stopped == TRUE)
-	{
+	
+	if (accept_cancel(response_id) || data->stopped)
 		search_projects_shutdown(data);
-	}
 	else
-	{
-		/* Set stop marker (scanning might still be in progress). */
+	{	/* Set stop marker (scanning might still be in progress). */
 		data->stopped = TRUE;
 	}
 }
@@ -319,16 +315,15 @@ static gboolean search_projects_scan_directory_do_work (gpointer user_data)
 			if (!state_data->dir || !state_data->real_path)
 			{
 				if (state_data->dir != NULL)
-				{
 					g_dir_close(state_data->dir);
-				}
 
 				/* Abort on error. */
 				search_projects_scan_directory_end(data);
 				return FALSE;
 			}
 
-			g_hash_table_insert(data->params->visited_paths, g_strdup(state_data->real_path), GINT_TO_POINTER(1));
+			g_hash_table_insert(data->params->visited_paths,
+								g_strdup(state_data->real_path), GINT_TO_POINTER(1));
 
 			text = g_strdup_printf("%s", state_data->locale_path);
 			gtk_label_set_text((GtkLabel *)data->label_dir, text);
@@ -455,7 +450,7 @@ void search_projects(WORKBENCH *wb)
 	/* Create the widgets */
 	flags = GTK_DIALOG_DESTROY_WITH_PARENT;
 	search_projects->dialog = gtk_dialog_new_with_buttons(_("Search projects"),
-		GTK_WINDOW(wb_globals.geany_plugin->geany_data->main_widgets->window),
+		GTK_WINDOW(wb_globals.geany_plugin->geany->main_widgets->window),
 		flags,
 		_("_Cancel"), GTK_RESPONSE_CANCEL,
 		_("_OK"), GTK_RESPONSE_ACCEPT,
@@ -498,7 +493,7 @@ void search_projects(WORKBENCH *wb)
 	gtk_tree_view_set_enable_search(GTK_TREE_VIEW(search_projects->list_view), FALSE);
 
 	ui_widget_modify_font_from_string(search_projects->list_view,
-		wb_globals.geany_plugin->geany_data->interface_prefs->tagbar_font);
+		wb_globals.geany_plugin->geany->interface_prefs->tagbar_font);
 
 	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(search_projects->list_view));
 	gtk_tree_selection_set_mode(sel, GTK_SELECTION_SINGLE);

@@ -22,8 +22,6 @@
 #ifndef __DH_PREFERENCES_H__
 #define __DH_PREFERENCES_H__
 
-#include <gtk/gtk.h>
-
 G_BEGIN_DECLS
 
 void dh_preferences_show_dialog (GtkWindow *parent);

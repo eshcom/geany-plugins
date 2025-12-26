@@ -1,12 +1,15 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
 
 
-static PyObject *
-Encodings_convert_to_utf8(PyObject *module, PyObject *args, PyObject *kwargs)
+static PyObject *Encodings_convert_to_utf8(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     gchar *buffer = NULL, *used_encoding = NULL, *new_buffer = NULL;
     gssize size = -1; /* bug alert: this is gsize in Geany for some reason */

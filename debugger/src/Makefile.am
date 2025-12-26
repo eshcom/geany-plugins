@@ -73,11 +73,9 @@ debugger_la_SOURCES = \
 
 debugger_la_LIBADD = $(COMMONLIBS) $(VTE_LIBS) -lutil \
 					 $(top_builddir)/utils/src/libgeanypluginutils.la
-debugger_la_CFLAGS = $(AM_CFLAGS) $(VTE_CFLAGS) \
-					 -DDBGPLUG_DATA_DIR=\"$(plugindatadir)\" \
-					 -DPLUGIN_NAME=\"$(plugin)\"
+debugger_la_CFLAGS = $(AM_CFLAGS) $(VTE_CFLAGS) -DPLUGIN_NAME=\"$(plugin)\"
 debugger_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Debugger\" \
-					   -I$(top_srcdir)/utils/src
+					   -I$(top_srcdir)/utils/src -Wno-deprecated-declarations
 
 check_PROGRAMS = gdb_mi_test
 dist_check_SCRIPTS = tests/gdb_mi_test.sh

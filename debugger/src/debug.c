@@ -30,34 +30,23 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <stdio.h>
-
-#include <stdlib.h>
 int unlockpt(int fildes);
 int grantpt(int fd);
 
-#include <string.h>
-#include <unistd.h>
 #if defined(HAVE_UTIL_H)
-#include <util.h>
+	#include <util.h>
 #elif defined(HAVE_LIBUTIL_H)
-#include <libutil.h>
+	#include <libutil.h>
 #elif defined(HAVE_PTY_H)
-#include <pty.h>
+	#include <pty.h>
 #endif
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
-#include <vte/vte.h>
 
-#ifdef HAVE_CONFIG_H
-	#include "config.h"
-#endif
-#include <geanyplugin.h>
-#include <gp_vtecompat.h>
-extern GeanyData		*geany_data;
+#include <vte/vte.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "tpage.h"
 #include "breakpoints.h"
@@ -73,6 +62,9 @@ extern GeanyData		*geany_data;
 #include "btnpanel.h"
 #include "dconfig.h"
 #include "tabs.h"
+
+#include "../../utils/src/common.h"
+
 
 /*
  *  calltip size  
@@ -177,13 +169,9 @@ static void remove_stack_markers(void)
 			if (f->have_source)
 			{
 				if (active_frame_index == frame_index)
-				{
 					markers_remove_current_instruction(f->file, f->line);
-				}
 				else
-				{
 					markers_remove_frame(f->file, f->line);
-				}
 			}
 		}
 	}
@@ -206,13 +194,9 @@ static void add_stack_markers(void)
 			if (f->have_source)
 			{
 				if (active_frame_index == frame_index)
-				{
 					markers_add_current_instruction(f->file, f->line);
-				}
 				else
-				{
 					markers_add_frame(f->file, f->line);
-				}
 			}
 		}
 	}
@@ -225,7 +209,8 @@ static void add_stack_markers(void)
 /* 
  * watch expression has been changed
  */
-static void on_watch_changed(GtkCellRendererText *renderer, gchar *path, gchar *new_text, gpointer user_data)
+static void on_watch_changed(GtkCellRendererText *renderer, gchar *path,
+							 gchar *new_text, gpointer user_data)
 {
 	/* get iterator to the changed row */
 	GtkTreeIter  iter;
@@ -1039,9 +1024,7 @@ void debug_init(void)
 	/* create debug terminal page */
 	terminal = vte_terminal_new();
 	/* create PTY */
-	openpty(&pty_master, &pty_slave, NULL,
-		    NULL,
-		    NULL);
+	openpty(&pty_master, &pty_slave, NULL, NULL, NULL);
 	grantpt(pty_master);
 	unlockpt(pty_master);
 #if GTK_CHECK_VERSION(3, 0, 0)
@@ -1064,17 +1047,18 @@ void debug_init(void)
 	gtk_container_add(GTK_CONTAINER(tab_terminal), hbox);
 	gtk_box_pack_start(GTK_BOX(hbox), terminal, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), scrollbar, FALSE, FALSE, 0);
+	
 	/* set the default widget size first to prevent VTE expanding too much,
 	 * sometimes causing the hscrollbar to be too big or out of view. */
 	gtk_widget_set_size_request(GTK_WIDGET(terminal), 10, 10);
 	vte_terminal_set_size(VTE_TERMINAL(terminal), 30, 1);
+	
 	/* set terminal font. */
-	config = g_key_file_new();
-	configfile = g_strconcat(geany_data->app->configdir, G_DIR_SEPARATOR_S, "geany.conf", NULL);
-	g_key_file_load_from_file(config, configfile, G_KEY_FILE_NONE, NULL);
+	configfile = get_geany_configfile();
+	config = load_config_from_file(configfile, NULL);
 	font = utils_get_setting_string(config, "VTE", "font", "Monospace 10");
-	vte_terminal_set_font_from_string (VTE_TERMINAL(terminal), font);	
-		
+	vte_terminal_set_font_from_string(VTE_TERMINAL(terminal), font);
+	
 	/* debug messages page */
 	tab_messages = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(tab_messages),

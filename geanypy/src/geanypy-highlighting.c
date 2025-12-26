@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"

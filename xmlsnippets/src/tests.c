@@ -22,12 +22,11 @@
 #ifdef TEST
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "test-stubs.h"
 #include "xmlsnippets.h"
-#include <string.h>
 
 
 static void init(void);

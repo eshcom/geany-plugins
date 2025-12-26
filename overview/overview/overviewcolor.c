@@ -21,17 +21,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+  #include "config.h" // for the gettext domain
 #endif
 
+#include <gtkcompat.h>
 #include "overviewcolor.h"
-#include <string.h>
 
-OverviewColor *
-overview_color_copy (OverviewColor *color)
+
+OverviewColor *overview_color_copy(OverviewColor *color)
 {
-  OverviewColor *new_color = g_slice_new0 (OverviewColor);
-  memcpy (new_color, color, sizeof (OverviewColor));
+  OverviewColor *new_color = g_slice_new0(OverviewColor);
+  memcpy(new_color, color, sizeof(OverviewColor));
   return new_color;
 }
 

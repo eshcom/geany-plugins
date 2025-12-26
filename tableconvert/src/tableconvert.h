@@ -21,17 +21,8 @@
  *
  */
 
-
 #ifndef TABLECONVERT_H
 #define TABLECONVERT_H
-
-#include <geanyplugin.h>
-#include <gtk/gtk.h>
-
-
-extern GeanyPlugin	*geany_plugin;
-extern GeanyData	*geany_data;
-
 
 enum
 {

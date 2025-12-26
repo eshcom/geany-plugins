@@ -14,10 +14,11 @@ projectorganizer_la_SOURCES = \
 	prjorg-menu.h \
 	prjorg-menu.c
 
-projectorganizer_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DG_LOG_DOMAIN=\"ProjectOrganizer\"
+projectorganizer_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"ProjectOrganizer\" \
+							   -Wno-deprecated-declarations
 projectorganizer_la_CFLAGS = $(AM_CFLAGS)
-projectorganizer_la_LIBADD = $(COMMONLIBS)
+projectorganizer_la_LIBADD = $(COMMONLIBS) \
+							 $(top_builddir)/utils/src/libgeanypluginutils.la
 
 include $(top_srcdir)/build/cppcheck.mk
 

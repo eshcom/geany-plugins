@@ -19,35 +19,36 @@
 /*
  * Code for the WB_PROJECT structure.
  */
-#include <glib/gstdio.h>
-#include <git2.h>
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-#include <../../utils/src/filelist.h>
+#include <git2.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "wb_globals.h"
 #include "wb_project.h"
 #include "sidebar.h"
 #include "utils.h"
 #include "idle_queue.h"
 
-extern GeanyData *geany_data;
+#include <../../utils/src/filelist.h>
+#include "../../utils/src/common.h"
+
 
 typedef enum
 {
 	WB_PROJECT_TAG_PREFS_AUTO,
 	WB_PROJECT_TAG_PREFS_YES,
 	WB_PROJECT_TAG_PREFS_NO,
-}WB_PROJECT_TAG_PREFS;
+} WB_PROJECT_TAG_PREFS;
 
 typedef struct
 {
 	GKeyFile *kf;
 	guint    dir_count;
-}WB_PROJECT_ON_SAVE_USER_DATA;
+} WB_PROJECT_ON_SAVE_USER_DATA;
 
 struct S_WB_PROJECT_DIR
 {
@@ -73,7 +74,7 @@ typedef struct
 	GSList *ignored_dirs_list;
 	GSList *ignored_file_list;
 	git_repository *git_repo;
-}SCAN_PARAMS;
+} SCAN_PARAMS;
 
 
 struct S_WB_PROJECT
@@ -90,7 +91,7 @@ typedef struct
 {
 	guint len;
 	const gchar *string;
-}WB_PROJECT_TEMP_DATA;
+} WB_PROJECT_TEMP_DATA;
 
 
 /** Set the projects modified marker.
@@ -1269,7 +1270,7 @@ gchar *wb_project_get_info (WB_PROJECT *prj)
 
 
 /* Save directories to key file */
-static void wb_project_save_directories (gpointer data, gpointer user_data)
+static void wb_project_save_directories(gpointer data, gpointer user_data)
 {
 	gchar key[250], *str;
 	WB_PROJECT_DIR *dir;
@@ -1477,68 +1478,51 @@ guint wb_project_get_bookmarks_count(WB_PROJECT *prj)
  **/
 gboolean wb_project_save(WB_PROJECT *prj, GError **error)
 {
-	GKeyFile *kf;
-	guint    index;
-	gchar    *contents;
-	gsize    length, boomarks_size;
-	gboolean success = FALSE;
 	WB_PROJECT_ON_SAVE_USER_DATA tmp;
-
+	
 	g_return_val_if_fail(prj, FALSE);
-
+	
 	/* Load existing data into GKeyFile */
-	kf = g_key_file_new ();
-	if (!g_key_file_load_from_file(kf, prj->filename, G_KEY_FILE_NONE, error))
-	{
-		return FALSE;
-	}
-
+	gboolean result = FALSE;
+	GKeyFile *kf = load_config_from_file(prj->filename, &result);
+	if (!result) return FALSE;
+	
 	/* Remove existing, old data from our plugin */
-	g_key_file_remove_group (kf, "Workbench", NULL);
-
+	g_key_file_remove_group(kf, "Workbench", NULL);
+	
 	/* Save Project bookmarks as string list */
-	boomarks_size = wb_project_get_bookmarks_count(prj);
+	gsize boomarks_size = wb_project_get_bookmarks_count(prj);
 	if (boomarks_size > 0)
 	{
-		gchar **bookmarks_strings, *file, *rel_path;
-
-		bookmarks_strings = g_new0(gchar *, boomarks_size+1);
-		for (index = 0 ; index < boomarks_size ; index++ )
+		guint index;
+		gchar **bookmarks_strings = g_new0(gchar *, boomarks_size + 1);
+		
+		for (index = 0; index < boomarks_size; index++)
 		{
-			file = wb_project_get_bookmark_at_index(prj, index);
-			rel_path = get_any_relative_path(prj->filename, file);
-
+			gchar *file = wb_project_get_bookmark_at_index(prj, index);
+			gchar *rel_path = get_any_relative_path(prj->filename, file);
 			bookmarks_strings[index] = rel_path;
 		}
-		g_key_file_set_string_list
-			(kf, "Workbench", "Bookmarks", (const gchar **)bookmarks_strings, boomarks_size);
-		for (index = 0 ; index < boomarks_size ; index++ )
-		{
-			g_free (bookmarks_strings[index]);
-		}
+		g_key_file_set_string_list(kf, "Workbench", "Bookmarks",
+								   (const gchar **)bookmarks_strings, boomarks_size);
+		for (index = 0; index < boomarks_size; index++)
+			g_free(bookmarks_strings[index]);
 		g_free(bookmarks_strings);
 	}
-
+	
 	/* Init tmp data */
 	tmp.kf = kf;
 	tmp.dir_count = 1;
-
+	
 	/* Store our directories */
 	g_slist_foreach(prj->directories, (GFunc)wb_project_save_directories, &tmp);
-
-	/* Get data as string */
-	contents = g_key_file_to_data (kf, &length, error);
-	g_key_file_free(kf);
-
+	
 	/* Save to file */
-	success = g_file_set_contents (prj->filename, contents, length, error);
-	if (success)
-	{
-		prj->modified = FALSE;
-	}
-	g_free (contents);
-
-	return success;
+	result = write_config_to_file(kf, prj->filename, SYSLOG);
+	if (result) prj->modified = FALSE;
+	g_key_file_free(kf);
+	
+	return result;
 }
 
 
@@ -1549,89 +1533,67 @@ gboolean wb_project_save(WB_PROJECT *prj, GError **error)
  *
  * @param prj      The project
  * @param filename File to load
- * @param error    Location to store error info at
  * @return TRUE on success, FALSE otherwise
  *
  **/
-gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename, GError **error)
+gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename)
 {
-	GKeyFile *kf;
-	guint	 index;
-	gchar	 *contents, *str;
-	gchar	 **splitv;
-	gchar	 key[100];
-	gsize	 length;
-	gboolean success = FALSE;
-	WB_PROJECT_DIR *new_dir;
-
 	g_return_val_if_fail(prj, FALSE);
-
-	if (!g_file_get_contents (filename, &contents, &length, error))
+	
+	gchar *str;
+	gchar **splitv;
+	WB_PROJECT_DIR *new_dir;
+	
+	gboolean result = FALSE;
+	GKeyFile *kf = load_config_from_file(filename, &result);
+	if (!result)
 	{
+		g_key_file_free(kf);
 		return FALSE;
 	}
-
-	kf = g_key_file_new ();
-
-	if (!g_key_file_load_from_data (kf, contents, length,
-				G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS,
-				error))
-	{
-		g_key_file_free (kf);
-		g_free (contents);
-		return FALSE;
-	}
-
+	
 	/* Import project's base path and file patterns, if not done yet.
 	   (from Geany's standard project configuration) */
-	if (g_key_file_has_group (kf, "project")
-		&& !g_key_file_has_key(kf, "Workbench", "Prj-BaseDir", NULL))
+	if (g_key_file_has_group(kf, "project") &&
+		!g_key_file_has_key(kf, "Workbench", "Prj-BaseDir", NULL))
 	{
-		gchar *base_path;
-
-		base_path = g_key_file_get_string(kf, "project", "base_path", NULL);
-		if (base_path != NULL)
+		gchar *base_path = g_key_file_get_string(kf, "project", "base_path", NULL);
+		if (base_path)
 		{
-			gchar *reldirname;
-
 			/* Convert dirname to path relative to the project file */
-			reldirname = get_any_relative_path(prj->filename, base_path);
-
+			gchar *reldirname = get_any_relative_path(prj->filename, base_path);
 			new_dir = wb_project_add_directory_int(prj, reldirname, FALSE);
-			if (new_dir != NULL)
+			
+			if (new_dir)
 			{
 				wb_project_set_modified(prj, TRUE);
 				wb_project_dir_set_is_prj_base_dir(new_dir, TRUE);
 				str = g_key_file_get_string(kf, "project", "file_patterns", NULL);
-				if (str != NULL)
+				if (str)
 				{
-					splitv = g_strsplit (str, ";", -1);
+					splitv = g_strsplit(str, ";", -1);
 					wb_project_dir_set_file_patterns(new_dir, splitv);
 					g_strfreev(splitv);
 				}
 				g_free(str);
 			}
-
 			g_free(reldirname);
 			g_free(base_path);
 		}
 	}
-
-	if (g_key_file_has_group (kf, "Workbench"))
+	
+	if (g_key_file_has_group(kf, "Workbench"))
 	{
-		gchar **bookmarks_strings;
-
 		/* Load project bookmarks from string list */
-		bookmarks_strings = g_key_file_get_string_list (kf, "Workbench", "Bookmarks", NULL, NULL);
-		if (bookmarks_strings != NULL)
+		gchar **bookmarks_strings = g_key_file_get_string_list(kf, "Workbench",
+															   "Bookmarks", NULL, NULL);
+		if (bookmarks_strings)
 		{
-			gchar **file, *abs_path;
-
-			file = bookmarks_strings;
-			while (*file != NULL)
+			gchar **file = bookmarks_strings;
+			while (*file)
 			{
-				abs_path = get_combined_path(prj->filename, *file);
-				if (abs_path != NULL)
+				gchar *abs_path = get_combined_path(prj->filename, *file);
+				if (abs_path)
 				{
 					wb_project_add_bookmark_int(prj, abs_path);
 					g_free(abs_path);
@@ -1640,115 +1602,101 @@ gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename, GError **error)
 			}
 			g_strfreev(bookmarks_strings);
 		}
-
+		
 		/* Load project base dir. */
 		str = g_key_file_get_string(kf, "Workbench", "Prj-BaseDir", NULL);
-		if (str != NULL)
+		if (str)
 		{
 			new_dir = wb_project_add_directory_int(prj, str, FALSE);
-			if (new_dir != NULL)
+			if (new_dir)
 			{
 				wb_project_dir_set_is_prj_base_dir(new_dir, TRUE);
-
+				
 				str = g_key_file_get_string(kf, "Workbench", "Prj-ScanMode", NULL);
 				if (g_strcmp0(str, "Git") != 0)
-				{
 					wb_project_dir_set_scan_mode(prj, new_dir, WB_PROJECT_SCAN_MODE_WORKBENCH);
-				}
 				else
-				{
 					wb_project_dir_set_scan_mode(prj, new_dir, WB_PROJECT_SCAN_MODE_GIT);
-				}
 				g_free(str);
-
+				
 				str = g_key_file_get_string(kf, "Workbench", "Prj-FilePatterns", NULL);
-				if (str != NULL)
+				if (str)
 				{
-					splitv = g_strsplit (str, ";", -1);
+					splitv = g_strsplit(str, ";", -1);
 					wb_project_dir_set_file_patterns(new_dir, splitv);
 				}
 				g_free(str);
-
+				
 				str = g_key_file_get_string(kf, "Workbench", "Prj-IgnoredDirsPatterns", NULL);
-				if (str != NULL)
+				if (str)
 				{
-					splitv = g_strsplit (str, ";", -1);
+					splitv = g_strsplit(str, ";", -1);
 					wb_project_dir_set_ignored_dirs_patterns(new_dir, splitv);
 				}
 				g_free(str);
-
+				
 				str = g_key_file_get_string(kf, "Workbench", "Prj-IgnoredFilePatterns", NULL);
-				if (str != NULL)
+				if (str)
 				{
-					splitv = g_strsplit (str, ";", -1);
+					splitv = g_strsplit(str, ";", -1);
 					wb_project_dir_set_ignored_file_patterns(new_dir, splitv);
 				}
 				g_free(str);
 			}
 		}
-
+		
+		gchar key[100];
+		
 		/* Load project dirs */
-		for (index = 1 ; index < 1025 ; index++)
+		for (guint index = 1; index < 1025; index++)
 		{
 			g_snprintf(key, sizeof(key), "Dir%u-BaseDir", index);
-
+			
 			str = g_key_file_get_string(kf, "Workbench", key, NULL);
-			if (str == NULL)
-			{
-				break;
-			}
+			if (!str) break;
+			
 			new_dir = wb_project_add_directory_int(prj, str, FALSE);
-			if (new_dir == NULL)
-			{
-				break;
-			}
-
+			if (!new_dir) break;
+			
 			g_snprintf(key, sizeof(key), "Dir%u-ScanMode", index);
 			str = g_key_file_get_string(kf, "Workbench", key, NULL);
 			if (g_strcmp0(str, "Git") != 0)
-			{
 				wb_project_dir_set_scan_mode(prj, new_dir, WB_PROJECT_SCAN_MODE_WORKBENCH);
-			}
 			else
-			{
 				wb_project_dir_set_scan_mode(prj, new_dir, WB_PROJECT_SCAN_MODE_GIT);
-			}
 			g_free(str);
-
+			
 			g_snprintf(key, sizeof(key), "Dir%u-FilePatterns", index);
 			str = g_key_file_get_string(kf, "Workbench", key, NULL);
-			if (str != NULL)
+			if (str)
 			{
-				splitv = g_strsplit (str, ";", -1);
+				splitv = g_strsplit(str, ";", -1);
 				wb_project_dir_set_file_patterns(new_dir, splitv);
 			}
 			g_free(str);
-
+			
 			g_snprintf(key, sizeof(key), "Dir%u-IgnoredDirsPatterns", index);
 			str = g_key_file_get_string(kf, "Workbench", key, NULL);
-			if (str != NULL)
+			if (str)
 			{
-				splitv = g_strsplit (str, ";", -1);
+				splitv = g_strsplit(str, ";", -1);
 				wb_project_dir_set_ignored_dirs_patterns(new_dir, splitv);
 			}
 			g_free(str);
-
+			
 			g_snprintf(key, sizeof(key), "Dir%u-IgnoredFilePatterns", index);
 			str = g_key_file_get_string(kf, "Workbench", key, NULL);
-			if (str != NULL)
+			if (str)
 			{
-				splitv = g_strsplit (str, ";", -1);
+				splitv = g_strsplit(str, ";", -1);
 				wb_project_dir_set_ignored_file_patterns(new_dir, splitv);
 			}
 			g_free(str);
 		}
 	}
-
+	
 	g_key_file_free(kf);
-	g_free (contents);
-	success = TRUE;
-
-	return success;
+	return TRUE;
 }
 
 
@@ -1759,14 +1707,12 @@ gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename, GError **error)
  **/
 WB_PROJECT *wb_project_new(const gchar *filename)
 {
-	WB_PROJECT *new_prj;
-
-	new_prj = g_malloc0(sizeof *new_prj);
+	WB_PROJECT *new_prj = g_malloc0(sizeof *new_prj);
 	new_prj->modified = FALSE;
 	wb_project_set_filename(new_prj, filename);
 	new_prj->bookmarks = g_ptr_array_new();
 	new_prj->generate_tag_prefs = WB_PROJECT_TAG_PREFS_YES;
-
+	
 	return new_prj;
 }
 
@@ -1780,10 +1726,10 @@ void wb_project_free(WB_PROJECT *prj)
 {
 	/* Free directories first */
 	g_slist_free_full(prj->directories, (GDestroyNotify)wb_project_dir_free);
-
+	
 	/* Free all bookmarks */
 	wb_project_free_all_bookmarks(prj);
-
+	
 	g_free(prj->filename);
 	g_free(prj->name);
 	g_free(prj);
@@ -1799,20 +1745,11 @@ void wb_project_free(WB_PROJECT *prj)
  **/
 gboolean wb_project_is_valid_dir_reference(WB_PROJECT *prj, WB_PROJECT_DIR *dir)
 {
+	if (!prj) return FALSE;
+	
 	GSList *elem = NULL;
-
-	if (prj == NULL)
-	{
-		return FALSE;
-	}
-
 	foreach_slist(elem, prj->directories)
-	{
-		if (elem->data == dir)
-		{
-			return TRUE;
-		}
-	}
-
+		if (elem->data == dir) return TRUE;
+	
 	return FALSE;
 }

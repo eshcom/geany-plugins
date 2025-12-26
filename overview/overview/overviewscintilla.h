@@ -23,7 +23,7 @@
 #ifndef OVERVIEWSCINTILLA_H_
 #define OVERVIEWSCINTILLA_H_ 1
 
-#include "overviewplugin.h"
+#include <sciwrappers.h>	// includes Scintilla.h, ScintillaWidget.h, etc.
 #include "overviewcolor.h"
 
 G_BEGIN_DECLS

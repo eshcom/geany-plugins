@@ -25,12 +25,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include <string.h>
-#include <gtk/gtk.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "watch_model.h"
 #include "breakpoint.h"

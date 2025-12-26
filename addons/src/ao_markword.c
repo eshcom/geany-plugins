@@ -20,23 +20,15 @@
  * $Id$
  */
 
-
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_markword.h"
 
 
-typedef struct _AoMarkWordPrivate			AoMarkWordPrivate;
-
 #define DOUBLE_CLICK_DELAY 50
 
-
-#define AO_MARKWORD_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_MARKWORD_TYPE, AoMarkWordPrivate))
+typedef struct _AoMarkWordPrivate AoMarkWordPrivate;
 
 struct _AoMarkWord
 {
@@ -64,16 +56,16 @@ enum
 };
 
 
-static void ao_mark_word_finalize  			(GObject *object);
+static void ao_mark_word_finalize(GObject *object);
 static void connect_documents_button_press_signal_handler(AoMarkWord *mw);
 
-G_DEFINE_TYPE(AoMarkWord, ao_mark_word, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoMarkWord, ao_mark_word, G_TYPE_OBJECT)
 
 
 static void ao_mark_word_set_property(GObject *object, guint prop_id,
-										  const GValue *value, GParamSpec *pspec)
+									  const GValue *value, GParamSpec *pspec)
 {
-	AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(object);
+	AoMarkWordPrivate *priv = ao_mark_word_get_instance_private((AoMarkWord *)object);
 
 	switch (prop_id)
 	{
@@ -99,13 +91,10 @@ static void ao_mark_word_set_property(GObject *object, guint prop_id,
 
 static void ao_mark_word_class_init(AoMarkWordClass *klass)
 {
-	GObjectClass *g_object_class;
-
-	g_object_class = G_OBJECT_CLASS(klass);
+	GObjectClass *g_object_class = G_OBJECT_CLASS(klass);
 	g_object_class->finalize = ao_mark_word_finalize;
 	g_object_class->set_property = ao_mark_word_set_property;
-	g_type_class_add_private(klass, sizeof(AoMarkWordPrivate));
-
+	
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_MARKWORD,
 									g_param_spec_boolean(
@@ -114,7 +103,7 @@ static void ao_mark_word_class_init(AoMarkWordClass *klass)
 									"Whether to mark all occurrences of a word when double-clicking it",
 									TRUE,
 									G_PARAM_WRITABLE));
-
+	
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_MARKWORD_SINGLE_CLICK_DESELECT,
 									g_param_spec_boolean(
@@ -130,7 +119,7 @@ static void ao_mark_word_finalize(GObject *object)
 {
 	g_return_if_fail(object != NULL);
 	g_return_if_fail(IS_AO_MARKWORD(object));
-
+	
 	G_OBJECT_CLASS(ao_mark_word_parent_class)->finalize(object);
 }
 
@@ -148,7 +137,7 @@ static void clear_marker(void)
 
 static gboolean mark_word(gpointer bm)
 {
-	AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(bm);
+	AoMarkWordPrivate *priv = ao_mark_word_get_instance_private(bm);
 	keybindings_send_command(GEANY_KEY_GROUP_SEARCH, GEANY_KEYS_SEARCH_MARKALL);
 	/* unset and remove myself */
 	priv->double_click_timer_id = 0;
@@ -161,10 +150,10 @@ static gboolean on_editor_button_press_event(GtkWidget *widget, GdkEventButton *
 {
 	if (event->button == 1)
 	{
-		AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(bm);
-		if (! priv->enable_markword)
+		AoMarkWordPrivate *priv = ao_mark_word_get_instance_private(bm);
+		if (!priv->enable_markword)
 			return FALSE;
-
+		
 		if (event->type == GDK_BUTTON_PRESS)
 		{
 			if (priv->enable_single_click_deselect)
@@ -173,7 +162,8 @@ static gboolean on_editor_button_press_event(GtkWidget *widget, GdkEventButton *
 		else if (event->type == GDK_2BUTTON_PRESS)
 		{
 			if (priv->double_click_timer_id == 0)
-				priv->double_click_timer_id = g_timeout_add(DOUBLE_CLICK_DELAY, mark_word, bm);
+				priv->double_click_timer_id = g_timeout_add(DOUBLE_CLICK_DELAY,
+															mark_word, bm);
 		}
 	}
 	return FALSE;
@@ -186,7 +176,7 @@ void ao_mark_editor_notify(AoMarkWord *mw, GeanyEditor *editor, SCNotification *
 		((nt->modificationType & SC_MOD_BEFOREDELETE) == SC_MOD_BEFOREDELETE) &&
 		sci_has_selection(editor->sci))
 	{
-		AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(mw);
+		AoMarkWordPrivate *priv = ao_mark_word_get_instance_private(mw);
 
 		if(priv->enable_markword && priv->enable_single_click_deselect)
 			clear_marker();
@@ -197,7 +187,7 @@ void ao_mark_editor_notify(AoMarkWord *mw, GeanyEditor *editor, SCNotification *
 		nt->updated == SC_UPDATE_SELECTION &&
 		!sci_has_selection(editor->sci))
 	{
-		AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(mw);
+		AoMarkWordPrivate *priv = ao_mark_word_get_instance_private(mw);
 
 		if(priv->enable_markword && priv->enable_single_click_deselect)
 			clear_marker();
@@ -252,7 +242,7 @@ void ao_mark_document_close(AoMarkWord *mw, GeanyDocument *document)
 
 static void ao_mark_word_init(AoMarkWord *self)
 {
-	AoMarkWordPrivate *priv = AO_MARKWORD_GET_PRIVATE(self);
+	AoMarkWordPrivate *priv = ao_mark_word_get_instance_private(self);
 	priv->double_click_timer_id = 0;
 }
 

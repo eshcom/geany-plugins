@@ -18,14 +18,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
 #include <ctype.h>
-#include <string.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
 
 #include "common.h"
+
 
 typedef enum _ViewContext
 {

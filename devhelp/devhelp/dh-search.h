@@ -22,7 +22,6 @@
 #ifndef __DH_SEARCH_H__
 #define __DH_SEARCH_H__
 
-#include <gtk/gtk.h>
 #include "dh-link.h"
 #include "dh-book-manager.h"
 

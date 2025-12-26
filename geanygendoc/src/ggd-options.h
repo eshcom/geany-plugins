@@ -21,17 +21,14 @@
 #ifndef H_GGD_OPTIONS
 #define H_GGD_OPTIONS
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
 #include "ggd-macros.h"
 
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
 
 #if GTK_CHECK_VERSION(3, 0, 0)
-# define GtkObject GtkWidget
-# define GTK_OBJECT GTK_WIDGET
+  #define GtkObject GtkWidget
+  #define GTK_OBJECT GTK_WIDGET
 #endif
 
 
@@ -70,24 +67,20 @@ void          ggd_opt_group_remove_proxy              (GgdOptGroup *group,
                                                        gpointer     optvar);
 void          ggd_opt_group_load_from_key_file        (GgdOptGroup  *group,
                                                        GKeyFile     *key_file);
-gboolean      ggd_opt_group_load_from_file            (GgdOptGroup  *group,
-                                                       const gchar  *filename,
-                                                       GError      **error);
-void          ggd_opt_group_write_to_key_file         (GgdOptGroup *group,
-                                                       GKeyFile    *key_file);
-gboolean      ggd_opt_group_write_to_file             (GgdOptGroup *group,
-                                                       const gchar *filename,
-                                                       GError     **error);
+gboolean ggd_opt_group_load_from_file(GgdOptGroup *group, const gchar *filename);
+
+void ggd_opt_group_write_to_key_file(GgdOptGroup *group, GKeyFile *key_file);
+gboolean ggd_opt_group_write_to_file(GgdOptGroup *group, const gchar *filename);
 
 #define ggd_opt_group_set_proxy(group, optvar, proxy, prop)                    \
-  (ggd_opt_group_set_proxy_full (group, optvar, FALSE, 0, proxy, prop))
+  (ggd_opt_group_set_proxy_full(group, optvar, FALSE, 0, proxy, prop))
 
 #define ggd_opt_group_set_proxy_gtkentry(group, optvar, proxy)                 \
-  (ggd_opt_group_set_proxy_gtkobject_full (group, optvar, TRUE, G_TYPE_STRING, \
-                                           GTK_OBJECT (proxy), "text"))
+  (ggd_opt_group_set_proxy_gtkobject_full(group, optvar, TRUE, G_TYPE_STRING,  \
+                                          GTK_OBJECT (proxy), "text"))
 #define ggd_opt_group_set_proxy_gtktogglebutton(group, optvar, proxy)          \
-  (ggd_opt_group_set_proxy_gtkobject_full (group, optvar, TRUE, G_TYPE_BOOLEAN,\
-                                           GTK_OBJECT (proxy), "active"))
+  (ggd_opt_group_set_proxy_gtkobject_full(group, optvar, TRUE, G_TYPE_BOOLEAN, \
+                                          GTK_OBJECT (proxy), "active"))
 
 
 GGD_END_PLUGIN_API

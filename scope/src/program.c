@@ -18,17 +18,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include <errno.h>
-#include <string.h>
-#include <unistd.h>
-
 #include "common.h"
 
 #ifndef PATH_MAX
-#define PATH_MAX 4096
+	#define PATH_MAX 4096
 #endif
 
 static StashGroup *program_group;
@@ -123,14 +120,12 @@ static void recent_menu_create(void)
 	gtk_widget_show_all(GTK_WIDGET(recent_menu));
 }
 
-static char *recent_file_name(gint id)
+static gchar *recent_file_name(gint id)
 {
-	char *programfile = g_strdup_printf("program_%d.conf", id);
-	char *configfile = g_build_filename(geany->app->configdir, "plugins", "scope",
-		programfile, NULL);
-
-	g_free(programfile);
-	return configfile;
+	gchar *progfile = g_strdup_printf("program_%d.conf", id);
+	gchar *conffile = get_config_filepath(PLUGIN, progfile);
+	g_free(progfile);
+	return conffile;
 }
 
 gchar *program_executable;
@@ -151,8 +146,10 @@ static gint program_compare(ScpTreeStore *store, GtkTreeIter *iter, const char *
 	return !utils_filenamecmp(name1, name);
 }
 
-#define program_find(iter, name) scp_tree_store_traverse(recent_programs, FALSE, (iter), \
-	NULL, (ScpTreeStoreTraverseFunc) program_compare, (gpointer) (name))
+#define program_find(iter, name)										\
+	scp_tree_store_traverse(recent_programs, FALSE, (iter), NULL,		\
+							(ScpTreeStoreTraverseFunc)program_compare,	\
+							(gpointer)(name))
 
 static void save_program_settings(void)
 {
@@ -164,8 +161,7 @@ static void save_program_settings(void)
 		GtkTreeIter iter;
 		gint id;
 		GKeyFile *config = g_key_file_new();
-		char *configfile;
-
+		
 		if (program_find(&iter, program_name))
 		{
 			scp_tree_store_get(recent_programs, &iter, PROGRAM_ID, &id, -1);
@@ -174,7 +170,7 @@ static void save_program_settings(void)
 		else
 		{
 			if (scp_tree_store_iter_nth_child(recent_programs, &iter, NULL,
-				RECENT_COUNT - 1))
+											  RECENT_COUNT - 1))
 			{
 				scp_tree_store_get(recent_programs, &iter, PROGRAM_ID, &id, -1);
 				scp_tree_store_remove(recent_programs, &iter);
@@ -189,19 +185,20 @@ static void save_program_settings(void)
 			}
 
 			scp_tree_store_prepend_with_values(recent_programs, &iter, NULL,
-				PROGRAM_NAME, program_name, PROGRAM_ID, id, -1);
+											   PROGRAM_NAME, program_name,
+											   PROGRAM_ID, id, -1);
 		}
-
-		configfile = recent_file_name(id);
+		
+		gchar *configfile = recent_file_name(id);
 		stash_foreach((GFunc) stash_group_save_to_key_file, config);
 		breaks_save(config);
 		watches_save(config);
 		inspects_save(config);
 		registers_save(config);
 		parse_save(config);
-		utils_key_file_write_to_file(config, configfile);
-		g_free(configfile);
+		write_config_to_file(config, configfile, SYSLOG);
 		g_key_file_free(config);
+		g_free(configfile);
 	}
 }
 
@@ -228,62 +225,62 @@ static void program_configure(void)
 	view_column_set_visible("stack_addr_column", stack_show_address);
 }
 
-static void on_recent_menu_item_activate(G_GNUC_UNUSED GtkMenuItem *menuitem, const gchar *name)
+static void on_recent_menu_item_activate(G_GNUC_UNUSED GtkMenuItem *menuitem,
+										 const gchar *name)
 {
 	GtkTreeIter iter;
 
-	if (utils_filenamecmp(name, *program_executable ? program_executable :
-		program_load_script) && program_find(&iter, name))
+	if (utils_filenamecmp(name, *program_executable ? program_executable
+													: program_load_script)
+		&& program_find(&iter, name))
 	{
 		gint id;
-		char *configfile;
-		GKeyFile *config = g_key_file_new();
-		GError *gerror = NULL;
-		gchar *message;
-
 		scp_tree_store_get(recent_programs, &iter, PROGRAM_ID, &id, -1);
-		configfile = recent_file_name(id);
-
-		if (g_key_file_load_from_file(config, configfile, G_KEY_FILE_NONE, &gerror))
+		gchar *filepath = recent_file_name(id);
+		
+		gchar *message;
+		gboolean result = FALSE;
+		GKeyFile *config = load_config_from_file(filepath, &result);
+		
+		if (result)
 		{
 			scp_tree_store_move(recent_programs, &iter, 0);
 			save_program_settings();
-			stash_foreach((GFunc) stash_group_load_from_key_file, config);
-			if ((unsigned) option_inspect_expand > EXPAND_MAX)
+			stash_foreach((GFunc)stash_group_load_from_key_file, config);
+			if ((unsigned)option_inspect_expand > EXPAND_MAX)
 				option_inspect_expand = 100;
+			
 			breaks_load(config);
 			watches_load(config);
 			inspects_load(config);
 			registers_load(config);
 			parse_load(config);
+			
 			message = g_strdup_printf(_("Loaded debug settings for %s."), name);
+			
 			program_find(&iter, name);
 			scp_tree_store_move(recent_programs, &iter, 0);
 			recent_menu_create();
 			program_configure();
 		}
 		else
-		{
-			message = g_strdup_printf(_("Could not load debug settings file %s: %s."),
-				configfile, gerror->message);
-			g_error_free(gerror);
-		}
-
+			message = g_strdup_printf(_("Could not load debug settings file '%s'"),
+									  filepath);
 		if (menuitem)
 			ui_set_statusbar(TRUE, "%s", message);
 		else
 			msgwin_status_add("%s", message);
-
+		
 		g_free(message);
+		g_free(filepath);
 		g_key_file_free(config);
-		g_free(configfile);
 	}
 }
 
 static const gchar *build_get_execute(GeanyBuildCmdEntries field)
 {
 	return build_get_group_count(GEANY_GBG_EXEC) > 1 ?
-		build_get_current_menu_item(GEANY_GBG_EXEC, 1, field) : NULL;
+				build_get_current_menu_item(GEANY_GBG_EXEC, 1, field) : NULL;
 }
 
 gboolean recent_menu_items(void)
@@ -294,7 +291,7 @@ gboolean recent_menu_items(void)
 void program_context_changed(void)
 {
 	const gchar *name = build_get_execute(GEANY_BC_COMMAND);
-
+	
 	if (name && debug_state() == DS_INACTIVE)
 		on_recent_menu_item_activate(NULL, name);
 }
@@ -313,14 +310,16 @@ static GtkWidget *import_button;
 static gboolean dialog_long_mr_format;
 static const gchar *LONG_MR_FORMAT[2];
 
-#define build_check_execute() (build_get_execute(GEANY_BC_COMMAND) || \
-	build_get_execute(GEANY_BC_WORKING_DIR))
+#define build_check_execute()					\
+	(build_get_execute(GEANY_BC_COMMAND) ||		\
+	 build_get_execute(GEANY_BC_WORKING_DIR))
+
 static gboolean last_state_inactive = TRUE;
 
 void program_update_state(DebugState state)
 {
 	gboolean inactive = state == DS_INACTIVE;
-
+	
 	if (inactive != last_state_inactive)
 	{
 		gtk_widget_set_sensitive(program_page_vbox, inactive);
@@ -330,11 +329,11 @@ void program_update_state(DebugState state)
 }
 
 static void on_program_name_entry_changed(G_GNUC_UNUSED GtkEditable *editable,
-	G_GNUC_UNUSED gpointer gdata)
+										  G_GNUC_UNUSED gpointer gdata)
 {
 	gboolean sensitive = *gtk_entry_get_text(program_exec_entry) ||
 		*gtk_entry_get_text(load_script_entry);
-
+	
 	gtk_widget_set_sensitive(auto_run_exit, sensitive);
 	gtk_widget_set_sensitive(temp_breakpoint, sensitive);
 	g_signal_emit_by_name(temp_breakpoint, "toggled");
@@ -346,28 +345,33 @@ void on_program_setup(G_GNUC_UNUSED const MenuItem *menu_item)
 	stash_foreach((GFunc) stash_group_display, NULL);
 	gtk_button_set_label(long_mr_format, LONG_MR_FORMAT[option_long_mr_format]);
 	dialog_long_mr_format = option_long_mr_format;
-	gtk_widget_set_sensitive(import_button, last_state_inactive && build_check_execute());
+	gtk_widget_set_sensitive(import_button,
+							 last_state_inactive && build_check_execute());
+	
 	on_program_name_entry_changed(NULL, NULL);
 	gtk_toggle_button_set_active(delete_all_items, FALSE);
 	if (debug_state() == DS_INACTIVE)
 		gtk_widget_grab_focus(GTK_WIDGET(program_exec_entry));
+	
 	gtk_dialog_run(GTK_DIALOG(program_dialog));
 }
 
-static void on_long_mr_format_clicked(GtkButton *button, G_GNUC_UNUSED gpointer gdata)
+static void on_long_mr_format_clicked(GtkButton *button,
+									  G_GNUC_UNUSED gpointer gdata)
 {
 	dialog_long_mr_format ^= TRUE;
 	gtk_button_set_label(button, LONG_MR_FORMAT[dialog_long_mr_format]);
 }
 
-static void on_temp_breakpoint_toggled(GtkToggleButton *togglebutton, GtkWidget *widget)
+static void on_temp_breakpoint_toggled(GtkToggleButton *togglebutton,
+									   GtkWidget *widget)
 {
 	gtk_widget_set_sensitive(widget, gtk_widget_get_sensitive(temp_breakpoint) &&
-		gtk_toggle_button_get_active(togglebutton));
+									 gtk_toggle_button_get_active(togglebutton));
 }
 
 static void on_program_import_button_clicked(G_GNUC_UNUSED GtkButton *button,
-	G_GNUC_UNUSED gpointer gdata)
+											 G_GNUC_UNUSED gpointer gdata)
 {
 	const gchar *executable = build_get_execute(GEANY_BC_COMMAND);
 	const char *workdir = build_get_execute(GEANY_BC_WORKING_DIR);
@@ -378,16 +382,16 @@ static void on_program_import_button_clicked(G_GNUC_UNUSED GtkButton *button,
 static gboolean check_dialog_path(GtkEntry *entry, gboolean file, int mode)
 {
 	const gchar *pathname = gtk_entry_get_text(entry);
-
+	
 	if (utils_check_path(pathname, file, mode))
 		return TRUE;
-
+	
 	if (errno == ENOENT)
 	{
 		return dialogs_show_question(_("%s: %s.\n\nContinue?"), pathname,
 			g_strerror(errno));
 	}
-
+	
 	show_errno(pathname);
 	return FALSE;
 }
@@ -400,16 +404,14 @@ static void on_program_ok_button_clicked(G_GNUC_UNUSED GtkButton *button,
 		check_dialog_path(load_script_entry, TRUE, R_OK))
 	{
 		const gchar *program_name = gtk_entry_get_text(program_exec_entry);
-
+		
 		if (*program_name == '\0')
 			program_name = gtk_entry_get_text(load_script_entry);
-
-		if (utils_filenamecmp(program_name, *program_executable ? program_executable :
-			program_load_script))
-		{
+		
+		if (utils_filenamecmp(program_name, *program_executable ? program_executable
+																: program_load_script))
 			save_program_settings();
-		}
-
+		
 		stash_foreach((GFunc) stash_group_update, NULL);
 		option_long_mr_format = dialog_long_mr_format;
 		g_free(program_environment);
@@ -418,7 +420,7 @@ static void on_program_ok_button_clicked(G_GNUC_UNUSED GtkButton *button,
 		recent_menu_create();
 		program_configure();
 		gtk_widget_hide(program_dialog);
-
+		
 		if (gtk_toggle_button_get_active(delete_all_items) &&
 			dialogs_show_question(_("Delete all breakpoints, watches et cetera?")))
 		{
@@ -434,6 +436,7 @@ void program_load_config(GKeyFile *config)
 {
 	utils_load(config, "recent", recent_program_load);
 	recent_menu_create();
+	
 	config = g_key_file_new();
 	/* load from empty config file == set defaults */
 	stash_foreach((GFunc) stash_group_load_from_key_file, config);
@@ -568,16 +571,17 @@ void program_init(void)
 
 void program_finalize(void)
 {
-	char *configfile = prefs_file_name();
-	GKeyFile *config = g_key_file_new();
-
 	save_program_settings();
-	g_key_file_load_from_file(config, configfile, G_KEY_FILE_NONE, NULL);
+	
+	gchar *configfile = get_config_filepath(PLUGIN, NULL);
+	GKeyFile *config = load_config_from_file(configfile, NULL);
+	
 	store_save(recent_programs, config, "recent", recent_program_save);
-	utils_key_file_write_to_file(config, configfile);
+	
+	write_config_to_file(config, configfile, SYSLOG);
 	g_key_file_free(config);
 	g_free(configfile);
-
+	
 	gtk_widget_destroy(program_dialog);
-	stash_foreach((GFunc) stash_group_destroy, NULL);
+	stash_foreach((GFunc)stash_group_destroy, NULL);
 }

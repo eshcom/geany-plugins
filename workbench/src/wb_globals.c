@@ -17,7 +17,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "wb_globals.h"

@@ -37,8 +37,10 @@ gboolean store_find(ScpTreeStore *store, GtkTreeIter *iter, guint column, const 
 void store_foreach(ScpTreeStore *store, GFunc each_func, gpointer gdata);
 void store_save(ScpTreeStore *store, GKeyFile *config, const char *prefix,
 	gboolean (*save_func)(GKeyFile *config, const char *section, GtkTreeIter *iter));
-gint store_gint_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b, gpointer gdata);
-gint store_seek_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b, gpointer gdata);
+gint store_gint_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b,
+						gpointer gdata);
+gint store_seek_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b,
+						G_GNUC_UNUSED gpointer gdata);
 #define store_clear(store) scp_tree_store_clear_children((store), NULL, FALSE)
 
 void utils_load(GKeyFile *config, const char *prefix,
@@ -75,7 +77,6 @@ void utils_move_mark(ScintillaObject *sci, gint line, gint start, gint delta, gi
 void utils_remark(GeanyDocument *doc);  /* NULL -> nop */
 
 guint utils_parse_sci_color(const gchar *string);
-gboolean utils_key_file_write_to_file(GKeyFile *config, const char *configfile);
 gchar *utils_key_file_get_string(GKeyFile *config, const char *section, const char *key);
 gchar *utils_get_utf8_basename(const char *file);
 

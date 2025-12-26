@@ -16,12 +16,14 @@ Makefile.in
 cscope.out
 cscope.files
 .dirstamp
+autom4te.cache
+configure
+configure~
 
 #-----------------------------------------------------------------------
 # / (root)
 #-----------------------------------------------------------------------
 /aclocal.m4
-/autom4te.cache
 /build/*.pyc
 /build/cache
 /build-aux/
@@ -35,8 +37,6 @@ cscope.files
 /config.log
 /config.status
 /config.sub
-/configure
-/configure~
 /debian
 /depcomp
 /install-sh

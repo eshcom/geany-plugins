@@ -23,8 +23,6 @@
 #ifndef __DH_BASE_H__
 #define __DH_BASE_H__
 
-#include <gtk/gtk.h>
-
 #include "dh-book-manager.h"
 
 G_BEGIN_DECLS

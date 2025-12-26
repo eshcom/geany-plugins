@@ -22,10 +22,6 @@
 #ifndef DCOFIG_H
 #define DCOFIG_H
 
-#include <stdarg.h>
-#include <glib.h>
-#include <gtk/gtk.h>
-
 /* panel config parts */
 #define CP_TABBED_MODE 1
 #define CP_OT_TABS 2

@@ -25,7 +25,7 @@ typedef enum
 	MENU_CONTEXT_WB_OPENED,
 	MENU_CONTEXT_WB_CLOSED,
 	MENU_CONTEXT_SEARCH_PROJECTS_SCANING,
-}MENU_CONTEXT;
+} MENU_CONTEXT;
 
 void menu_set_context(MENU_CONTEXT context);
 gboolean menu_init(void);

@@ -23,7 +23,7 @@
  * 		pixbuffers
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "pixbuf.h"
 
@@ -37,6 +37,7 @@
 
 #include "xpm/frame.xpm"
 #include "xpm/frame_current.xpm"
+
 
 GdkPixbuf *break_pixbuf = NULL;
 GdkPixbuf *break_disabled_pixbuf = NULL;

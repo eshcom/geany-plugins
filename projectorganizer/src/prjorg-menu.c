@@ -16,24 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <glib/gstdio.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"				// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>			// includes geany.h, gtkcompat.h, etc.
 
 #include "prjorg-menu.h"
 #include "prjorg-project.h"
 #include "prjorg-utils.h"
 #include "prjorg-sidebar.h"
 
-#include <string.h>
-
-extern GeanyPlugin *geany_plugin;
-extern GeanyData *geany_data;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 
 enum
@@ -67,7 +62,7 @@ static gboolean try_swap_header_source(gchar *utf8_file_name, gboolean is_header
 		gchar *full_name = elem->data;
 		gchar *base_name = g_path_get_basename(full_name);
 
-		if (g_pattern_match_string(pattern, base_name) &&
+		if (g_pattern_spec_match_string(pattern, base_name) &&
 		    prjorg_project_is_in_project(full_name))
 		{
 			if ((is_header && patterns_match(source_patterns, base_name)) ||
@@ -87,73 +82,63 @@ static gboolean try_swap_header_source(gchar *utf8_file_name, gboolean is_header
 }
 
 
-static void on_swap_header_source(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_swap_header_source(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	GSList *header_patterns, *source_patterns;
-	GeanyDocument *doc;
-	gboolean known_type = TRUE;
-	gboolean is_header;
-	gchar *doc_basename;
-	doc = document_get_current();
-
-	if (!prj_org || !geany_data->app->project || !doc || !doc->file_name)
+	GeanyDocument *doc = document_get_current();
+	
+	if (!prj_org || !geany->app->project || !doc || !doc->file_name)
 		return;
-
-	header_patterns = get_precompiled_patterns(prj_org->header_patterns);
-	source_patterns = get_precompiled_patterns(prj_org->source_patterns);
-
-	doc_basename = g_path_get_basename(doc->file_name);
-
+	
+	GSList *header_patterns = get_precompiled_patterns(prj_org->header_patterns);
+	GSList *source_patterns = get_precompiled_patterns(prj_org->source_patterns);
+	
+	gchar *doc_basename = g_path_get_basename(doc->file_name);
+	gboolean is_header;
+	gboolean known_type = TRUE;
+	
 	if (patterns_match(header_patterns, doc_basename))
 		is_header = TRUE;
 	else if (patterns_match(source_patterns, doc_basename))
 		is_header = FALSE;
 	else
 		known_type = FALSE;
-
+	
 	if (known_type)
 	{
-		gboolean swapped;
 		GSList *elem = NULL, *list = NULL;
 		guint i = 0;
-
 		foreach_document(i)
 		{
-			gchar *filename;
-
-			filename = document_index(i)->file_name;
+			gchar *filename = document_index(i)->file_name;
 			if (prjorg_project_is_in_project(filename))
 				list = g_slist_prepend(list, filename);
 		}
-		swapped = try_swap_header_source(doc->file_name, is_header, list, header_patterns, source_patterns);
+		gboolean swapped = try_swap_header_source(doc->file_name, is_header, list,
+												  header_patterns, source_patterns);
 		g_slist_free(list);
 		list = NULL;
-
+		
 		if (!swapped)
 		{
-			gchar *utf8_doc_dir;
-			gchar *locale_doc_dir;
-
-			utf8_doc_dir = g_path_get_dirname(doc->file_name);
-			locale_doc_dir = utils_get_locale_from_utf8(utf8_doc_dir);
-
+			gchar *utf8_doc_dir = g_path_get_dirname(doc->file_name);
+			gchar *locale_doc_dir = utils_get_locale_from_utf8(utf8_doc_dir);
+			
 			list = utils_get_file_list(locale_doc_dir, NULL, NULL);
-			foreach_list (elem, list)
+			foreach_list(elem, list)
 			{
-				gchar *full_name;
-
-				full_name = g_build_filename(locale_doc_dir, elem->data, NULL);
+				gchar *full_name = g_build_filename(locale_doc_dir, elem->data, NULL);
 				SETPTR(full_name, utils_get_utf8_from_locale(full_name));
 				SETPTR(elem->data, full_name);
 			}
-			swapped = try_swap_header_source(doc->file_name, is_header, list, header_patterns, source_patterns);
+			swapped = try_swap_header_source(doc->file_name, is_header, list,
+											 header_patterns, source_patterns);
 			g_slist_foreach(list, (GFunc) g_free, NULL);
 			g_slist_free(list);
 			g_free(utf8_doc_dir);
 			g_free(locale_doc_dir);
 			list = NULL;
 		}
-
+		
 		if (!swapped)
 		{
 			foreach_slist(elem, prj_org->roots)
@@ -161,50 +146,49 @@ static void on_swap_header_source(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_U
 				GHashTableIter iter;
 				gpointer key, value;
 				PrjOrgRoot *root = elem->data;
-
+				
 				list = NULL;
 				g_hash_table_iter_init(&iter, root->file_table);
 				while (g_hash_table_iter_next(&iter, &key, &value))
 					list = g_slist_prepend(list, key);
-				swapped = try_swap_header_source(doc->file_name, is_header, list, header_patterns, source_patterns);
+				swapped = try_swap_header_source(doc->file_name, is_header, list,
+												 header_patterns, source_patterns);
 				g_slist_free(list);
-				if (swapped)
-					break;
+				if (swapped) break;
 			}
 		}
 	}
-
+	
 	g_free(doc_basename);
-
-	g_slist_foreach(header_patterns, (GFunc) g_pattern_spec_free, NULL);
+	
+	g_slist_foreach(header_patterns, (GFunc)g_pattern_spec_free, NULL);
 	g_slist_free(header_patterns);
-	g_slist_foreach(source_patterns, (GFunc) g_pattern_spec_free, NULL);
+	g_slist_foreach(source_patterns, (GFunc)g_pattern_spec_free, NULL);
 	g_slist_free(source_patterns);
 }
 
 
-static void on_find_in_project(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_find_in_project(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	if (geany_data->app->project)
+	if (geany->app->project)
 	{
 		gchar *utf8_base_path = get_project_base_path();
-
 		search_show_find_in_files_dialog(utf8_base_path);
 		g_free(utf8_base_path);
 	}
 }
 
 
-static void on_find_file(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_find_file(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	if (geany_data->app->project)
+	if (geany->app->project)
 		prjorg_sidebar_find_file_in_active();
 }
 
 
-static void on_find_tag(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_find_tag(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	if (geany_data->app->project)
+	if (geany->app->project)
 		prjorg_sidebar_find_tag_in_active();
 }
 
@@ -233,18 +217,14 @@ static gboolean kb_callback(guint key_id)
 static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 {
 	GeanyDocument *doc = document_get_current();
-	gchar *utf8_sel, *locale_sel;
-	gchar *filename = NULL;  /* locale */
-
 	g_return_if_fail(doc != NULL);
-
-	utf8_sel = get_selection();
-
-	if (!utf8_sel)
-		return;
-
-	locale_sel = utils_get_locale_from_utf8(utf8_sel);
-
+	
+	gchar *utf8_sel = get_selection();
+	if (!utf8_sel) return;
+	
+	gchar *locale_sel = utils_get_locale_from_utf8(utf8_sel);
+	gchar *filename = NULL;  /* locale */
+	
 	if (g_path_is_absolute(locale_sel))
 	{
 		filename = g_strdup(locale_sel);
@@ -254,74 +234,68 @@ static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 			filename = NULL;
 		}
 	}
-
+	
 	if (!filename)
 	{
 		gchar *locale_path = NULL;
-
+		
 		if (doc->file_name)
 		{
 			locale_path = g_path_get_dirname(doc->file_name);
 			SETPTR(locale_path, utils_get_locale_from_utf8(locale_path));
 		}
-
+		
 		if (!locale_path)
 			locale_path = g_get_current_dir();
-
+		
 		filename = g_build_path(G_DIR_SEPARATOR_S, locale_path, locale_sel, NULL);
 		if (!g_file_test(filename, G_FILE_TEST_EXISTS))
 		{
 			g_free(filename);
 			filename = NULL;
 		}
-
 		g_free(locale_path);
 	}
-
-	if (!filename && geany_data->app->project != NULL)
+	
+	if (!filename && geany->app->project)
 	{
-		gchar *utf8_path;
-		gchar **pathv;
-		gint i;
-
-		utf8_path = g_strdup("");
-		pathv = g_strsplit_set(utf8_sel, "/\\", -1);
-		for (i = g_strv_length(pathv) - 1; i >= 0; i--)
+		gchar *utf8_path = g_strdup("");
+		gchar **pathv = g_strsplit_set(utf8_sel, "/\\", -1);
+		
+		for (gint i = g_strv_length(pathv) - 1; i >= 0; i--)
 		{
-			if (g_strcmp0(pathv[i], "..") == 0)
-				break;
-			SETPTR(utf8_path, g_build_filename(G_DIR_SEPARATOR_S, pathv[i], utf8_path, NULL));
+			if (g_strcmp0(pathv[i], "..") == 0) break;
+			SETPTR(utf8_path, g_build_filename(G_DIR_SEPARATOR_S, pathv[i],
+											   utf8_path, NULL));
 		}
 		g_strfreev(pathv);
-
+		
 		if (g_strcmp0(utf8_path, "") != 0)
 		{
 			GSList *elem = NULL;
 			const gchar *found_path = NULL;
-
-			foreach_slist (elem, prj_org->roots)
+			
+			foreach_slist(elem, prj_org->roots)
 			{
 				PrjOrgRoot *root = elem->data;
 				gpointer key, value;
 				GHashTableIter iter;
-
+				
 				g_hash_table_iter_init(&iter, root->file_table);
 				while (g_hash_table_iter_next(&iter, &key, &value))
 				{
 					gchar *file_name = key;
 					gchar *pos = g_strrstr(file_name, utf8_path);
-
+					
 					if (pos && (pos - file_name + strlen(utf8_path) == strlen(file_name)))
 					{
 						found_path = file_name;
 						break;
 					}
 				}
-
-				if (found_path)
-					break;
+				if (found_path) break;
 			}
-
+			
 			if (found_path)
 			{
 				filename = utils_get_locale_from_utf8(found_path);
@@ -334,7 +308,7 @@ static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 		}
 		g_free(utf8_path);
 	}
-
+	
 #ifdef G_OS_UNIX
 	if (!filename)
 	{
@@ -345,7 +319,7 @@ static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 			filename = NULL;
 		}
 	}
-
+	
 	if (!filename)
 	{
 		filename = g_build_path(G_DIR_SEPARATOR_S, "/usr/include", locale_sel, NULL);
@@ -356,15 +330,14 @@ static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 		}
 	}
 #endif
-
+	
 	if (filename)
 	{
 		gchar *utf8_filename = utils_get_utf8_from_locale(filename);
-
 		open_file(utf8_filename);
 		g_free(utf8_filename);
 	}
-
+	
 	g_free(filename);
 	g_free(utf8_sel);
 	g_free(locale_sel);
@@ -374,8 +347,8 @@ static void on_open_selected_file(GtkMenuItem *menuitem, gpointer user_data)
 void prjorg_menu_init(void)
 {
 	GtkWidget *image;
-	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, "ProjectOrganizer", KB_COUNT, kb_callback);
-
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT, kb_callback);
 	s_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_sep_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_sep_item);

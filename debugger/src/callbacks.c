@@ -24,12 +24,11 @@
  * 		as for the Geany events  
  */
 
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "callbacks.h"
 #include "breakpoints.h"

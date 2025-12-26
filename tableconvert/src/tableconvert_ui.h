@@ -24,8 +24,6 @@
 #ifndef TABLECONVERT_UI_H
 #define TABLECONVERT_UI_H
 
-#include "tableconvert.h"
-
 /* Variables */
 extern GtkWidget *main_menu_item;
 extern GtkWidget *menu_tableconvert;

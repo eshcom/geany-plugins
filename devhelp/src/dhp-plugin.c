@@ -19,25 +19,19 @@
  * MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <sys/stat.h> /* for g_mkdir_with_parents, is it portable? */
-
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h> /* for keybindings */
-
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include <devhelp/dh-search.h>
+#include <string.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <sys/stat.h>		// for g_mkdir_with_parents, is it portable?
 
-#include "dhp-plugin.h"
 #include "dhp.h"
+#include "devhelp/dh-search.h"
 
-
-GeanyPlugin	 	*geany_plugin;
-GeanyData	   	*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 
 struct PluginData
@@ -106,29 +100,17 @@ static void kb_activate(guint key_id)
 
 gboolean plugin_config_init(struct PluginData *pd)
 {
-	gchar *user_config_dir;
-
 	g_return_val_if_fail(pd != NULL, FALSE);
-
-	plugin_data.default_config = g_build_path(G_DIR_SEPARATOR_S, DHPLUG_DATA_DIR, "devhelp.conf", NULL);
-
-	user_config_dir = g_build_path(G_DIR_SEPARATOR_S, geany_data->app->configdir, "plugins", "devhelp", NULL);
-	plugin_data.user_config = g_build_path(G_DIR_SEPARATOR_S, user_config_dir, "devhelp.conf", NULL);
-	if (g_mkdir_with_parents(user_config_dir, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
-	{
-		g_warning(_("Unable to create config dir at '%s'"), user_config_dir);
-		g_free(user_config_dir);
-		return FALSE;
-	}
-	g_free(user_config_dir);
-
+	
+	plugin_data.default_config = get_data_filepath(PLUGIN, PLUGIN".conf");
+	plugin_data.user_config = get_config_filepath(PLUGIN, NULL);
+	
 	/* copy default config into user config if it doesn't exist */
 	if (!g_file_test(pd->user_config, G_FILE_TEST_EXISTS))
 	{
 		gchar *config_text;
-		GError *error;
-
-		error = NULL;
+		GError *error = NULL;
+		
 		if (!g_file_get_contents(pd->default_config, &config_text, NULL, &error))
 		{
 			g_warning(_("Unable to get default configuration: %s"), error->message);
@@ -145,32 +127,30 @@ gboolean plugin_config_init(struct PluginData *pd)
 			}
 		}
 	}
-
+	
 	return TRUE;
 }
 
 
 static gboolean plugin_devhelp_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 {
-	GeanyKeyGroup *key_group;
-
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
-
-	plugin_module_make_resident(geany_plugin);
-
+	
+	plugin_module_make_resident(plugin);
+	
 	if (!g_thread_supported())
 		g_thread_init(NULL);
-
+	
 	memset(&plugin_data, 0, sizeof(struct PluginData));
-
+	
 	plugin_data.devhelp = devhelp_plugin_new();
 	plugin_config_init(&plugin_data);
-
+	
 	devhelp_plugin_load_settings(plugin_data.devhelp, plugin_data.user_config);
-
-	key_group = plugin_set_key_group(geany_plugin, "devhelp", KB_COUNT, NULL);
-
+	
+	GeanyKeyGroup *key_group = plugin_set_key_group(plugin, PLUGIN, KB_COUNT, NULL);
+	
 	keybindings_set_item(key_group, KB_DEVHELP_TOGGLE_CONTENTS, kb_activate,
 		0, 0, "devhelp_toggle_contents", _("Toggle sidebar contents tab"), NULL);
 	keybindings_set_item(key_group, KB_DEVHELP_TOGGLE_SEARCH, kb_activate,
@@ -186,7 +166,7 @@ static gboolean plugin_devhelp_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer 
 		keybindings_set_item(key_group, KB_DEVHELP_SEARCH_MANPAGES, kb_activate,
 			0, 0, "devhelp_search_manpages", _("Search for current tag in Manual Pages"), NULL);
 	}
-
+	
 	return TRUE;
 }
 

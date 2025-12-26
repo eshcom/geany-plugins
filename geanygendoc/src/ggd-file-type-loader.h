@@ -21,8 +21,6 @@
 #ifndef H_GGD_CONF_LOADER
 #define H_GGD_CONF_LOADER
 
-#include <glib.h>
-
 #include "ggd-file-type.h"
 #include "ggd-macros.h"
 

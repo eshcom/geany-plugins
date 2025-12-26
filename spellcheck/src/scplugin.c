@@ -22,21 +22,20 @@
  * $Id$
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "scplugin.h"
-#include "gui.h"
 #include "speller.h"
+#include "gui.h"
 
+#include "../../utils/src/common.h"
 
-GeanyPlugin		*geany_plugin;
-GeanyData		*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 
 PLUGIN_VERSION_CHECK(224)
@@ -52,7 +51,6 @@ PLUGIN_SET_TRANSLATABLE_INFO(
 SpellCheck *sc_info = NULL;
 
 
-
 /* Keybinding(s) */
 enum
 {
@@ -60,8 +58,6 @@ enum
 	KB_SPELL_TOOGLE_TYPING,
 	KB_COUNT
 };
-
-
 
 
 PluginCallback plugin_callbacks[] =
@@ -95,132 +91,118 @@ static void populate_dict_combo(GtkComboBox *combo)
 
 static void save_config(void)
 {
-		GKeyFile *config = g_key_file_new();
-		gchar *data;
-		gchar *config_dir = g_path_get_dirname(sc_info->config_file);
-
-		g_key_file_load_from_file(config, sc_info->config_file, G_KEY_FILE_NONE, NULL);
-		if (sc_info->default_language != NULL) /* lang may be NULL */
-			g_key_file_set_string(config, "spellcheck", "language", sc_info->default_language);
-		g_key_file_set_boolean(config, "spellcheck", "check_while_typing",
-			sc_info->check_while_typing);
-		g_key_file_set_boolean(config, "spellcheck", "check_on_document_open",
-			sc_info->check_on_document_open);
-		g_key_file_set_boolean(config, "spellcheck", "use_msgwin",
-			sc_info->use_msgwin);
-		g_key_file_set_boolean(config, "spellcheck", "show_toolbar_item",
-			sc_info->show_toolbar_item);
-		g_key_file_set_boolean(config, "spellcheck", "show_editor_menu_item",
-			sc_info->show_editor_menu_item);
-		g_key_file_set_boolean(config, "spellcheck", "show_editor_menu_item_sub_menu",
-			sc_info->show_editor_menu_item_sub_menu);
-		if (sc_info->dictionary_dir != NULL)
-			g_key_file_set_string(config, "spellcheck", "dictionary_dir",
-				sc_info->dictionary_dir);
-
-		if (! g_file_test(config_dir, G_FILE_TEST_IS_DIR) && utils_mkdir(config_dir, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-		else
-		{
-			/* write config to file */
-			data = g_key_file_to_data(config, NULL, NULL);
-			utils_write_file(sc_info->config_file, data);
-			g_free(data);
-		}
-		g_free(config_dir);
-		g_key_file_free(config);
+	GKeyFile *config = load_config_from_file(sc_info->config_file, NULL);
+	
+	if (sc_info->default_language != NULL) /* lang may be NULL */
+		g_key_file_set_string(config, CONFIG_SECTION, "language", sc_info->default_language);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "check_while_typing",
+		sc_info->check_while_typing);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "check_on_document_open",
+		sc_info->check_on_document_open);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "use_msgwin",
+		sc_info->use_msgwin);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_toolbar_item",
+		sc_info->show_toolbar_item);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_editor_menu_item",
+		sc_info->show_editor_menu_item);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_editor_menu_item_sub_menu",
+		sc_info->show_editor_menu_item_sub_menu);
+	
+	if (sc_info->dictionary_dir != NULL)
+		g_key_file_set_string(config, CONFIG_SECTION, "dictionary_dir",
+							  sc_info->dictionary_dir);
+	
+	write_config_to_file(config, sc_info->config_file, MSGBOX);
+	g_key_file_free(config);
 }
 
 
-static void configure_response_cb(GtkDialog *dialog, gint response, gpointer user_data)
+static void configure_response_cb(GtkDialog *dialog, gint response,
+								  gpointer user_data)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		GtkComboBox *combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(dialog), "combo"));
-
-		SETPTR(sc_info->default_language, gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo)));
+	if (!ok_apply(response)) return;
+	
+	GtkComboBox *combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(dialog), "combo"));
+	
+	SETPTR(sc_info->default_language,
+		   gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo)));
+	
 #ifdef HAVE_ENCHANT_1_5
-		SETPTR(sc_info->dictionary_dir, g_strdup(gtk_entry_get_text(GTK_ENTRY(
-			g_object_get_data(G_OBJECT(dialog), "dict_dir")))));
+	SETPTR(sc_info->dictionary_dir,
+		   g_strdup(gtk_entry_get_text(GTK_ENTRY(
+						g_object_get_data(G_OBJECT(dialog), "dict_dir")))));
 #endif
-		sc_speller_reinit_enchant_dict();
-
-		sc_info->check_while_typing = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_type"))));
-
-		sc_info->check_on_document_open = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_on_open"))));
-
-		sc_info->use_msgwin = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_msgwin"))));
-
-		sc_info->show_toolbar_item = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_toolbar"))));
-
-		sc_info->show_editor_menu_item = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_editor_menu"))));
-
-		sc_info->show_editor_menu_item_sub_menu = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_editor_menu_sub_menu"))));
-
-		save_config();
-
-		sc_gui_recreate_editor_menu();
-		sc_gui_update_toolbar();
-		sc_gui_update_menu();
-		populate_dict_combo(combo);
-	}
+	sc_speller_reinit_enchant_dict();
+	
+	sc_info->check_while_typing = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_type"))));
+	
+	sc_info->check_on_document_open = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_on_open"))));
+	
+	sc_info->use_msgwin = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_msgwin"))));
+	
+	sc_info->show_toolbar_item = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_toolbar"))));
+	
+	sc_info->show_editor_menu_item = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_editor_menu"))));
+	
+	sc_info->show_editor_menu_item_sub_menu = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_editor_menu_sub_menu"))));
+	
+	save_config();
+	
+	sc_gui_recreate_editor_menu();
+	sc_gui_update_toolbar();
+	sc_gui_update_menu();
+	populate_dict_combo(combo);
 }
 
 
 void plugin_init(GeanyData *data)
 {
-	GeanyKeyGroup *key_group;
-	GKeyFile *config = g_key_file_new();
-	gchar *default_lang;
-
-	default_lang = sc_speller_get_default_lang();
 	sc_info = g_new0(SpellCheck, 1);
-
-	sc_info->config_file = g_strconcat(geany->app->configdir,
-		G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-		"spellcheck", G_DIR_SEPARATOR_S, "spellcheck.conf", NULL);
-
-	g_key_file_load_from_file(config, sc_info->config_file, G_KEY_FILE_NONE, NULL);
+	sc_info->config_file = get_config_filepath(PLUGIN, NULL);
+	
+	GKeyFile *config = load_config_from_file(sc_info->config_file, NULL);
+	gchar *default_lang = sc_speller_get_default_lang();
+	
 	sc_info->default_language = utils_get_setting_string(config,
-		"spellcheck", "language", default_lang);
+		CONFIG_SECTION, "language", default_lang);
 	sc_info->check_while_typing = utils_get_setting_boolean(config,
-		"spellcheck", "check_while_typing", FALSE);
+		CONFIG_SECTION, "check_while_typing", FALSE);
 	sc_info->check_on_document_open = utils_get_setting_boolean(config,
-		"spellcheck", "check_on_document_open", FALSE);
+		CONFIG_SECTION, "check_on_document_open", FALSE);
 	sc_info->show_toolbar_item = utils_get_setting_boolean(config,
-		"spellcheck", "show_toolbar_item", TRUE);
+		CONFIG_SECTION, "show_toolbar_item", TRUE);
 	sc_info->show_editor_menu_item = utils_get_setting_boolean(config,
-		"spellcheck", "show_editor_menu_item", TRUE);
+		CONFIG_SECTION, "show_editor_menu_item", TRUE);
 	sc_info->show_editor_menu_item_sub_menu = utils_get_setting_boolean(config,
-		"spellcheck", "show_editor_menu_item_sub_menu", TRUE);
+		CONFIG_SECTION, "show_editor_menu_item_sub_menu", TRUE);
 	sc_info->dictionary_dir = utils_get_setting_string(config,
-		"spellcheck", "dictionary_dir", NULL);
-	sc_info->use_msgwin = utils_get_setting_boolean(config, "spellcheck", "use_msgwin", FALSE);
+		CONFIG_SECTION, "dictionary_dir", NULL);
+	sc_info->use_msgwin = utils_get_setting_boolean(config,
+		CONFIG_SECTION, "use_msgwin", FALSE);
+	
 	g_key_file_free(config);
 	g_free(default_lang);
-
+	
 	sc_info->menu_item = gtk_image_menu_item_new_from_stock(GTK_STOCK_SPELL_CHECK, NULL);
 	ui_add_document_sensitive(sc_info->menu_item);
-
+	
 	sc_gui_update_toolbar();
-
+	
 	sc_gui_init();
 	sc_speller_init();
-
+	
 	sc_gui_update_menu();
 	gtk_widget_show_all(sc_info->menu_item);
-
+	
 	/* setup keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "spellcheck", KB_COUNT, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT, NULL);
 	keybindings_set_item(key_group, KB_SPELL_CHECK, sc_gui_kb_run_activate_cb,
 		0, 0, "spell_check", _("Run Spell Check"), sc_info->submenu_item_default);
 	keybindings_set_item(key_group, KB_SPELL_TOOGLE_TYPING,

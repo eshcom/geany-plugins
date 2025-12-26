@@ -17,9 +17,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-
 #include "geanyprj.h"
+
 
 gchar *find_file_path(const gchar *dir, const gchar *filename)
 {
@@ -161,26 +160,14 @@ gchar *get_relative_path(const gchar *location, const gchar *path)
 }
 
 
-void save_config(GKeyFile *config, const gchar *path)
-{
-	gchar *data = g_key_file_to_data(config, NULL, NULL);
-	utils_write_file(path, data);
-	g_free(data);
-}
-
-
 gint config_length(GKeyFile *config, const gchar *section, const gchar *name)
 {
-	gchar *key;
 	gint i = 0;
-
-	key = g_strdup_printf("%s%d", name, i);
+	gchar *key = g_strdup_printf("%s%d", name, i);
+	
 	while (g_key_file_has_key(config, section, key, NULL))
-	{
-		i++;
-		g_free(key);
-		key = g_strdup_printf("%s%d", name, i);
-	}
+		SETPTR(key, g_strdup_printf("%s%d", name, ++i));
+	
 	g_free(key);
 	return i;
 }
@@ -192,24 +179,19 @@ gint config_length(GKeyFile *config, const gchar *section, const gchar *name)
  * Returns: The list or NULL if no files found.
  * length will point to the number of non-NULL data items in the list, unless NULL.
  * error is the location for storing a possible error, or NULL. */
-GSList *get_file_list(const gchar *path, guint * length, gboolean(*func)(const gchar *), GError ** error)
+GSList *get_file_list(const gchar *path, guint *length,
+					  gboolean(*func)(const gchar *), GError **error)
 {
 	GSList *list = NULL;
 	guint len = 0;
-	GDir *dir;
-	gchar *filename;
 	gchar *abs_path;
-
-	if (error)
-		*error = NULL;
-	if (length)
-		*length = 0;
+	
+	if (error) *error = NULL;
+	if (length) *length = 0;
 	g_return_val_if_fail(path != NULL, NULL);
-
+	
 	if (g_path_is_absolute(path))
-	{
 		abs_path = g_strdup(path);
-	}
 	else
 	{
 		abs_path = g_get_current_dir();
@@ -220,25 +202,22 @@ GSList *get_file_list(const gchar *path, guint * length, gboolean(*func)(const g
 		g_free(abs_path);
 		return NULL;
 	}
-
-	dir = g_dir_open(abs_path, 0, error);
-	if (dir == NULL)
+	
+	GDir *dir = g_dir_open(abs_path, 0, error);
+	if (!dir)
 	{
 		g_free(abs_path);
 		return NULL;
 	}
-
+	
 	while (1)
 	{
 		const gchar *name = g_dir_read_name(dir);
-		if (name == NULL)
-			break;
-
-		if (name[0] == '.')
-			continue;
-
-		filename = g_build_filename(abs_path, name, NULL);
-
+		if (!name) break;
+		if (name[0] == '.') continue;
+		
+		gchar *filename = g_build_filename(abs_path, name, NULL);
+		
 		if (g_file_test(filename, G_FILE_TEST_IS_SYMLINK))
 		{
 			g_free(filename);
@@ -249,8 +228,8 @@ GSList *get_file_list(const gchar *path, guint * length, gboolean(*func)(const g
 			guint l;
 			GSList *lst = get_file_list(filename, &l, func, NULL);
 			g_free(filename);
-			if (!lst)
-				continue;
+			if (!lst) continue;
+			
 			list = g_slist_concat(list, lst);
 			len += l;
 		}
@@ -262,16 +241,13 @@ GSList *get_file_list(const gchar *path, guint * length, gboolean(*func)(const g
 				len++;
 			}
 			else
-			{
 				g_free(filename);
-			}
 		}
 	}
 	g_dir_close(dir);
 	g_free(abs_path);
-
-	if (length)
-		*length = len;
+	
+	if (length) *length = len;
 	return list;
 }
 

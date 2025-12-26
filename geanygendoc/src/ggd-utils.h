@@ -21,14 +21,13 @@
 #ifndef H_GGD_UTILS
 #define H_GGD_UTILS
 
-#include <glib.h>
-#include <geanyplugin.h> /* Geany's utils for some wrappers */
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-macros.h"
 
+
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 /**
  * GgdPerms:
@@ -49,10 +48,8 @@ enum _GgdPerms {
 
 typedef enum _GgdPerms GgdPerms;
 
-gchar          *ggd_get_config_file             (const gchar *name,
-                                                 const gchar *section,
-                                                 GgdPerms     perms_req,
-                                                 GError     **error);
+gchar *ggd_get_config_file(const gchar *name, const gchar *section,
+                           GgdPerms perms_req, GError **error);
 
 /**
  * GGD_PTR_ARRAY_FOR:

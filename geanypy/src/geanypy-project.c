@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -17,7 +21,7 @@ static int
 Project_init(Project *self, PyObject *args, PyObject *kwds)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->project = geany_data->app->project;
+	self->project = geany->app->project;
 	return 0;
 }
 

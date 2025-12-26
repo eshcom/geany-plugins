@@ -22,8 +22,6 @@
 #ifndef GDB_MI_H
 #define GDB_MI_H
 
-#include <glib.h>
-
 enum gdb_mi_value_type
 {
 	GDB_MI_VAL_STRING,
@@ -71,18 +69,24 @@ struct gdb_mi_record
 void gdb_mi_value_free(struct gdb_mi_value *val);
 void gdb_mi_result_free(struct gdb_mi_result *res, gboolean next);
 void gdb_mi_record_free(struct gdb_mi_record *record);
-struct gdb_mi_record *gdb_mi_record_parse(const gchar *line);
-const void *gdb_mi_result_var(const struct gdb_mi_result *result, const gchar *name, enum gdb_mi_value_type type);
-gboolean gdb_mi_record_matches(const struct gdb_mi_record *record, enum gdb_mi_record_type type, const gchar *klass, ...) G_GNUC_NULL_TERMINATED;
 
-#define gdb_mi_result_foreach(node_, result_) \
+struct gdb_mi_record *gdb_mi_record_parse(const gchar *line);
+
+const void *gdb_mi_result_var(const struct gdb_mi_result *result, const gchar *name,
+							  enum gdb_mi_value_type type);
+gboolean gdb_mi_record_matches(const struct gdb_mi_record *record,
+							   enum gdb_mi_record_type type, const gchar *klass, ...)
+							   G_GNUC_NULL_TERMINATED;
+
+#define gdb_mi_result_foreach(node_, result_)										\
 	for ((node_) = (result_); (node_); (node_) = (node_)->next)
 
-#define gdb_mi_result_foreach_matched(node_, result_, name_, type_) \
-	gdb_mi_result_foreach ((node_), (result_)) \
-		if (((name_) != NULL && (! (node_)->var || strcmp((node_)->var, (name_) ? (name_) : "") != 0)) || \
-			((type_) >= 0 && (node_)->val->type != (type_))) \
-			continue; \
+#define gdb_mi_result_foreach_matched(node_, result_, name_, type_)					\
+	gdb_mi_result_foreach((node_), (result_))										\
+		if (((name_) != NULL && (!(node_)->var ||									\
+								 strcmp((node_)->var, (name_) ? (name_) : "") != 0))\
+			|| ((type_) >= 0 && (node_)->val->type != (type_)))						\
+			continue;																\
 		else
 
 #endif /* guard */

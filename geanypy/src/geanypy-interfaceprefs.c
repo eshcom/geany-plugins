@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -26,7 +30,7 @@ static int
 InterfacePrefs_init(InterfacePrefs *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->iface_prefs = geany_data->interface_prefs;
+	self->iface_prefs = geany->interface_prefs;
 	return 0;
 }
 

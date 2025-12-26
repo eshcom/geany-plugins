@@ -18,18 +18,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include <ctype.h>
 #include <errno.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <glib.h>
 
 #include "common.h"
-#include "spawn.h"
+
 
 extern guint thread_count;
 extern guint thread_prompt;

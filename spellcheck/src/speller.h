@@ -22,10 +22,8 @@
  * $Id$
  */
 
-
 #ifndef SC_SPELLER_H
 #define SC_SPELLER_H 1
-
 
 gint sc_speller_process_line(GeanyDocument *doc, gint line_number);
 

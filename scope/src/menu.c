@@ -18,14 +18,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-#include <gdk/gdkkeysyms.h>
-
+#include <gdk/gdkkeysyms.h>	// for the key bindings
 #include "common.h"
+
 
 const MenuItem *menu_item_find(const MenuItem *menu_items, const char *name)
 {

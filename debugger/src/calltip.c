@@ -23,10 +23,9 @@
  *		Formatting calltip text.
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "breakpoint.h"
-#include "debug_module.h"
 #include "calltip.h"
 
 #define FIRST_LINE "\002\t%s = (%s) %s"

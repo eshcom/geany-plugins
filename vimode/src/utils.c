@@ -18,9 +18,6 @@
 
 #include "utils.h"
 
-#include <string.h>
-
-
 void clamp_cursor_pos(ScintillaObject *sci)
 {
 	gint pos = SSM(sci, SCI_GETCURRENTPOS, 0, 0);

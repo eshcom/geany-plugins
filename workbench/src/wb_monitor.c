@@ -19,13 +19,13 @@
 /*
  * Code for file monitoring.
  */
-#include <glib/gstdio.h>
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "wb_globals.h"
 #include "workbench.h"
 #include "wb_monitor.h"
@@ -42,7 +42,7 @@ typedef struct
 	GFileMonitor *monitor;
 	WB_PROJECT *prj;
 	WB_PROJECT_DIR *dir;
-}WB_MONITOR_ENTRY;
+} WB_MONITOR_ENTRY;
 
 
 /** Create a new, empty WB_MONITOR.

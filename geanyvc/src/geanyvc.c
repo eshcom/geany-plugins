@@ -24,44 +24,45 @@
 /* VC plugin */
 /* This plugin allow to works with cvs/svn/git inside geany light IDE. */
 
-#include <string.h>
-#include <glib.h>
-#include <glib/gstdio.h>
-#include <unistd.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <glib/gstdio.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+#include <SciLexer.h>
 
 #include "geanyvc.h"
-#include "SciLexer.h"
+#include "../../utils/src/common.h"
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 #ifdef USE_GTKSPELL
-#include <gtkspell/gtkspell.h>
-/* forward compatibility with GtkSpell3 */
-#if GTK_CHECK_VERSION(3, 0, 0)
-#define GtkSpell GtkSpellChecker
-#define gtkspell_set_language gtk_spell_checker_set_language
-static GtkSpell *gtkspell_new_attach(GtkTextView *view, const gchar *lang, GError **error)
-{
-	GtkSpellChecker *speller = gtk_spell_checker_new();
-
-	if (! lang || gtk_spell_checker_set_language(speller, lang, error))
-		gtk_spell_checker_attach(speller, view);
-	else
-	{
-		g_object_unref(g_object_ref_sink(speller));
-		speller = NULL;
-	}
-
-	return speller;
-}
+	#include <gtkspell/gtkspell.h>
+	
+	/* forward compatibility with GtkSpell3 */
+	#if GTK_CHECK_VERSION(3, 0, 0)
+		#define GtkSpell GtkSpellChecker
+		#define gtkspell_set_language gtk_spell_checker_set_language
+		
+		static GtkSpell *gtkspell_new_attach(GtkTextView *view, const gchar *lang,
+											 GError **error)
+		{
+			GtkSpellChecker *speller = gtk_spell_checker_new();
+			
+			if (!lang || gtk_spell_checker_set_language(speller, lang, error))
+				gtk_spell_checker_attach(speller, view);
+			else
+			{
+				g_object_unref(g_object_ref_sink(speller));
+				speller = NULL;
+			}
+			return speller;
+		}
+	#endif
 #endif
-#endif
-
-GeanyData *geany_data;
-GeanyPlugin		*geany_plugin;
 
 
 PLUGIN_VERSION_CHECK(224)
@@ -166,26 +167,22 @@ enum
 #define COMMIT_MESSAGE_HISTORY_LENGTH 10
 
 
-GSList *get_commit_files_null(G_GNUC_UNUSED const gchar * dir)
+GSList *get_commit_files_null(G_GNUC_UNUSED const gchar *dir)
 {
 	return NULL;
 }
 
-static void
-free_text_list(GSList * lst)
+static void free_text_list(GSList *lst)
 {
-	GSList *tmp;
-	if (!lst)
-		return;
-	for (tmp = lst; tmp != NULL; tmp = g_slist_next(tmp))
-	{
-		g_free((CommitItem *) (tmp->data));
-	}
+	if (!lst) return;
+	
+	for (GSList *tmp = lst; tmp != NULL; tmp = g_slist_next(tmp))
+		g_free((CommitItem *)(tmp->data));
+	
 	g_slist_free(lst);
 }
 
-static void
-free_commit_list(GSList * lst)
+static void free_commit_list(GSList * lst)
 {
 	GSList *tmp;
 	if (!lst)
@@ -198,8 +195,7 @@ free_commit_list(GSList * lst)
 	g_slist_free(lst);
 }
 
-gchar *
-find_subdir_path(const gchar * filename, const gchar * subdir)
+gchar *find_subdir_path(const gchar * filename, const gchar * subdir)
 {
 	gboolean ret = FALSE;
 	gchar *base;
@@ -230,8 +226,7 @@ find_subdir_path(const gchar * filename, const gchar * subdir)
 	return NULL;
 }
 
-static gboolean
-find_subdir(const gchar * filename, const gchar * subdir)
+static gboolean find_subdir(const gchar * filename, const gchar * subdir)
 {
 	gchar *basedir;
 	basedir = find_subdir_path(filename, subdir);
@@ -243,20 +238,16 @@ find_subdir(const gchar * filename, const gchar * subdir)
 	return FALSE;
 }
 
-gboolean
-find_dir(const gchar * filename, const char *find, gboolean recursive)
+gboolean find_dir(const gchar * filename, const char *find, gboolean recursive)
 {
 	gboolean ret;
 	gchar *base;
 	gchar *dir;
-
-	if (!filename)
-		return FALSE;
-
+	
+	if (!filename) return FALSE;
+	
 	if (recursive)
-	{
 		ret = find_subdir(filename, find);
-	}
 	else
 	{
 		if (g_file_test(filename, G_FILE_TEST_IS_DIR))
@@ -274,8 +265,7 @@ find_dir(const gchar * filename, const char *find, gboolean recursive)
 }
 
 
-static const VC_RECORD *
-find_vc(const char *filename)
+static const VC_RECORD *find_vc(const char *filename)
 {
 	GSList *tmp;
 
@@ -289,8 +279,7 @@ find_vc(const char *filename)
 	return NULL;
 }
 
-static void *
-find_cmd_env(gint cmd_type, gboolean cmd, const gchar * filename)
+static void *find_cmd_env(gint cmd_type, gboolean cmd, const gchar * filename)
 {
 	const VC_RECORD *vc;
 	vc = find_vc(filename);
@@ -590,7 +579,7 @@ execute_command(const VC_RECORD * vc, gchar ** std_out, gchar ** std_err, const 
 
 /* Callback if menu item for a single file was activated */
 static void
-vcdiff_file_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcdiff_file_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *text = NULL;
 	gchar *new, *old;
@@ -679,7 +668,7 @@ vcdiff_file_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpoint
 
 /* Callback if menu item for the base directory was activated */
 static void
-vcdiff_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, gpointer data)
+vcdiff_dir_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, gpointer data)
 {
 	gchar *text = NULL;
 	gchar *dir;
@@ -727,7 +716,7 @@ vcdiff_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, gpointer data)
 }
 
 static void
-vcblame_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcblame_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *text = NULL;
 	const VC_RECORD *vc;
@@ -754,7 +743,7 @@ vcblame_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer g
 
 
 static void
-vclog_file_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vclog_file_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *output = NULL;
 	const VC_RECORD *vc;
@@ -775,7 +764,7 @@ vclog_file_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointe
 }
 
 static void
-vclog_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vclog_dir_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *base_name = NULL;
 	gchar *text = NULL;
@@ -801,7 +790,7 @@ vclog_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer
 }
 
 static void
-vclog_basedir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vclog_basedir_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *text = NULL;
 	const VC_RECORD *vc;
@@ -828,7 +817,7 @@ vclog_basedir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpoi
 
 /* Show status from the current directory */
 static void
-vcstatus_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcstatus_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *base_name = NULL;
 	gchar *text = NULL;
@@ -859,7 +848,7 @@ vcstatus_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer 
 }
 
 static void
-vcshow_file_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcshow_file_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *output = NULL;
 	const VC_RECORD *vc;
@@ -938,7 +927,7 @@ command_with_question_activated(gchar ** text, gint cmd, const gchar * question,
 }
 
 static void
-vcrevert_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcrevert_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	command_with_question_activated(NULL, VC_COMMAND_REVERT_FILE,
 					_("Do you really want to revert: %s?"),
@@ -946,7 +935,7 @@ vcrevert_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer 
 }
 
 static void
-vcrevert_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, gint flags)
+vcrevert_dir_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, gint flags)
 {
 	command_with_question_activated(NULL, VC_COMMAND_REVERT_DIR,
 					_("Do you really want to revert: %s?"),
@@ -954,14 +943,14 @@ vcrevert_dir_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, gint flags)
 }
 
 static void
-vcadd_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcadd_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	command_with_question_activated(NULL, VC_COMMAND_ADD,
 					_("Do you really want to add: %s?"), FLAG_FILE);
 }
 
 static void
-vcremove_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcremove_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	if (command_with_question_activated(NULL, VC_COMMAND_REMOVE,
 					    _("Do you really want to remove: %s?"),
@@ -973,7 +962,7 @@ vcremove_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer 
 }
 
 static void
-vcupdate_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+vcupdate_activated(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *text = NULL;
 	GeanyDocument *doc;
@@ -1434,8 +1423,7 @@ static gboolean commit_text_line_number_update_cb(GtkWidget *widget, GdkEvent *e
 	return FALSE;
 }
 
-static GtkWidget *
-create_commitDialog(void)
+static GtkWidget *create_commitDialog(void)
 {
 	GtkWidget *commitDialog;
 	GtkWidget *dialog_vbox1;
@@ -1465,7 +1453,7 @@ create_commitDialog(void)
 					 "    font_name=\"%s\"\n"
 					 "}\n"
 					 "widget \"*.GeanyVCCommitDialogDiff\" style \"geanyvc-diff-font\"",
-					 geany_data->interface_prefs->editor_font);
+					 geany->interface_prefs->editor_font);
 
 	gtk_rc_parse_string(rcstyle);
 	g_free(rcstyle);
@@ -1646,129 +1634,108 @@ add_commit_message_to_history(const gchar *commit_message)
 	}
 }
 
-static void
-vccommit_activated(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer gdata)
+static void vccommit_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
+							   G_GNUC_UNUSED gpointer gdata)
 {
-	GeanyDocument *doc;
-	gint result;
-	const VC_RECORD *vc;
-	GSList *lst;
-	GtkTreeModel *model;
 	GtkWidget *commit = create_commitDialog();
 	GtkWidget *treeview = ui_lookup_widget(commit, "treeSelect");
 	GtkWidget *diffView = ui_lookup_widget(commit, "textDiff");
 	GtkWidget *messageView = ui_lookup_widget(commit, "textCommitMessage");
 	GtkWidget *vpaned1 = ui_lookup_widget(commit, "vpaned1");
 	GtkWidget *vpaned2 = ui_lookup_widget(commit, "vpaned2");
-
-	GtkTextBuffer *mbuf;
-	GtkTextBuffer *diffbuf;
-
-	GtkTextIter begin;
-	GtkTextIter end;
-	GSList *selected_files = NULL;
-
-	gchar *dir;
-	gchar *message;
-	gchar *diff;
-
-	gint height;
-
-#ifdef USE_GTKSPELL
-	GtkSpell *speller = NULL;
-	GError *spellcheck_error = NULL;
-#endif
-
-	doc = document_get_current();
+	
+	GeanyDocument *doc = document_get_current();
 	g_return_if_fail(doc);
 	g_return_if_fail(doc->file_name);
-	vc = find_vc(doc->file_name);
+	
+	const VC_RECORD *vc = find_vc(doc->file_name);
 	g_return_if_fail(vc);
-	dir = vc->get_base_dir(doc->file_name);
-
-	lst = vc->get_commit_files(dir);
+	
+	gchar *dir = vc->get_base_dir(doc->file_name);
+	GSList *lst = vc->get_commit_files(dir);
 	if (!lst)
 	{
 		g_free(dir);
 		ui_set_statusbar(FALSE, _("Nothing to commit."));
 		return;
 	}
-
-	model = create_commit_model(lst);
+	
+	GtkTreeModel *model = create_commit_model(lst);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(treeview), model);
 	g_object_unref(model);
-
+	
 	/* add columns to the tree view */
 	add_commit_columns(GTK_TREE_VIEW(treeview));
-
-	diff = get_commit_diff(GTK_TREE_VIEW(treeview));
-	diffbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(diffView));
-
+	
+	gchar *diff = get_commit_diff(GTK_TREE_VIEW(treeview));
+	GtkTextBuffer *diffbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(diffView));
+	
 	gtk_text_buffer_create_tag(diffbuf, "deleted", "foreground-gdk",
-				   get_diff_color(doc, SCE_DIFF_DELETED), NULL);
-
+							   get_diff_color(doc, SCE_DIFF_DELETED), NULL);
 	gtk_text_buffer_create_tag(diffbuf, "added", "foreground-gdk",
-				   get_diff_color(doc, SCE_DIFF_ADDED), NULL);
-
+							   get_diff_color(doc, SCE_DIFF_ADDED), NULL);
 	gtk_text_buffer_create_tag(diffbuf, "default", "foreground-gdk",
-				   get_diff_color(doc, SCE_DIFF_POSITION), NULL);
-
-	gtk_text_buffer_create_tag(diffbuf, "invisible", "invisible",
-				   TRUE, NULL);
-
+							   get_diff_color(doc, SCE_DIFF_POSITION), NULL);
+	gtk_text_buffer_create_tag(diffbuf, "invisible", "invisible", TRUE, NULL);
+	
 	set_diff_buff(diffView, diffbuf, diff);
-
+	
 	if (set_maximize_commit_dialog)
-	{
 		gtk_window_maximize(GTK_WINDOW(commit));
-	}
 	else
 	{
 		gtk_widget_set_size_request(commit, 700, 500);
 		gtk_window_set_default_size(GTK_WINDOW(commit),
 			commit_dialog_width, commit_dialog_height);
 	}
-
+	
 	gtk_widget_show_now(commit);
+	
+	gint height;
 	gtk_window_get_size(GTK_WINDOW(commit), NULL, &height);
 	gtk_paned_set_position(GTK_PANED(vpaned1), height * 25 / 100);
 	gtk_paned_set_position(GTK_PANED(vpaned2), height * 50 / 100);
-
+	
 #ifdef USE_GTKSPELL
-	speller = gtkspell_new_attach(GTK_TEXT_VIEW(messageView), EMPTY(lang) ? NULL : lang, &spellcheck_error);
-	if (speller == NULL && spellcheck_error != NULL)
+	GError *spellcheck_error = NULL;
+	GtkSpell *speller = gtkspell_new_attach(GTK_TEXT_VIEW(messageView),
+											EMPTY(lang) ? NULL : lang,
+											&spellcheck_error);
+	if (!speller && spellcheck_error)
 	{
-		ui_set_statusbar(TRUE, _("Error initializing GeanyVC spell checking: %s. Check your configuration."),
-				 spellcheck_error->message);
-		g_error_free(spellcheck_error);
-		spellcheck_error = NULL;
+		ui_set_statusbar(TRUE, _("Error initializing GeanyVC spell checking: %s. "
+								 "Check your configuration."),
+						 spellcheck_error->message);
 	}
+	if (spellcheck_error) g_error_free(spellcheck_error);
 #endif
-
+	
 	/* put the input focus to the commit message text view */
 	gtk_widget_grab_focus(messageView);
-
-	result = gtk_dialog_run(GTK_DIALOG(commit));
+	
+	gint result = gtk_dialog_run(GTK_DIALOG(commit));
 	if (result == GTK_RESPONSE_APPLY)
 	{
-		mbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(messageView));
+		GtkTextBuffer *mbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(messageView));
+		GtkTextIter begin, end;
 		gtk_text_buffer_get_start_iter(mbuf, &begin);
 		gtk_text_buffer_get_end_iter(mbuf, &end);
-		message = gtk_text_buffer_get_text(mbuf, &begin, &end, FALSE);
+		
+		gchar *message = gtk_text_buffer_get_text(mbuf, &begin, &end, FALSE);
 		add_commit_message_to_history(message);
+		
+		GSList *selected_files = NULL;
 		gtk_tree_model_foreach(model, get_commit_files_foreach, &selected_files);
+		
 		if (!EMPTY(message) && selected_files)
-		{
-			execute_command(vc, NULL, NULL, dir, VC_COMMAND_COMMIT, selected_files,
-					message);
-			free_text_list(selected_files);
-		}
+			execute_command(vc, NULL, NULL, dir, VC_COMMAND_COMMIT,
+							selected_files, message);
+		free_text_list(selected_files);
 		g_free(message);
 	}
 	/* remember commit dialog widget size */
-	gtk_window_get_size(GTK_WINDOW(commit),
-		&commit_dialog_width, &commit_dialog_height);
-
+	gtk_window_get_size(GTK_WINDOW(commit), &commit_dialog_width,
+											&commit_dialog_height);
 	gtk_widget_destroy(commit);
 	free_commit_list(lst);
 	g_free(dir);
@@ -1915,130 +1882,102 @@ static struct
 #ifdef USE_GTKSPELL
 	GtkWidget *spellcheck_lang_textbox;
 #endif
-}
-widgets;
+} widgets;
 
-static void
-save_config(void)
+static void save_config(void)
 {
-	GSList *list_item = NULL;
-	gint list_item_count = 0;
-	GKeyFile *config = g_key_file_new();
-	gchar *config_dir = g_path_get_dirname(config_file);
-
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
 	g_key_file_set_boolean(config, "VC", "set_changed_flag", set_changed_flag);
 	g_key_file_set_boolean(config, "VC", "set_add_confirmation", set_add_confirmation);
 	g_key_file_set_boolean(config, "VC", "set_external_diff", set_external_diff);
 	g_key_file_set_boolean(config, "VC", "set_maximize_commit_dialog",
-			       set_maximize_commit_dialog);
-	g_key_file_set_boolean(config, "VC", "set_editor_menu_entries", set_editor_menu_entries);
+						   set_maximize_commit_dialog);
+	g_key_file_set_boolean(config, "VC", "set_editor_menu_entries",
+						   set_editor_menu_entries);
 	g_key_file_set_boolean(config, "VC", "attach_to_menubar", set_menubar_entry);
-
+	
 	g_key_file_set_boolean(config, "VC", "enable_cvs", enable_cvs);
 	g_key_file_set_boolean(config, "VC", "enable_git", enable_git);
 	g_key_file_set_boolean(config, "VC", "enable_svn", enable_svn);
 	g_key_file_set_boolean(config, "VC", "enable_svk", enable_svk);
 	g_key_file_set_boolean(config, "VC", "enable_bzr", enable_bzr);
 	g_key_file_set_boolean(config, "VC", "enable_hg", enable_hg);
-
+	
 #ifdef USE_GTKSPELL
 	g_key_file_set_string(config, "VC", "spellchecking_language", lang);
 #endif
-
+	
 	if (commit_dialog_width > 0 && commit_dialog_height > 0)
 	{
-		g_key_file_set_integer(config, "CommitDialog",
-			"commit_dialog_width", commit_dialog_width);
-		g_key_file_set_integer(config, "CommitDialog",
-			"commit_dialog_height", commit_dialog_height);
+		g_key_file_set_integer(config, "CommitDialog", "commit_dialog_width",
+							   commit_dialog_width);
+		g_key_file_set_integer(config, "CommitDialog", "commit_dialog_height",
+							   commit_dialog_height);
 	}
-
+	
+	GSList *list_item = NULL;
+	gint list_item_count = 0;
 	g_key_file_remove_group(config, "CommitMessageHistory", NULL); /* cleanup */
+	
 	foreach_slist(list_item, commit_message_history)
 	{
-		gchar *key = g_strdup_printf("message_%d", list_item_count);
+		gchar *key = g_strdup_printf("message_%d", list_item_count++);
 		g_key_file_set_string(config, "CommitMessageHistory", key, list_item->data);
 		g_free(key);
-
-		list_item_count++;
 	}
-
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR)
-	    && utils_mkdir(config_dir, TRUE) != 0)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				    _
-				    ("Plugin configuration directory could not be created."));
-	}
-	else
-	{
-		/* write config to file */
-		gchar *data = g_key_file_to_data(config, NULL, NULL);
-		utils_write_file(config_file, data);
-		g_free(data);
-	}
-
-	g_free(config_dir);
+	
+	write_config_to_file(config, config_file, MSGBOX);
 	g_key_file_free(config);
 }
 
-static void
-on_configure_response(G_GNUC_UNUSED GtkDialog * dialog, gint response,
-		      G_GNUC_UNUSED gpointer user_data)
+static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
+								  G_GNUC_UNUSED gpointer user_data)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		set_changed_flag =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_changed_flag));
-		set_add_confirmation =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_confirm_add));
-		set_maximize_commit_dialog =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_max_commit));
-
-		set_external_diff =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_external_diff));
-
-		set_editor_menu_entries =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_editor_menu_entries));
-		set_menubar_entry =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_attach_to_menubar));
-
-		enable_cvs = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_cvs));
-		enable_git = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_git));
-		enable_svn = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_svn));
-		enable_svk = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_svk));
-		enable_bzr = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_bzr));
-		enable_hg = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_hg));
-
+	if (!ok_apply(response)) return;
+	
+	set_changed_flag =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_changed_flag));
+	set_add_confirmation =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_confirm_add));
+	set_maximize_commit_dialog =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_max_commit));
+	
+	set_external_diff =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_external_diff));
+	
+	set_editor_menu_entries =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_editor_menu_entries));
+	set_menubar_entry =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_attach_to_menubar));
+	
+	enable_cvs = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_cvs));
+	enable_git = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_git));
+	enable_svn = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_svn));
+	enable_svk = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_svk));
+	enable_bzr = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_bzr));
+	enable_hg = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widgets.cb_hg));
+	
 #ifdef USE_GTKSPELL
-		g_free(lang);
-		lang = g_strdup(gtk_entry_get_text(GTK_ENTRY(widgets.spellcheck_lang_textbox)));
+	g_free(lang);
+	lang = g_strdup(gtk_entry_get_text(GTK_ENTRY(widgets.spellcheck_lang_textbox)));
 #endif
-
-		save_config();
-
-		if (set_editor_menu_entries == FALSE)
-			remove_menuitems_from_editor_menu();
-		else
-			add_menuitems_to_editor_menu();
-
-		registrate();
-	}
+	
+	save_config();
+	
+	set_editor_menu_entries ? add_menuitems_to_editor_menu()
+							: remove_menuitems_from_editor_menu();
+	registrate();
 }
 
-GtkWidget *
-plugin_configure(GtkDialog * dialog)
+GtkWidget *plugin_configure(GtkDialog * dialog)
 {
-	GtkWidget *vbox;
-
 #ifdef USE_GTKSPELL
 	GtkWidget *label_spellcheck_lang;
 #endif
-
-	vbox = gtk_vbox_new(FALSE, 6);
-
+	
+	GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+	
 	widgets.cb_changed_flag =
 		gtk_check_button_new_with_label(_
 						("Set Changed-flag for document tabs created by the plugin"));
@@ -2140,19 +2079,10 @@ plugin_configure(GtkDialog * dialog)
 	return vbox;
 }
 
-static void
-load_config(void)
+static void load_config(void)
 {
-#ifdef USE_GTKSPELL
-	GError *error = NULL;
-#endif
-
-	gchar **commit_message_history_keys, **ptr = NULL;
-	gchar *commit_message;
-	GKeyFile *config = g_key_file_new();
-
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
 	set_changed_flag = utils_get_setting_boolean(config, "VC",
 		"set_changed_flag", FALSE);
 	set_add_confirmation = utils_get_setting_boolean(config, "VC",
@@ -2163,56 +2093,53 @@ load_config(void)
 		"set_external_diff", TRUE);
 	set_editor_menu_entries = utils_get_setting_boolean(config, "VC",
 		"set_editor_menu_entries", FALSE);
-	enable_cvs = utils_get_setting_boolean(config, "VC", "enable_cvs",
-		TRUE);
-	enable_git = utils_get_setting_boolean(config, "VC", "enable_git",
-		TRUE);
-	enable_svn = utils_get_setting_boolean(config, "VC", "enable_svn",
-		TRUE);
-	enable_svk = utils_get_setting_boolean(config, "VC", "enable_svk",
-		TRUE);
-	enable_bzr = utils_get_setting_boolean(config, "VC", "enable_bzr",
-		TRUE);
-	enable_hg = utils_get_setting_boolean(config, "VC", "enable_hg",
-		TRUE);
+	
+	enable_cvs = utils_get_setting_boolean(config, "VC", "enable_cvs", TRUE);
+	enable_git = utils_get_setting_boolean(config, "VC", "enable_git", TRUE);
+	enable_svn = utils_get_setting_boolean(config, "VC", "enable_svn", TRUE);
+	enable_svk = utils_get_setting_boolean(config, "VC", "enable_svk", TRUE);
+	enable_bzr = utils_get_setting_boolean(config, "VC", "enable_bzr", TRUE);
+	enable_hg = utils_get_setting_boolean(config, "VC", "enable_hg", TRUE);
 	set_menubar_entry = utils_get_setting_boolean(config, "VC", "attach_to_menubar",
-		FALSE);
-
+												  FALSE);
 #ifdef USE_GTKSPELL
+	GError *error = NULL;
 	lang = g_key_file_get_string(config, "VC", "spellchecking_language", &error);
-	if (error != NULL)
-	{
-		/* Set default value. Using system standard language. */
+	if (error)
+	{	/* Set default value. Using system standard language. */
 		lang = NULL;
 		g_error_free(error);
 		error = NULL;
 	}
 #endif
-
 	commit_dialog_width = utils_get_setting_integer(config, "CommitDialog",
-		"commit_dialog_width", 700);
+													"commit_dialog_width", 700);
 	commit_dialog_height = utils_get_setting_integer(config, "CommitDialog",
-		"commit_dialog_height", 500);
-
-	commit_message_history_keys = g_key_file_get_keys(config,"CommitMessageHistory", NULL, NULL);
-	if (commit_message_history_keys != NULL)
+													 "commit_dialog_height", 500);
+	
+	gchar **commit_message_history_keys = g_key_file_get_keys(config,
+															  "CommitMessageHistory",
+															  NULL, NULL);
+	if (commit_message_history_keys)
 	{
+		gchar **ptr = NULL;
+		gchar *commit_message;
 		foreach_strv(ptr, commit_message_history_keys)
 		{
-			commit_message = g_key_file_get_string(config, "CommitMessageHistory", *ptr, NULL);
+			commit_message = g_key_file_get_string(config, "CommitMessageHistory",
+												   *ptr, NULL);
 			/* do not free the newly allocated commit_message string as we need it later in the list,
 			 * will be finally freed when cleaning up the commit_message_history list */
-			commit_message_history = g_slist_append(commit_message_history, commit_message);
+			commit_message_history = g_slist_append(commit_message_history,
+													commit_message);
 		}
 		g_strfreev(commit_message_history_keys);
 	}
 	g_key_file_free(config);
 }
 
-static void
-registrate(void)
+static void registrate(void)
 {
-	gchar *path;
 	if (VC)
 	{
 		g_slist_free(VC);
@@ -2226,8 +2153,7 @@ registrate(void)
 	REGISTER_VC(HG, enable_hg);
 }
 
-static void
-do_current_file_menu(GtkWidget ** parent_menu, gboolean editor_menu)
+static void do_current_file_menu(GtkWidget **parent_menu, gboolean editor_menu)
 {
 	GtkWidget *cur_file_menu = NULL;
 	/* Menu which will hold the items in the current file menu */
@@ -2434,12 +2360,11 @@ remove_menuitems_from_editor_menu(void)
 	}
 }
 
-static void
-init_keybindings(void)
+static void init_keybindings(void)
 {
 	/* init keybindins */
-	GeanyKeyGroup *plugin_key_group;
-	plugin_key_group = plugin_set_key_group(geany_plugin, "geanyvc", COUNT_KB, NULL);
+	GeanyKeyGroup *plugin_key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+														   COUNT_KB, NULL);
 	keybindings_set_item(plugin_key_group, VC_DIFF_FILE, kbdiff_file, 0, 0,
 			     "vc_show_diff_of_file", _("Show diff of file"), menu_vc_diff_file);
 	keybindings_set_item(plugin_key_group, VC_DIFF_DIR, kbdiff_dir, 0, 0,
@@ -2462,19 +2387,16 @@ init_keybindings(void)
 }
 
 /* Called by Geany to initialize the plugin */
-void
-plugin_init(G_GNUC_UNUSED GeanyData * data)
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
 	GtkWidget *menu_vc = NULL;
 	GtkWidget *menu_vc_menu = NULL;
 	GtkWidget *menu_vc_file = NULL;
 	GtkWidget *menu_vc_dir = NULL;
 	GtkWidget *menu_vc_basedir = NULL;
-
-	config_file =
-		g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-			    "VC", G_DIR_SEPARATOR_S, "VC.conf", NULL);
-
+	
+	config_file = get_config_filepath(PLUGIN, NULL);
+	
 	load_config();
 	registrate();
 

@@ -19,14 +19,11 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
 #include "geanyvc.h"
 
-extern GeanyData *geany_data;
-
-static gchar *
-get_base_dir(const gchar * path)
+static gchar *get_base_dir(const gchar *path)
 {
 	return find_subdir_path(path, ".git");
 }

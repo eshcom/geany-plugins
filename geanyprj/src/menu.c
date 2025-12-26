@@ -17,16 +17,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <glib/gstdio.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
+#include <glib/gstdio.h>
 #include "geanyprj.h"
+
 
 static struct
 {
@@ -197,89 +194,77 @@ static PropertyDialogElements *build_properties_dialog(gboolean properties)
 
 void on_new_project(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	PropertyDialogElements *e;
-	gint response;
-
-	e = build_properties_dialog(FALSE);
+	PropertyDialogElements *e = build_properties_dialog(FALSE);
 	gtk_widget_show_all(e->dialog);
-
-      retry:
+	gint response;
+	
+retry:
 	response = gtk_dialog_run(GTK_DIALOG(e->dialog));
 	if (response == GTK_RESPONSE_OK)
 	{
-		gchar *path;
-		struct GeanyPrj *prj;
-
-		path = g_build_filename(gtk_entry_get_text(GTK_ENTRY(e->file_name)), ".geanyprj",
-					NULL);
-
+		gchar *path = g_build_filename(gtk_entry_get_text(GTK_ENTRY(e->file_name)),
+									   ".geanyprj", NULL);
 		if (g_file_test(path, G_FILE_TEST_EXISTS))
 		{
 			ui_set_statusbar(TRUE, _("Project file \"%s\" already exists"), path);
 			g_free(path);
 			goto retry;
 		}
-		prj = geany_project_new();
-
+		struct GeanyPrj *prj = geany_project_new();
+		
 		geany_project_set_path(prj, path);
 		geany_project_set_base_path(prj, gtk_entry_get_text(GTK_ENTRY(e->base_path)));
 		geany_project_set_name(prj, gtk_entry_get_text(GTK_ENTRY(e->name)));
 		geany_project_set_description(prj, "");
 		geany_project_set_run_cmd(prj, "");
 		geany_project_set_type_int(prj, gtk_combo_box_get_active(GTK_COMBO_BOX(e->type)));
-		geany_project_set_regenerate(prj,
-					     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON
-									  (e->regenerate)));
-
+		geany_project_set_regenerate(prj, gtk_toggle_button_get_active(
+												GTK_TOGGLE_BUTTON(e->regenerate)));
 		geany_project_regenerate_file_list(prj);
-
+		
 		geany_project_save(prj);
 		geany_project_free(prj);
 		document_open_file(path, FALSE, NULL, NULL);
 	}
-
+	
 	gtk_widget_destroy(e->dialog);
 	g_free(e);
 }
 
 
-void on_preferences(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
+void on_preferences(G_GNUC_UNUSED GtkMenuItem *menuitem,
+					G_GNUC_UNUSED gpointer user_data)
 {
-	PropertyDialogElements *e;
-	gint response;
-	gchar *project_dir;
-
-	e = build_properties_dialog(TRUE);
-
-	project_dir = g_path_get_dirname(g_current_project->path);
+	PropertyDialogElements *e = build_properties_dialog(TRUE);
+	gchar *project_dir = g_path_get_dirname(g_current_project->path);
+	
 	gtk_entry_set_text(GTK_ENTRY(e->file_name), project_dir);
 	gtk_entry_set_text(GTK_ENTRY(e->name), g_current_project->name);
 	gtk_entry_set_text(GTK_ENTRY(e->base_path), g_current_project->base_path);
 	gtk_combo_box_set_active(GTK_COMBO_BOX(e->type), g_current_project->type);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(e->regenerate),
-				     g_current_project->regenerate);
-
+								 g_current_project->regenerate);
+	
 	gtk_widget_show_all(e->dialog);
-
-	response = gtk_dialog_run(GTK_DIALOG(e->dialog));
+	
+	gint response = gtk_dialog_run(GTK_DIALOG(e->dialog));
 	if (response == GTK_RESPONSE_OK)
 	{
 		geany_project_set_base_path(g_current_project,
-					    gtk_entry_get_text(GTK_ENTRY(e->base_path)));
+									gtk_entry_get_text(GTK_ENTRY(e->base_path)));
 		geany_project_set_name(g_current_project, gtk_entry_get_text(GTK_ENTRY(e->name)));
 		geany_project_set_description(g_current_project, "");
 		geany_project_set_run_cmd(g_current_project, "");
 		geany_project_set_type_int(g_current_project,
 					   gtk_combo_box_get_active(GTK_COMBO_BOX(e->type)));
 		geany_project_set_regenerate(g_current_project,
-					     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON
-									  (e->regenerate)));
+									 gtk_toggle_button_get_active(
+												GTK_TOGGLE_BUTTON(e->regenerate)));
 		geany_project_save(g_current_project);
-
+		
 		if (g_current_project->regenerate)
-		{
 			geany_project_regenerate_file_list(g_current_project);
-		}
+		
 		sidebar_refresh();
 	}
 

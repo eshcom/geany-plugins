@@ -21,11 +21,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+  #include "config.h" // for the gettext domain
 #endif
 
 #include "overviewui.h"
-#include "overviewplugin.h"
 #include "overviewscintilla.h"
 
 typedef void (*DocForEachFunc) (ScintillaObject   *src_sci,
@@ -39,22 +38,19 @@ static OverviewPrefs *overview_ui_prefs     = NULL;
 static GtkWidget     *overview_ui_menu_sep  = NULL;
 static GtkWidget     *overview_ui_menu_item = NULL;
 
-static inline void
-overview_ui_scintilla_foreach (DocForEachFunc callback)
+static inline void overview_ui_scintilla_foreach(DocForEachFunc callback)
 {
   guint i = 0;
-  foreach_document (i)
-    {
-      GeanyDocument     *doc = documents[i];
-      ScintillaObject   *src_sci;
-      OverviewScintilla *overview;
-      src_sci  = doc->editor->sci;
-      overview = g_object_get_data (G_OBJECT (src_sci), "overview");
-      if (IS_SCINTILLA (doc->editor->sci))
-        callback (src_sci, overview);
-      else
-        g_critical ("enumerating invalid scintilla editor widget");
-    }
+  foreach_document(i)
+  {
+    GeanyDocument *doc = documents[i];
+    ScintillaObject *src_sci = doc->editor->sci;
+    OverviewScintilla *overview = g_object_get_data(G_OBJECT(src_sci), PLUGIN);
+    if (IS_SCINTILLA(doc->editor->sci))
+      callback(src_sci, overview);
+    else
+      g_critical("enumerating invalid scintilla editor widget");
+  }
 }
 
 static inline gboolean
@@ -76,55 +72,50 @@ overview_ui_container_add_expanded (GtkContainer *container,
 #endif
 }
 
-static void
-overview_ui_hijack_editor_view (ScintillaObject   *src_sci,
-                                OverviewScintilla *null_and_unused)
+static void overview_ui_hijack_editor_view(ScintillaObject *src_sci,
+                                           OverviewScintilla *null_and_unused)
 {
-  GtkWidget     *parent;
-  GtkWidget     *container;
-  GtkWidget     *overview;
-  gboolean       on_left;
+  g_assert(g_object_get_data(G_OBJECT(src_sci), PLUGIN) == NULL);
 
-  g_assert (g_object_get_data (G_OBJECT (src_sci), "overview") == NULL);
+  GtkWidget *parent    = gtk_widget_get_parent(GTK_WIDGET(src_sci));
+  GtkWidget *container = gtk_hbox_new(FALSE, 0);
+  GtkWidget *overview  = overview_scintilla_new(src_sci);
 
-  parent    = gtk_widget_get_parent (GTK_WIDGET (src_sci));
-  container = gtk_hbox_new (FALSE, 0);
-  overview  = overview_scintilla_new (src_sci);
+  overview_prefs_bind_scintilla(overview_ui_prefs, G_OBJECT(overview));
+  gtk_widget_set_no_show_all(overview, TRUE);
 
-  overview_prefs_bind_scintilla (overview_ui_prefs, G_OBJECT (overview));
-  gtk_widget_set_no_show_all (overview, TRUE);
+  g_object_set_data(G_OBJECT(src_sci), PLUGIN, overview);
 
-  g_object_set_data (G_OBJECT (src_sci), "overview", overview);
-
-  on_left = overview_ui_position_is_left ();
+  gboolean on_left = overview_ui_position_is_left();
+  
 #ifndef OVERVIEW_UI_SUPPORTS_LEFT_POSITION
   if (on_left)
-    {
-      g_critical ("Refusing to add Overview into left position because "
-                  "your Geany version isn't new enough to support this "
-                  "without crashing hard.");
-      on_left = FALSE;
-    }
+  {
+    g_critical("Refusing to add Overview into left position because "
+               "your Geany version isn't new enough to support this "
+               "without crashing hard.");
+    on_left = FALSE;
+  }
 #endif
-
-  g_object_ref (src_sci);
-  gtk_container_remove (GTK_CONTAINER (parent), GTK_WIDGET (src_sci));
+  
+  g_object_ref(src_sci);
+  gtk_container_remove(GTK_CONTAINER(parent), GTK_WIDGET(src_sci));
 
   if (on_left)
-    {
-      gtk_box_pack_start (GTK_BOX (container), overview, FALSE, TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (container), GTK_WIDGET (src_sci), TRUE, TRUE, 0);
-    }
+  {
+    gtk_box_pack_start(GTK_BOX(container), overview, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(container), GTK_WIDGET(src_sci), TRUE, TRUE, 0);
+  }
   else
-    {
-      gtk_box_pack_start (GTK_BOX (container), GTK_WIDGET (src_sci), TRUE, TRUE, 0);
-      gtk_box_pack_start (GTK_BOX (container), overview, FALSE, TRUE, 0);
-    }
-
-  overview_ui_container_add_expanded (GTK_CONTAINER (parent), container);
-  g_object_unref (src_sci);
-
-  gtk_widget_show_all (container);
+  {
+    gtk_box_pack_start(GTK_BOX(container), GTK_WIDGET(src_sci), TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(container), overview, FALSE, TRUE, 0);
+  }
+  
+  overview_ui_container_add_expanded(GTK_CONTAINER(parent), container);
+  g_object_unref(src_sci);
+  
+  gtk_widget_show_all(container);
 }
 
 static void
@@ -133,18 +124,17 @@ overview_ui_hijack_all_editor_views (void)
   overview_ui_scintilla_foreach (overview_ui_hijack_editor_view);
 }
 
-static void
-overview_ui_restore_editor_view (ScintillaObject   *src_sci,
-                                 OverviewScintilla *overview)
+static void overview_ui_restore_editor_view(ScintillaObject *src_sci,
+                                            OverviewScintilla *overview)
 {
-  GtkWidget *old_parent = gtk_widget_get_parent (GTK_WIDGET (src_sci));
-  GtkWidget *new_parent = gtk_widget_get_parent (old_parent);
-  g_object_ref (src_sci);
-  g_object_set_data (G_OBJECT (src_sci), "overview", NULL);
-  gtk_container_remove (GTK_CONTAINER (old_parent), GTK_WIDGET (src_sci));
-  gtk_container_remove (GTK_CONTAINER (new_parent), old_parent);
-  overview_ui_container_add_expanded (GTK_CONTAINER (new_parent), GTK_WIDGET (src_sci));
-  g_object_unref (src_sci);
+  GtkWidget *old_parent = gtk_widget_get_parent(GTK_WIDGET(src_sci));
+  GtkWidget *new_parent = gtk_widget_get_parent(old_parent);
+  g_object_ref(src_sci);
+  g_object_set_data(G_OBJECT(src_sci), PLUGIN, NULL);
+  gtk_container_remove(GTK_CONTAINER(old_parent), GTK_WIDGET(src_sci));
+  gtk_container_remove(GTK_CONTAINER(new_parent), old_parent);
+  overview_ui_container_add_expanded(GTK_CONTAINER(new_parent), GTK_WIDGET(src_sci));
+  g_object_unref(src_sci);
 }
 
 static void
@@ -211,15 +201,14 @@ overview_ui_get_menu_item (void)
   return overview_ui_menu_item;
 }
 
-static inline OverviewScintilla *
-overview_scintilla_from_document (GeanyDocument *doc)
+static inline OverviewScintilla *overview_scintilla_from_document(GeanyDocument *doc)
 {
-  if (DOC_VALID (doc))
-    {
-      ScintillaObject *src_sci = doc->editor->sci;
-      if (IS_SCINTILLA (src_sci))
-        return g_object_get_data (G_OBJECT (src_sci), "overview");
-    }
+  if (DOC_VALID(doc))
+  {
+    ScintillaObject *src_sci = doc->editor->sci;
+    if (IS_SCINTILLA(src_sci))
+      return g_object_get_data(G_OBJECT(src_sci), PLUGIN);
+  }
   return NULL;
 }
 
@@ -272,7 +261,7 @@ overview_ui_add_menu_item (void)
 {
   static const gchar *view_menu_name = "menu_view1_menu";
   static const gchar *prev_item_name = "menu_show_sidebar1";
-  GtkWidget          *main_window = geany_data->main_widgets->window;
+  GtkWidget          *main_window = geany->main_widgets->window;
   GtkWidget          *view_menu;
   GtkWidget          *prev_item;
   gint                item_pos;
@@ -340,32 +329,29 @@ overview_ui_init (OverviewPrefs *prefs)
 
 }
 
-void
-overview_ui_deinit (void)
+void overview_ui_deinit(void)
 {
-  overview_ui_restore_all_editor_views ();
+  overview_ui_restore_all_editor_views();
 
-  if (GTK_IS_WIDGET (overview_ui_menu_sep))
-    gtk_widget_destroy (overview_ui_menu_sep);
-  gtk_widget_destroy (overview_ui_menu_item);
+  if (GTK_IS_WIDGET(overview_ui_menu_sep))
+    gtk_widget_destroy(overview_ui_menu_sep);
+  gtk_widget_destroy(overview_ui_menu_item);
 
-  if (OVERVIEW_IS_PREFS (overview_ui_prefs))
-    g_object_unref (overview_ui_prefs);
+  if (OVERVIEW_IS_PREFS(overview_ui_prefs))
+    g_object_unref(overview_ui_prefs);
   overview_ui_prefs = NULL;
 }
 
-static gboolean
-on_update_overview_later (gpointer user_data)
+static gboolean on_update_overview_later(gpointer user_data)
 {
-  GeanyDocument *doc;
-  doc = document_get_current ();
-  if (DOC_VALID (doc))
-    {
-      OverviewScintilla *overview;
-      overview = g_object_get_data (G_OBJECT (doc->editor->sci), "overview");
-      if (OVERVIEW_IS_SCINTILLA (overview))
-        overview_scintilla_sync (overview);
-    }
+  GeanyDocument *doc = document_get_current();
+  if (DOC_VALID(doc))
+  {
+    OverviewScintilla *overview = g_object_get_data(G_OBJECT(doc->editor->sci),
+                                                    PLUGIN);
+    if (OVERVIEW_IS_SCINTILLA(overview))
+      overview_scintilla_sync(overview);
+  }
   return FALSE;
 }
 

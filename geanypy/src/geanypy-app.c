@@ -1,8 +1,13 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
+
 
 typedef struct
 {
@@ -24,7 +29,7 @@ App_init(App *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
 	g_return_val_if_fail(geany_data, -1);
-	self->app = geany_data->app;
+	self->app = geany->app;
 	return 0;
 }
 

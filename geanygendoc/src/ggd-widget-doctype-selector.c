@@ -19,18 +19,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
+#include "ggd-plugin.h"   // to access Geany data/funcs
 #include "ggd-widget-doctype-selector.h"
 
-#include <gtk/gtk.h>
 
-#include "ggd-plugin.h"
-
-
-#if ! GTK_CHECK_VERSION (2, 20, 0) && ! defined(gtk_widget_get_realized)
-# define gtk_widget_get_realized(w) (GTK_WIDGET_REALIZED (w))
+#if !GTK_CHECK_VERSION(2, 20, 0) && !defined(gtk_widget_get_realized)
+  #define gtk_widget_get_realized(w) (GTK_WIDGET_REALIZED (w))
 #endif
 
 

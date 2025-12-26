@@ -18,15 +18,8 @@
  *  
  */
 
-
-#include "ggd-doc-type.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <glib.h>
-
 #include "ggd-doc-setting.h"
-
+#include "ggd-doc-type.h"
 
 /**
  * ggd_doc_type_new:

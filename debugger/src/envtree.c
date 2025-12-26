@@ -23,16 +23,12 @@
  * 		Working with the evironment variables tree view.
  */
 
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-extern GeanyPlugin		*geany_plugin;
-
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "envtree.h"
 #include "dconfig.h"

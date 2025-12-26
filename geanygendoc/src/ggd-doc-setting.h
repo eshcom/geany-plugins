@@ -21,8 +21,6 @@
 #ifndef H_GGD_DOC_SETTING
 #define H_GGD_DOC_SETTING
 
-#include <stdio.h>
-#include <glib.h>
 #include <ctpl/ctpl.h>
 
 #include "ggd-tag-utils.h"
@@ -30,7 +28,6 @@
 
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 /**
  * _GgdPosition:

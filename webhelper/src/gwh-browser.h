@@ -21,7 +21,7 @@
 #define H_GWH_BROWSER
 
 #include <glib.h>
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 #include <webkit/webkit.h>
 
 G_BEGIN_DECLS

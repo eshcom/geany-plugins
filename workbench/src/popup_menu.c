@@ -19,16 +19,13 @@
 /*
  * Code for the popup menu.
  */
-#include <errno.h>
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <string.h>
-#include <glib.h>
-#include <glib/gstdio.h>
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
+
+#include <errno.h>
+#include <glib/gstdio.h>
 
 #include "wb_globals.h"
 #include "dialogs.h"
@@ -367,7 +364,7 @@ static void popup_menu_on_project_close_all (G_GNUC_UNUSED GtkMenuItem *menuitem
 
 
 /* Handle popup menu item "Add directory" */
-static void popup_menu_on_add_directory(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void popup_menu_on_add_directory(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	gchar *dirname;
 	WB_PROJECT *project;
@@ -394,7 +391,7 @@ static void popup_menu_on_add_directory(G_GNUC_UNUSED GtkMenuItem * menuitem, G_
 
 
 /* Handle popup menu item "Remove directory" */
-static void popup_menu_on_remove_directory(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void popup_menu_on_remove_directory(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	SIDEBAR_CONTEXT context;
 
@@ -411,7 +408,7 @@ static void popup_menu_on_remove_directory(G_GNUC_UNUSED GtkMenuItem * menuitem,
 
 
 /* Handle popup menu item "Rescan directory" */
-static void popup_menu_on_rescan_directory(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void popup_menu_on_rescan_directory(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	SIDEBAR_CONTEXT context;
 
@@ -425,7 +422,7 @@ static void popup_menu_on_rescan_directory(G_GNUC_UNUSED GtkMenuItem * menuitem,
 
 
 /* Handle popup menu item "Directory settings" */
-static void popup_menu_on_directory_settings(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void popup_menu_on_directory_settings(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	SIDEBAR_CONTEXT context;
 

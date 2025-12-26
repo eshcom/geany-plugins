@@ -19,29 +19,21 @@
  *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "lo_fns.h"
 #include "lo_prefs.h"
 
 
 /* Get sort function based on user preferences */
-lo_strcmpfns
-getcmpfns(void)
+lo_strcmpfns getcmpfns(void)
 {
-	if(lo_info->use_collation_compare)
-	{
-		return g_utf8_collate;
-	}
-	else
-	{
-		return g_strcmp0;
-	}
+	return lo_info->use_collation_compare ? g_utf8_collate : g_strcmp0;
 }
 
 
 /* comparison function to be used in qsort */
-static gint
-compare_asc(const void *a, const void *b)
+static gint compare_asc(const void *a, const void *b)
 {
 	lo_strcmpfns lo_strcmp = getcmpfns();
 	return lo_strcmp(*(const gchar **)a, *(const gchar **)b);
@@ -49,8 +41,7 @@ compare_asc(const void *a, const void *b)
 
 
 /* comparison function to be used in qsort */
-static gint
-compare_desc(const void *a, const void *b)
+static gint compare_desc(const void *a, const void *b)
 {
 	lo_strcmpfns lo_strcmp = getcmpfns();
 	return lo_strcmp(*(const gchar **)b, *(const gchar **)a);
@@ -58,8 +49,7 @@ compare_desc(const void *a, const void *b)
 
 
 /* Remove Duplicate Lines, sorted */
-gint
-rmdupst(gchar **lines, gint num_lines, gchar *new_file)
+gint rmdupst(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end  = new_file;     /* points to last char of new_file */
 	gchar *lineptr = (gchar *)" "; /* temporary line pointer */
@@ -87,8 +77,7 @@ rmdupst(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Remove Duplicate Lines, ordered */
-gint
-rmdupln(gchar **lines, gint num_lines, gchar *new_file)
+gint rmdupln(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end  = new_file;  /* points to last char of new_file */
 	gint  i        = 0;         /* iterator */
@@ -136,8 +125,7 @@ rmdupln(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Remove Unique Lines */
-gint
-rmunqln(gchar **lines, gint num_lines, gchar *new_file)
+gint rmunqln(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end = new_file;   /* points to last char of new_file */
 	gint  i       = 0;          /* iterator */
@@ -181,8 +169,7 @@ rmunqln(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Keep Unique Lines */
-gint
-kpunqln(gchar **lines, gint num_lines, gchar *new_file)
+gint kpunqln(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end = new_file;   /* points to last char of new_file */
 	gint  i       = 0;          /* iterator */
@@ -226,8 +213,7 @@ kpunqln(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Remove Empty Lines */
-gint
-rmemtyln(ScintillaObject *sci, gint line_num, gint end_line_num)
+gint rmemtyln(ScintillaObject *sci, gint line_num, gint end_line_num)
 {
 	gint changed = 0;     /* number of lines removed */
 
@@ -255,8 +241,7 @@ rmemtyln(ScintillaObject *sci, gint line_num, gint end_line_num)
 
 
 /* Remove Whitespace Lines */
-gint
-rmwhspln(ScintillaObject *sci, gint line_num, gint end_line_num)
+gint rmwhspln(ScintillaObject *sci, gint line_num, gint end_line_num)
 {
 	gint indent;                       /* indent position */
 	gint changed = 0;                  /* number of lines removed */
@@ -291,8 +276,7 @@ rmwhspln(ScintillaObject *sci, gint line_num, gint end_line_num)
 
 
 /* Sort Lines Ascending */
-gint
-sortlnsasc(gchar **lines, gint num_lines, gchar *new_file)
+gint sortlnsasc(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end = new_file;          /* points to last char of new_file */
 	gint i;
@@ -308,8 +292,7 @@ sortlnsasc(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Sort Lines Descending */
-gint
-sortlndesc(gchar **lines, gint num_lines, gchar *new_file)
+gint sortlndesc(gchar **lines, gint num_lines, gchar *new_file)
 {
 	gchar *nf_end = new_file;          /* points to last char of new_file */
 	gint i;
@@ -325,8 +308,7 @@ sortlndesc(gchar **lines, gint num_lines, gchar *new_file)
 
 
 /* Remove Every Nth Line */
-gint
-rmnthln(ScintillaObject *sci, gint line_num, gint end_line_num)
+gint rmnthln(ScintillaObject *sci, gint line_num, gint end_line_num)
 {
 	gboolean ok;
 	gdouble n;

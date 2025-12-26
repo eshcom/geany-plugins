@@ -21,16 +21,12 @@
 #ifndef H_GGD_FILE_TYPE_MANAGER
 #define H_GGD_FILE_TYPE_MANAGER
 
-#include <glib.h>
-#include <geanyplugin.h>
-
 #include "ggd-file-type.h"
 #include "ggd-utils.h"
 #include "ggd-macros.h"
 
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 void              ggd_file_type_manager_init            (void);
 void              ggd_file_type_manager_uninit          (void);
@@ -42,7 +38,6 @@ GgdFileType      *ggd_file_type_manager_load_file_type  (GeanyFiletypeID id);
 GgdFileType      *ggd_file_type_manager_get_file_type   (GeanyFiletypeID ft);
 GgdDocType       *ggd_file_type_manager_get_doc_type    (GeanyFiletypeID ft,
                                                          const gchar    *docname);
-
 
 GGD_END_PLUGIN_API
 G_END_DECLS

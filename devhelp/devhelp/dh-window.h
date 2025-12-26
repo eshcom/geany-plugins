@@ -23,7 +23,6 @@
 #ifndef __DH_WINDOW_H__
 #define __DH_WINDOW_H__
 
-#include <gtk/gtk.h>
 #include "dh-base.h"
 
 G_BEGIN_DECLS

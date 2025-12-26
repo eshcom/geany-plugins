@@ -20,22 +20,15 @@
 #ifndef H_GWH_PLUGIN
 #define H_GWH_PLUGIN
 
-#include <glib.h>
-
-#include <geanyplugin.h>
-#include <geany.h>
+#include <geanyplugin.h>			// includes geany.h, gtkcompat.h, etc.
 
 G_BEGIN_DECLS
 
-
 #define GWH_PLUGIN_NAME    "Web Helper"
-#define GWH_PLUGIN_TARNAME "web-helper"
 #define GWH_PLUGIN_VERSION "0.2"
 
-
-extern GeanyPlugin     *geany_plugin;
-extern GeanyData       *geany_data;
-
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 G_END_DECLS
 

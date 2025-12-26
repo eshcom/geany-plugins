@@ -30,7 +30,7 @@ typedef enum
 	POPUP_CONTEXT_BACKGROUND,
 	POPUP_CONTEXT_WB_BOOKMARK,
 	POPUP_CONTEXT_PRJ_BOOKMARK,
-}POPUP_CONTEXT;
+} POPUP_CONTEXT;
 
 void popup_menu_init(void);
 void popup_menu_show(POPUP_CONTEXT context, GdkEventButton *event);

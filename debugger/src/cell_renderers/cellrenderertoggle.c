@@ -25,7 +25,7 @@
  * 		to ensure the "toggled" signal is sent only when clicked on a particulary cell renderer
  */
 
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "cellrenderertoggle.h"
 

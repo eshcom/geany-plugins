@@ -17,10 +17,14 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
-extern GeanyPlugin *geany_plugin;
-extern GeanyData *geany_data;
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
+
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;
+
 
 typedef struct _MenuItem MenuItem;
 #define FRAME_ARGS '0' + (int) strlen(thread_id) - 1, thread_id, frame_id

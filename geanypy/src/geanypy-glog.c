@@ -1,12 +1,15 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
 
 
-static PyObject *
-Glog_glog(PyObject *module, PyObject *args, PyObject *kwargs)
+static PyObject *Glog_glog(PyObject *module, PyObject *args, PyObject *kwargs)
 {
 	static gchar *kwlist[] = { "log_domain", "log_level", "message", NULL };
 	gchar *log_domain, *message;

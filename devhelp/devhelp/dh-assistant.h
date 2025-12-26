@@ -21,7 +21,6 @@
 #ifndef __DH_ASSISTANT_H__
 #define __DH_ASSISTANT_H__
 
-#include <gtk/gtk.h>
 #include "dh-base.h"
 
 G_BEGIN_DECLS

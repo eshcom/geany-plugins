@@ -23,24 +23,23 @@
  *		Watch tree view.
  */
 
-
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "wtree.h"
-#include "watch_model.h"
 #include "vtree.h"
 #include "dconfig.h"
 #include "breakpoint.h"
 #include "debug_module.h"
 
+
 /* drag types */
 enum
 {
-  TARGET_STRING,
+	TARGET_STRING,
 };
 static GtkTargetEntry targetentries[] =
 {
-  { (gchar*)"STRING",        0, TARGET_STRING }
+	{ (gchar*)"STRING", 0, TARGET_STRING }
 };
 
 /* reference to an empty row */

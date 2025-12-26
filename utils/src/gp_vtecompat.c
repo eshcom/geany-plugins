@@ -16,17 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <glib.h>
+#ifdef HAVE_CONFIG_H
+	#include "config.h" // for the gettext domain
+#endif
+
 #include <glib/gstdio.h>
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
+#ifdef G_OS_UNIX
+	#include <vte/vte.h>
+	#include <../../utils/src/gp_vtecompat.h>
 #endif
 
-#ifdef G_OS_UNIX
-#include <vte/vte.h>
-#include <../../utils/src/gp_vtecompat.h>
-#endif
 
 /** Set font from string.
  *
@@ -38,10 +38,7 @@
  **/
 void gp_vtecompat_set_font_from_string(VteTerminal *vte, char *font)
 {
-    PangoFontDescription *font_desc;
-
-    font_desc = pango_font_description_from_string(font);
-    vte_terminal_set_font(vte, font_desc);
-    pango_font_description_free (font_desc);
+	PangoFontDescription *font_desc = pango_font_description_from_string(font);
+	vte_terminal_set_font(vte, font_desc);
+	pango_font_description_free (font_desc);
 }
-

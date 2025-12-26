@@ -23,19 +23,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-
 #include <ctype.h>
-#include <string.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
-
-#include "gui.h"
 #include "scplugin.h"
 #include "speller.h"
-
+#include "gui.h"
 
 
 typedef struct
@@ -82,18 +78,17 @@ static void print_typing_changed_message(void)
 static void toolbar_item_toggled_cb(GtkToggleToolButton *button, gpointer user_data)
 {
 	gboolean check_while_typing_changed, check_while_typing;
-
-	if (sc_ignore_callback)
-		return;
-
+	
+	if (sc_ignore_callback) return;
+	
 	check_while_typing = gtk_toggle_tool_button_get_active(button);
 	check_while_typing_changed = check_while_typing != sc_info->check_while_typing;
 	sc_info->check_while_typing = check_while_typing;
-
+	
 	print_typing_changed_message();
-
-	/* force a rescan of the document if 'check while typing' has been turned on and clean
-	 * errors if it has been turned off */
+	
+	/* force a rescan of the document if 'check while typing' has been
+	 * turned on and clean errors if it has been turned off */
 	if (check_while_typing_changed)
 	{
 		GeanyDocument *doc = document_get_current();
@@ -111,24 +106,22 @@ void sc_gui_update_toolbar(void)
 	if (! sc_info->show_toolbar_item)
 	{
 		if (sc_info->toolbar_button != NULL)
-		{
 			gtk_widget_hide(GTK_WIDGET(sc_info->toolbar_button));
-		}
 	}
 	else
 	{
 		if (sc_info->toolbar_button == NULL)
 		{
 			sc_info->toolbar_button = gtk_toggle_tool_button_new_from_stock(GTK_STOCK_SPELL_CHECK);
-
+			
 			plugin_add_toolbar_item(geany_plugin, sc_info->toolbar_button);
 			ui_add_document_sensitive(GTK_WIDGET(sc_info->toolbar_button));
-
+			
 			g_signal_connect(sc_info->toolbar_button, "toggled",
-				G_CALLBACK(toolbar_item_toggled_cb), NULL);
+							 G_CALLBACK(toolbar_item_toggled_cb), NULL);
 		}
 		gtk_widget_show(GTK_WIDGET(sc_info->toolbar_button));
-
+		
 		sc_ignore_callback = TRUE;
 		gtk_toggle_tool_button_set_active(
 			GTK_TOGGLE_TOOL_BUTTON(sc_info->toolbar_button), sc_info->check_while_typing);
@@ -242,33 +235,31 @@ static GtkWidget *init_editor_submenu(void)
 	{
 		if (sc_info->edit_menu_sub != NULL && GTK_IS_WIDGET(sc_info->edit_menu_sub))
 			gtk_widget_destroy(sc_info->edit_menu_sub);
-
+		
 		sc_info->edit_menu_sub = gtk_menu_new();
 		gtk_menu_item_set_submenu(GTK_MENU_ITEM(sc_info->edit_menu), sc_info->edit_menu_sub);
-
+		
 		gtk_widget_show(sc_info->edit_menu);
 		gtk_widget_show(sc_info->edit_menu_sep);
 		gtk_widget_show(sc_info->edit_menu_sub);
-
+		
 		return sc_info->edit_menu_sub;
 	}
 	else
-	{
 		return geany->main_widgets->editor_menu;
-	}
 }
 
 
 static void perform_check(GeanyDocument *doc)
 {
 	clear_spellcheck_error_markers(doc);
-
+	
 	if (sc_info->use_msgwin)
 	{
 		msgwin_clear_tab(MSG_MESSAGE);
 		msgwin_switch_tab(MSG_MESSAGE, FALSE);
 	}
-
+	
 	sc_speller_check_document(doc);
 }
 
@@ -520,30 +511,27 @@ static gboolean check_lines(gpointer data)
 
 static gboolean need_delay(void)
 {
-	static gint64 time_prev = 0; /* time in microseconds */
-	gint64 time_now;
-	GTimeVal t;
-	const gint timeout = 500; /* delay in milliseconds */
-	gboolean ret = FALSE;
-
-	g_get_current_time(&t);
-
-	time_now = ((gint64) t.tv_sec * G_USEC_PER_SEC) + t.tv_usec;
-
+	static gint64 time_prev = 0;	/* time in microseconds */
+	const gint timeout = 500;		/* delay in milliseconds */
+	
+	gint64 time_now = g_get_real_time();
+	
 	/* delay keypresses for 0.5 seconds */
 	if (time_now < (time_prev + (timeout * 1000)))
 		return TRUE;
-
+	
+	gboolean ret = FALSE;
+	
 	if (check_line_data.check_while_typing_idle_source_id == 0)
 	{
 		check_line_data.check_while_typing_idle_source_id =
 			plugin_timeout_add(geany_plugin, timeout, check_lines, NULL);
 		ret = TRUE;
 	}
-
+	
 	/* set current time for the next key press */
 	time_prev = time_now;
-
+	
 	return ret;
 }
 

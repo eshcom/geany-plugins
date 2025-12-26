@@ -16,15 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <glib.h>
-#include <glib/gstdio.h>
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "filelist.h"
-#include <geanyplugin.h>
+
 
 typedef struct
 {
@@ -61,8 +60,7 @@ ScanDirParamsCallback;
  **/
 GSList *filelist_get_precompiled_patterns(gchar **patterns)
 {
-	if (!patterns)
-		return NULL;
+	if (!patterns) return NULL;
 	
 	GSList *pattern_list = NULL;
 	
@@ -90,7 +88,7 @@ gboolean filelist_patterns_match(GSList *patterns, const gchar *str)
 	foreach_slist(elem, patterns)
 	{
 		GPatternSpec *pattern = elem->data;
-		if (g_pattern_match_string(pattern, str))
+		if (g_pattern_spec_match_string(pattern, str))
 			return TRUE;
 	}
 	return FALSE;
@@ -106,11 +104,9 @@ static void filelist_scan_directory_int(const gchar *searchdir,
 	gchar *real_path = utils_get_real_path(locale_path);
 	
 	GDir *dir = g_dir_open(locale_path, 0, NULL);
-	if (!dir || !real_path ||
-		g_hash_table_lookup(params->visited_paths, real_path))
+	if (!dir || !real_path || g_hash_table_lookup(params->visited_paths, real_path))
 	{
-		if (dir != NULL)
-			g_dir_close(dir);
+		if (dir) g_dir_close(dir);
 		
 		g_free(locale_path);
 		g_free(real_path);
@@ -122,12 +118,10 @@ static void filelist_scan_directory_int(const gchar *searchdir,
 	while (TRUE)
 	{
 		const gchar *locale_name = g_dir_read_name(dir);
-		if (!locale_name)
-			break;
+		if (!locale_name) break;
 		
 		gchar *utf8_name = utils_get_utf8_from_locale(locale_name);
-		gchar *locale_filename = g_build_filename(locale_path,
-												  locale_name, NULL);
+		gchar *locale_filename = g_build_filename(locale_path, locale_name, NULL);
 		gchar *utf8_filename = utils_get_utf8_from_locale(locale_filename);
 		
 		if (g_file_test(locale_filename, G_FILE_TEST_IS_DIR))
@@ -152,12 +146,10 @@ static void filelist_scan_directory_int(const gchar *searchdir,
 												   g_strdup(utf8_filename));
 			}
 		}
-		
 		g_free(utf8_filename);
 		g_free(locale_filename);
 		g_free(utf8_name);
 	}
-	
 	g_dir_close(dir);
 	g_free(locale_path);
 }
@@ -259,11 +251,8 @@ GSList *gp_filelist_scan_directory_full(guint *files, guint *folders,
 	g_slist_foreach(params.ignored_file_list, (GFunc)g_pattern_spec_free, NULL);
 	g_slist_free(params.ignored_file_list);
 	
-	if (files != NULL)
-		*files = params.file_count;
-	
-	if (folders != NULL)
-		*folders = params.folder_count;
+	if (files) *files = params.file_count;
+	if (folders) *folders = params.folder_count;
 	
 	return params.filelist;
 }
@@ -296,8 +285,6 @@ gboolean gp_filelist_filepath_matches_patterns(const gchar *filepath,
 {
 	gboolean match = FALSE;
 	GSList *file_patterns_list;
-	GSList *ignored_dirs_list;
-	GSList *ignored_file_list;
 	
 	if (!file_patterns || !file_patterns[0])
 	{
@@ -307,8 +294,8 @@ gboolean gp_filelist_filepath_matches_patterns(const gchar *filepath,
 	else
 		file_patterns_list = filelist_get_precompiled_patterns(file_patterns);
 	
-	ignored_dirs_list = filelist_get_precompiled_patterns(ignored_dirs_patterns);
-	ignored_file_list = filelist_get_precompiled_patterns(ignored_file_patterns);
+	GSList *ignored_dirs_list = filelist_get_precompiled_patterns(ignored_dirs_patterns);
+	GSList *ignored_file_list = filelist_get_precompiled_patterns(ignored_file_patterns);
 	
 	if (g_file_test(filepath, G_FILE_TEST_IS_DIR))
 	{
@@ -344,11 +331,9 @@ static void filelist_scan_directory_callback_int(const gchar *searchdir,
 	gchar *real_path = utils_get_real_path(locale_path);
 	
 	GDir *dir = g_dir_open(locale_path, 0, NULL);
-	if (!dir || !real_path || g_hash_table_lookup(params->visited_paths,
-												  real_path))
+	if (!dir || !real_path || g_hash_table_lookup(params->visited_paths, real_path))
 	{
-		if (dir != NULL)
-			g_dir_close(dir);
+		if (dir) g_dir_close(dir);
 		
 		g_free(locale_path);
 		g_free(real_path);
@@ -360,8 +345,7 @@ static void filelist_scan_directory_callback_int(const gchar *searchdir,
 	while (TRUE)
 	{
 		const gchar *locale_name = g_dir_read_name(dir);
-		if (!locale_name)
-			break;
+		if (!locale_name) break;
 		
 		gchar *utf8_name = utils_get_utf8_from_locale(locale_name);
 		gchar *locale_filename = g_build_filename(locale_path,
@@ -386,7 +370,6 @@ static void filelist_scan_directory_callback_int(const gchar *searchdir,
 		g_free(locale_filename);
 		g_free(utf8_name);
 	}
-	
 	g_dir_close(dir);
 	g_free(locale_path);
 }

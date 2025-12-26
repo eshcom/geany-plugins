@@ -34,14 +34,13 @@ which case the GSDLG_API functions will be available externally.
 */
 
 #ifdef GSDLG_ALL_IN_ONE
-#define GSDLG_API static
+	#define GSDLG_API static
 #else
-#define GSDLG_API
+	#define GSDLG_API
 #endif
 
-#include <gtk/gtk.h>
 
-typedef const gchar* GsDlgStr;
+typedef const gchar *GsDlgStr;
 
 GSDLG_API void gsdlg_text(     GtkDialog *dlg, GsDlgStr key, GsDlgStr value, GsDlgStr label);
 GSDLG_API void gsdlg_password( GtkDialog *dlg, GsDlgStr key, GsDlgStr value, GsDlgStr label);
@@ -76,10 +75,10 @@ typedef void (*GsDlgRunHook) (gboolean running, gpointer user_data);
 	then with running=FALSE when it is dismissed.
 */
 #ifndef DIALOG_LIB
-GSDLG_API void gsdlg_set_run_hook(GsDlgRunHook cb);
+	GSDLG_API void gsdlg_set_run_hook(GsDlgRunHook cb);
 #endif
 
 
 #ifdef GSDLG_ALL_IN_ONE
-#include "gsdlg.c"
+	#include "gsdlg.c"
 #endif

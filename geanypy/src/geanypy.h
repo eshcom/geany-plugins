@@ -29,84 +29,81 @@ extern "C" {
 
 /* For plain make file build using Mingw on Windows */
 #if defined(__MINGW32__) && defined(GEANYPY_WINDOWS_BUILD)
-#  define GEANYPY_WINDOWS 1
+	#define GEANYPY_WINDOWS 1
 #endif
 
 #include <Python.h>
 #ifndef PyMODINIT_FUNC
-#  define PyMODINIT_FUNC void
+	#define PyMODINIT_FUNC void
 #endif
 #include <structmember.h>
 
 
 /* Defines a setter that throws an attribute exception when called. */
-#define GEANYPY_PROPS_READONLY(cls) \
-	static int \
-	cls ## _set_property(cls *self, PyObject *value, const gchar *prop_name) { \
-		PyErr_SetString(PyExc_AttributeError, "can't set attribute"); \
-		return -1; }
-
-/* Defines a getter/setter for use in the tp_getset table. */
-#define GEANYPY_GETSETDEF(cls, prop_name, doc) \
-	{ prop_name, \
-		(getter) cls ## _get_property, \
-		(setter) cls ## _set_property, \
-		doc, \
-		prop_name }
-
-
-/* Initializes a new `cls` type object. */
-#define GEANYPY_NEW(cls) \
-	(cls *) PyObject_CallObject((PyObject *) &(cls ## Type), NULL);
-
-
-/* Returns a new py string or py none if string is NULL. */
-#define GEANYPY_RETURN_STRING(memb) \
-	{ \
-		if (memb != NULL) \
-			return PyString_FromString(memb); \
-		else \
-			Py_RETURN_NONE; \
+#define GEANYPY_PROPS_READONLY(cls)												\
+	static int																	\
+	cls ## _set_property(cls *self, PyObject *value, const gchar *prop_name) {	\
+		PyErr_SetString(PyExc_AttributeError, "can't set attribute");			\
+		return -1;																\
 	}
 
+/* Defines a getter/setter for use in the tp_getset table. */
+#define GEANYPY_GETSETDEF(cls, prop_name, doc) {	\
+	prop_name,										\
+	(getter) cls ## _get_property,					\
+	(setter) cls ## _set_property,					\
+	doc,											\
+	prop_name										\
+}
+
+/* Initializes a new `cls` type object. */
+#define GEANYPY_NEW(cls)										\
+	(cls *) PyObject_CallObject((PyObject *) &(cls ## Type), NULL);
+
+/* Returns a new py string or py none if string is NULL. */
+#define GEANYPY_RETURN_STRING(memb)			\
+{											\
+	if (memb != NULL)						\
+		return PyString_FromString(memb);	\
+	else									\
+		Py_RETURN_NONE;						\
+}
 
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
-#include <gtk/gtk.h>
-
 /* necessary for compilation with -fno-common,
  * see https://bugzilla.gnome.org/show_bug.cgi?id=610657 for details,
  * INCLUDE_PYGOBJECT_ONCE_FULL is set only once in geanypy-plugin.c */
 #ifndef INCLUDE_PYGOBJECT_ONCE_FULL
-#  define NO_IMPORT_PYGOBJECT
-#  define NO_IMPORT_PYGTK
+	#define NO_IMPORT_PYGOBJECT
+	#define NO_IMPORT_PYGTK
 #endif
 
 #include <pygobject.h>
 
 #ifndef GEANYPY_WINDOWS
-/* Used with the results of `pkg-config --cflags pygtk-2.0` */
-#  include <pygtk/pygtk.h>
+	/* Used with the results of `pkg-config --cflags pygtk-2.0` */
+	#include <pygtk/pygtk.h>
 #else
-/* On windows the path of pygtk.h is directly an include dir */
-#  include <pygtk.h>
+	/* On windows the path of pygtk.h is directly an include dir */
+	#include <pygtk.h>
 #endif
 
 #ifndef GTK
-#  define GTK
+	#define GTK
 #endif
-#include <Scintilla.h>
-#include <ScintillaWidget.h>
 
 /* Expansion of this Scintilla macro causes name clashes. */
 #undef NotifyHeader
 
-#include <geanyplugin.h>
+#include <sciwrappers.h>	// includes Scintilla.h, ScintillaWidget.h, etc.
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+GeanyData *geany_data;		// the code uses the macro "geany" (see geany->)
 
 #ifndef G_LOG_DOMAIN
-#  define G_LOG_DOMAIN "GeanyPy"
+	#define G_LOG_DOMAIN "GeanyPy"
 #endif
 
 #include "geanypy-document.h"
@@ -118,7 +115,6 @@ extern "C" {
 #include "geanypy-scintilla.h"
 #include "geanypy-signalmanager.h"
 #include "geanypy-uiutils.h"
-
 
 #ifdef __cplusplus
 } /* extern "C" */

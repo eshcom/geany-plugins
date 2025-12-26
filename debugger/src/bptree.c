@@ -27,24 +27,18 @@
  * 		bptree_set... if breakpoint has been changed altered/added/removed
  */
 
-#include <stdlib.h>
-#include <memory.h>
-
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include "breakpoints.h"
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "bptree.h"
 #include "utils.h"
 #include "dconfig.h"
 #include "tabs.h"
 #include "pixbuf.h"
-
 #include "cell_renderers/cellrendererbreakicon.h"
 #include "cell_renderers/cellrenderertoggle.h"
 

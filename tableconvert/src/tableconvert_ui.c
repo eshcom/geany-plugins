@@ -22,10 +22,16 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"			// for the gettext domain
 #endif
 
+#include <geanyplugin.h>		// includes geany.h, gtkcompat.h, etc.
+
+#include "tableconvert.h"
 #include "tableconvert_ui.h"
+
+extern GeanyData *geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 GtkWidget *main_menu_item = NULL;
 GtkWidget *menu_tableconvert = NULL;

@@ -4,6 +4,7 @@ noinst_LTLIBRARIES = libpegmarkdown.la
 
 libpegmarkdown_la_CPPFLAGS = $(GEANY_CFLAGS) 
 libpegmarkdown_la_LIBADD = $(GEANY_LIBS)
+
 libpegmarkdown_la_SOURCES = \
 	markdown_lib.c \
 	markdown_lib.h \

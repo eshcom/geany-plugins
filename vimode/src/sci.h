@@ -19,9 +19,8 @@
 #ifndef __VIMODE_SCI_H__
 #define __VIMODE_SCI_H__
 
-#include <gtk/gtk.h>
-#include "Scintilla.h"
-#include "ScintillaWidget.h"
+#include <gtkcompat.h>
+#include <sciwrappers.h>	// includes Scintilla.h, ScintillaWidget.h, etc.
 
 #define SSM(s, m, w, l) scintilla_send_message((s), (m), (w), (l))
 
@@ -32,12 +31,13 @@
 
 #define SET_POS(s, pos, scr) _set_current_position((s), (pos), (scr), TRUE)
 #define SET_POS_NOX(s, pos, scr) _set_current_position((s), (pos), (scr), FALSE)
-#define GET_CUR_LINE(s) scintilla_send_message((s), SCI_LINEFROMPOSITION, \
-	SSM((s), SCI_GETCURRENTPOS, 0, 0), 0)
+#define GET_CUR_LINE(s)									\
+	scintilla_send_message((s), SCI_LINEFROMPOSITION,	\
+						   SSM((s), SCI_GETCURRENTPOS, 0, 0), 0)
 
 #define MAX_CHAR_SIZE 16
 
-void _set_current_position(ScintillaObject *sci, gint position, gboolean scroll_to_caret,
-	gboolean caretx);
+void _set_current_position(ScintillaObject *sci, gint position,
+						   gboolean scroll_to_caret, gboolean caretx);
 
 #endif

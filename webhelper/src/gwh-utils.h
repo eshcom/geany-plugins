@@ -21,11 +21,10 @@
 #define H_GWH_UTILS
 
 #include <glib.h>
+#include <gtkcompat.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
-
 
 /* emulates some values of GdkWindowTypeHint */
 typedef enum _GwhWindowType

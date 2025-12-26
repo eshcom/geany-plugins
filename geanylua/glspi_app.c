@@ -5,7 +5,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#	include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include <sys/stat.h>
@@ -13,9 +13,9 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "glspi.h"
 
 #define NEED_FAIL_ARG_TYPE
-#include "glspi.h"
 
 
 static gint glspi_pluginver(lua_State* L)
@@ -34,10 +34,10 @@ static gint glspi_pluginver(lua_State* L)
 static gint glspi_tools(lua_State* L)
 {
 	lua_newtable(L);
-	SetTableStr("browser", geany_data->tool_prefs->browser_cmd);
-	SetTableStr("term",    geany_data->tool_prefs->term_cmd);
-	SetTableStr("grep",    geany_data->tool_prefs->grep_cmd);
-	SetTableStr("action",  geany_data->tool_prefs->context_action_cmd);
+	SetTableStr("browser", geany->tool_prefs->browser_cmd);
+	SetTableStr("term",    geany->tool_prefs->term_cmd);
+	SetTableStr("grep",    geany->tool_prefs->grep_cmd);
+	SetTableStr("action",  geany->tool_prefs->context_action_cmd);
 	return 1;
 }
 
@@ -45,11 +45,11 @@ static gint glspi_tools(lua_State* L)
 static gint glspi_template(lua_State* L)
 {
 	lua_newtable(L);
-	SetTableStr("developer", geany_data->template_prefs->developer);
-	SetTableStr("company",   geany_data->template_prefs->company);
-	SetTableStr("mail",      geany_data->template_prefs->mail);
-	SetTableStr("initial",   geany_data->template_prefs->initials);
-	SetTableStr("version",   geany_data->template_prefs->version);
+	SetTableStr("developer", geany->template_prefs->developer);
+	SetTableStr("company",   geany->template_prefs->company);
+	SetTableStr("mail",      geany->template_prefs->mail);
+	SetTableStr("initial",   geany->template_prefs->initials);
+	SetTableStr("version",   geany->template_prefs->version);
 	return 1;
 }
 
@@ -540,11 +540,11 @@ static GdkFilterReturn keygrab_cb(GdkXEvent *xevent, GdkEvent *event, gpointer d
 	return GDK_FILTER_CONTINUE;
 }
 
-
 #endif
 
 
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
+
 static gint init_key(guint keyval){
 	GdkKeymapKey *kmk=NULL;
 	GdkKeymap *gdk_key_map=gdk_keymap_get_default();

@@ -26,21 +26,21 @@
 	#include <locale.h>
 #endif
 
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+#include <Scintilla.h>		// for the SCNotification struct
+#include <SciLexer.h>
 
-#include <geanyplugin.h>	// includes geany.h
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
 
-#include "Scintilla.h"
-#include "SciLexer.h"
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;
 
-#include "../../utils/src/ui_plugins.h"
 
 #define AC_STOP_ACTION TRUE
 #define AC_CONTINUE_ACTION FALSE
 #define SSM(s, m, w, l) scintilla_send_message(s, m, w, l)
-
-GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
 
 
 typedef struct {
@@ -798,18 +798,15 @@ static PluginCallback plugin_autoclose_callbacks[] =
 static void configure_response_cb(GtkDialog *dialog, gint response,
 								  gpointer user_data)
 {
-	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
-		return;
+	if (!ok_apply(response)) return;
 	
-	GKeyFile *config = g_key_file_new();
-	g_key_file_load_from_file(config, ac_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(ac_info->config_file, NULL);
 	
-#define SAVE_CONF_BOOL(name) G_STMT_START {								\
-	ac_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(		\
-						g_object_get_data(G_OBJECT(dialog),				\
-										  "check_" #name)));			\
-	g_key_file_set_boolean(config, "autoclose", #name, ac_info->name);	\
+#define SAVE_CONF_BOOL(name) G_STMT_START {									\
+	ac_info->name = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(			\
+						g_object_get_data(G_OBJECT(dialog),					\
+										  "check_" #name)));				\
+	g_key_file_set_boolean(config, CONFIG_SECTION, #name, ac_info->name);	\
 } G_STMT_END
 	
 	SAVE_CONF_BOOL(parenthesis);
@@ -837,22 +834,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	
 #undef SAVE_CONF_BOOL
 	
-	gchar *config_dir = g_path_get_dirname(ac_info->config_file);
-	
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-		utils_mkdir(config_dir, TRUE) != 0)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-			_("Plugin configuration directory could not be created."));
-	}
-	else
-	{
-		/* write config to file */
-		gchar *data = g_key_file_to_data(config, NULL, NULL);
-		utils_write_file(ac_info->config_file, data);
-		g_free(data);
-	}
-	g_free(config_dir);
+	write_config_to_file(config, ac_info->config_file, MSGBOX);
 	g_key_file_free(config);
 }
 
@@ -860,30 +842,20 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 static gboolean plugin_autoclose_init(GeanyPlugin *plugin,
 									  G_GNUC_UNUSED gpointer pdata)
 {
-	guint i = 0;
-	
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	
+	guint i = 0;
 	foreach_document(i)
-	{
 		on_document_open(NULL, documents[i], NULL);
-	}
 	
 	ac_info = g_new0(AutocloseInfo, 1);
-	ac_info->config_file = g_strconcat(geany->app->configdir,
-									   G_DIR_SEPARATOR_S, "plugins",
-									   G_DIR_SEPARATOR_S, "autoclose",
-									   G_DIR_SEPARATOR_S, "autoclose.conf",
-									   NULL);
+	ac_info->config_file = get_config_filepath(PLUGIN, NULL);
 	
-	GKeyFile *config = g_key_file_new();
-	g_key_file_load_from_file(config, ac_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(ac_info->config_file, NULL);
 	
-#define GET_CONF_BOOL(name, def)									\
-	ac_info->name = utils_get_setting_boolean(config, "autoclose",	\
-											  #name, def)
+#define GET_CONF_BOOL(name, def)												\
+	ac_info->name = utils_get_setting_boolean(config, CONFIG_SECTION, #name, def)
 	
 	GET_CONF_BOOL(parenthesis, TRUE);
 	/* Angular bracket conflicts with conditional statements,

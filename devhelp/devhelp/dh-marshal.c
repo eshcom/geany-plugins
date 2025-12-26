@@ -1,6 +1,9 @@
-#include "dh-marshal.h"
+/*
+ * 
+ */
 
-#include	<glib-object.h>
+#include <glib-object.h>
+#include "dh-marshal.h"
 
 
 #ifdef G_ENABLE_DEBUG

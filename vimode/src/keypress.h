@@ -19,8 +19,6 @@
 #ifndef __VIMODE_KEYPRESS_H__
 #define __VIMODE_KEYPRESS_H__
 
-#include <glib.h>
-#include <gdk/gdk.h>
 
 typedef struct
 {

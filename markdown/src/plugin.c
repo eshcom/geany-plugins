@@ -19,13 +19,20 @@
  * MA 02110-1301, USA.
  */
 
-#include "config.h"
-#include <geanyplugin.h>
-#include "viewer.h"
-#include "conf.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"     // for the gettext domain
+#endif
 
-GeanyData      *geany_data;
-GeanyPlugin    *geany_plugin;
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
+
+#include "conf.h"
+#include "viewer.h"
+
+#include "../../utils/src/common.h"
+
+GeanyPlugin  *geany_plugin;
+GeanyData    *geany_data; // the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -69,8 +76,7 @@ void plugin_init(GeanyData *data)
   GtkNotebook *nb;
 
   /* Setup the config object which is needed by the view. */
-  conf_fn = g_build_filename(geany->app->configdir, "plugins", "markdown",
-    "markdown.conf", NULL);
+  conf_fn = get_config_filepath(PLUGIN, NULL);
   conf = markdown_config_new(conf_fn);
   g_free(conf_fn);
 
@@ -276,7 +282,7 @@ static void on_export_as_html_activate(GtkMenuItem *item, MarkdownViewer *viewer
   g_return_if_fail(DOC_VALID(doc));
 
   dialog = gtk_file_chooser_dialog_new(_("Save HTML File As"),
-    GTK_WINDOW(geany_data->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SAVE,
+    GTK_WINDOW(geany->main_widgets->window), GTK_FILE_CHOOSER_ACTION_SAVE,
     GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
     NULL);

@@ -19,24 +19,23 @@
 /*
  * Code for the Workbench idle queue.
  */
-#include <glib/gstdio.h>
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "wb_globals.h"
 #include "idle_queue.h"
 #include "tm_control.h"
 
-extern GeanyData *geany_data;
 
 typedef struct
 {
 	WB_IDLE_QUEUE_ACTION_ID id;
 	gpointer param_a;
-}WB_IDLE_QUEUE_ACTION;
+} WB_IDLE_QUEUE_ACTION;
 
 static GSList *s_idle_actions = NULL;
 
@@ -119,16 +118,12 @@ static gboolean wb_idle_queue_callback(gpointer foo)
  **/
 void wb_idle_queue_add_action(WB_IDLE_QUEUE_ACTION_ID id, gpointer param_a)
 {
-	WB_IDLE_QUEUE_ACTION *action;
-
-	action = g_new0(WB_IDLE_QUEUE_ACTION, 1);
+	WB_IDLE_QUEUE_ACTION *action = g_new0(WB_IDLE_QUEUE_ACTION, 1);;
 	action->id = id;
 	action->param_a = param_a;
-
-	if (s_idle_actions == NULL)
-	{
-		plugin_idle_add(wb_globals.geany_plugin, (GSourceFunc)wb_idle_queue_callback, NULL);
-	}
-
+	
+	if (!s_idle_actions)
+		plugin_idle_add(wb_globals.geany_plugin,
+						(GSourceFunc)wb_idle_queue_callback, NULL);
 	s_idle_actions = g_slist_prepend(s_idle_actions, action);
 }

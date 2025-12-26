@@ -21,11 +21,6 @@
 #ifndef H_GGD_FILE_TYPE
 #define H_GGD_FILE_TYPE
 
-#include <stdio.h>
-#include <glib.h>
-#include <ctpl/ctpl.h>
-#include <geanyplugin.h>
-
 #include "ggd-doc-type.h"
 #include "ggd-macros.h"
 

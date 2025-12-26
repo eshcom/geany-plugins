@@ -23,8 +23,6 @@
 #ifndef OVERVIEW_COLOR_H_
 #define OVERVIEW_COLOR_H_
 
-#include <gtk/gtk.h>
-
 #define OVERVIEW_TYPE_COLOR (overview_color_get_type ())
 #define OVERVIEW_COLOR_INIT { 0.0, 0.0, 0.0, 1.0 }
 

@@ -22,14 +22,9 @@
 #ifndef BTNPANEL_H
 #define BTNPANEL_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
-#include "debug_module.h"
-
 typedef void (*on_toggle)(GtkToggleButton *button, gpointer user_data);
 
-GtkWidget*		btnpanel_create(on_toggle cb);
-void			btnpanel_set_debug_state(enum dbs state);
+GtkWidget *btnpanel_create(on_toggle cb);
+void btnpanel_set_debug_state(enum dbs state);
 
 #endif /* guard */

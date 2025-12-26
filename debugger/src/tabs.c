@@ -25,13 +25,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-extern GeanyData		*geany_data;
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "tabs.h"
+
 
 /* tab widgets */
 GtkWidget *tab_target = NULL;
@@ -45,49 +45,34 @@ GtkWidget *tab_messages = NULL;
 /*
  *	searches ID for a given widget
  *	arguments:
- * 		tab - widget to search an id for	
+ * 		tab - widget to search an id for
  */
-tab_id tabs_get_tab_id(GtkWidget* tab)
+tab_id tabs_get_tab_id(GtkWidget *tab)
 {
 	tab_id id = TID_TARGET;
 	if (tab_target == tab)
-	{
 		id = TID_TARGET;
-	}
 	else if (tab_breaks == tab)
-	{
 		id = TID_BREAKS;
-	}
 	else if (tab_watch == tab)
-	{
 		id = TID_WATCH;
-	}
 	else if (tab_autos == tab)
-	{
 		id = TID_AUTOS;
-	}
 	else if (tab_call_stack == tab)
-	{
 		id = TID_STACK;
-	}
 	else if (tab_terminal == tab)
-	{
 		id = TID_TERMINAL;
-	}
 	else if (tab_messages == tab)
-	{
 		id = TID_MESSAGES;
-	}
-
 	return id;
 }
 
 /*
  *	searches a widget for a given ID
  *	arguments:
- * 		id - ID to search a widget for	
+ * 		id - ID to search a widget for
  */
-GtkWidget* tabs_get_tab(tab_id id)
+GtkWidget *tabs_get_tab(tab_id id)
 {
 	GtkWidget *tab = NULL;
 	switch(id)
@@ -120,9 +105,9 @@ GtkWidget* tabs_get_tab(tab_id id)
 /*
  *	searches a label for a given ID
  *	arguments:
- * 		id - ID to search a label for	
+ * 		id - ID to search a label for
  */
-const gchar* tabs_get_label(tab_id id)
+const gchar *tabs_get_label(tab_id id)
 {
 	const gchar *label = NULL;
 	switch(id)

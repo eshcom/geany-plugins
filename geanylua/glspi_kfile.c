@@ -61,7 +61,7 @@ static gint fail_arg_type(lua_State *L, const gchar *func, gint argnum, const gc
 
 #define KF_FLAGS G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS
 
-static const gchar*LuaKeyFileType="GKeyFile";
+static const gchar *LuaKeyFileType = "GKeyFile";
 
 typedef struct _LuaKeyFile
 {
@@ -123,42 +123,44 @@ static LuaKeyFile* tokeyfile(lua_State *L, gint argnum)
 
 static gint kfile_data(lua_State *L)
 {
-	LuaKeyFile*k;
-
-	gsize len=0;
-	GError *err=NULL;
-
-	if (lua_gettop(L)>1) {
-		const gchar *data=NULL;
-		if ((lua_gettop(L)<2)||(!lua_isstring(L,2))) {return FAIL_STRING_ARG(2); }
-		data=lua_tolstring(L,2,&len);
-		k=tokeyfile(L,1);
-		if (!k) {return FAIL_KEYFILE_ARG(1); }
+	LuaKeyFile *k;
+	gsize len = 0;
+	GError *err = NULL;
+	
+	if (lua_gettop(L) > 1) {
+		if (lua_gettop(L) < 2 || !lua_isstring(L, 2))
+			return FAIL_STRING_ARG(2);
+		
+		const gchar *data = lua_tolstring(L, 2, &len);
+		k = tokeyfile(L, 1);
+		if (!k) return FAIL_KEYFILE_ARG(1);
+		
 		g_key_file_load_from_data(k->kf, data, len, KF_FLAGS, &err);
 		if (err) {
-			lua_pushstring(L,err->message);
+			lua_pushstring(L, err->message);
 			g_error_free(err);
-		} else {lua_pushnil(L);}
+		} else
+			lua_pushnil(L);
 		return 1;
+		
 	} else {
-		gchar *data=NULL;
-		k=tokeyfile(L,1);
-		if (!k) {return FAIL_KEYFILE_ARG(1); }
-		data=g_key_file_to_data(k->kf,&len,&err);
+		k = tokeyfile(L, 1);
+		if (!k) return FAIL_KEYFILE_ARG(1);
+		
+		gchar *data = g_key_file_to_data(k->kf, &len, &err);
 		if (!err) {
-			lua_pushlstring(L,data,len);
+			lua_pushlstring(L, data, len);
 			g_free(data);
 			return 1;
 		} else {
 			lua_pushnil(L);
-			lua_pushstring(L,err->message);
+			lua_pushstring(L, err->message);
 			g_error_free(err);
-			if (data) {g_free(data);}
+			if (data) g_free(data);
 			return 2;
 		}
 	}
 }
-
 
 
 /*

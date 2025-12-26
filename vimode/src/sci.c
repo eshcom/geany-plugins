@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <gtkcompat.h>
 #include "sci.h"
 
 void _set_current_position(ScintillaObject *sci, gint position, gboolean scroll_to_caret,

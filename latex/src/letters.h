@@ -25,9 +25,6 @@
 
 #include "latex.h"
 #include "datatypes.h"
-#include "ui_utils.h"
-#include "support.h"
-#include "utils.h"
 
 extern SubMenuTemplate glatex_char_array[];
 

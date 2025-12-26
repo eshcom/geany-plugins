@@ -3,8 +3,7 @@
  * See the file "geanylua.c" for copyright information.
  */
 
-
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
 
 #define NEED_FAIL_ARG_TYPE
 #define NEED_FAIL_ELEM_TYPE

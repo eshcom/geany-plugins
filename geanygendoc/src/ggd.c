@@ -19,22 +19,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd.h"
-
-#include <string.h>
 #include <ctype.h>
-#include <glib.h>
 #include <glib/gi18n-lib.h>
-#include <ctpl/ctpl.h>
-#include <geanyplugin.h>
 
+#include "ggd-plugin.h"   // to be able to use Geany data
+#include "ggd-utils.h"
+#include "ggd.h"
 #include "ggd-file-type.h"
 #include "ggd-file-type-manager.h"
-#include "ggd-utils.h"
-#include "ggd-plugin.h"
 
 
 /* sci_get_line_indentation() is not in the plugin API for now (API v183), then

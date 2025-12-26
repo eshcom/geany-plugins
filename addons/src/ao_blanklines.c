@@ -19,10 +19,11 @@
  *			MA 02110-1301, USA.
  */
 
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_blanklines.h"
+
 
 static gboolean enabled = FALSE;
 
@@ -46,7 +47,7 @@ static void editor_strip_trailing_newlines(GeanyEditor *editor)
 		end = sci_get_line_end_position(editor->sci, line);
 
 		/*
-		 * We can't be sure that `geany_data->file_prefs->strip_trailing_spaces'
+		 * We can't be sure that `geany->file_prefs->strip_trailing_spaces'
 		 * setting is set, so we should check for trailing spaces manually.
 		 * Performance overhead of the for loop below is very small anyway,
 		 * so it does not worth checking the setting manually and writing
@@ -64,7 +65,7 @@ static void editor_strip_trailing_newlines(GeanyEditor *editor)
 			break;
 	}
 
-	if (line == -1 || geany_data->file_prefs->final_new_line)
+	if (line == -1 || geany->file_prefs->final_new_line)
 	{
 		/* leave one newline */
 		line++;

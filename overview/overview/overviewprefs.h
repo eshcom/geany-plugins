@@ -37,26 +37,16 @@ G_BEGIN_DECLS
 typedef struct OverviewPrefs_      OverviewPrefs;
 typedef struct OverviewPrefsClass_ OverviewPrefsClass;
 
-GType          overview_prefs_get_type       (void);
-OverviewPrefs *overview_prefs_new            (void);
-gboolean       overview_prefs_load           (OverviewPrefs *prefs,
-                                              const gchar   *filename,
-                                              GError       **error);
-gboolean       overview_prefs_save           (OverviewPrefs *prefs,
-                                              const gchar   *filename,
-                                              GError       **error);
-gboolean       overview_prefs_from_data      (OverviewPrefs *prefs,
-                                              const gchar   *contents,
-                                              gssize         size,
-                                              GError       **error);
-gchar*         overview_prefs_to_data        (OverviewPrefs *prefs,
-                                              gsize         *size,
-                                              GError       **error);
-void           overview_prefs_bind_scintilla (OverviewPrefs *prefs,
-                                              GObject       *sci);
+GType overview_prefs_get_type(void);
+OverviewPrefs *overview_prefs_new(void);
+
+gboolean overview_prefs_load(OverviewPrefs *prefs, const gchar *filename, GError **error);
+gboolean overview_prefs_from_config(OverviewPrefs *prefs, GKeyFile *kf, GError **error);
+GKeyFile *overview_prefs_to_config(OverviewPrefs *prefs);
+void overview_prefs_bind_scintilla(OverviewPrefs *prefs, GObject *sci);
 
 #define OVERVIEW_PREFS_DEFAULT_CONFIG   \
-    "[overview]\n"                      \
+    "["CONFIG_SECTION"]\n"              \
     "width = 120\n"                     \
     "zoom = -10\n"                      \
     "show-tooltip = true\n"             \

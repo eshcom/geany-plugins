@@ -40,8 +40,6 @@ static const char * geanypg_getname(const char * uid_hint)
 
 #ifdef __unix__
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 
 static void geanypg_read_till(int fd, char delim)

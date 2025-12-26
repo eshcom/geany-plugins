@@ -19,26 +19,18 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd-options.h"
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-#include <gtk/gtk.h>
+#include "ggd-options.h"
+#include "../../utils/src/common.h"
 
 
 /* This module is strongly inspired from Geany's Stash module with some design
  * changes and a complete reimplementation.
  * The major difference is the way proxies are managed. */
-
-
-/* stolen from Geany */
-#define foreach_array(array, type, item)                         \
-  for ((item) = ((type*)(gpointer)(array)->data);                \
-       (item) < &((type*)(gpointer)(array)->data)[(array)->len]; \
-       (item)++)
 
 
 /*
@@ -174,8 +166,8 @@ ggd_opt_group_free (GgdOptGroup  *group,
   if (group) {
     GgdOptEntry *entry;
     
-    foreach_array (group->prefs, GgdOptEntry, entry) {
-      ggd_opt_entry_free_data (entry, free_opts);
+    foreach_array(GgdOptEntry, entry, group->prefs) {
+      ggd_opt_entry_free_data(entry, free_opts);
     }
     g_array_free (group->prefs, TRUE);
     g_free (group->name);
@@ -212,7 +204,7 @@ ggd_opt_group_lookup_entry (GgdOptGroup  *group,
 {
   GgdOptEntry *entry;
   
-  foreach_array (group->prefs, GgdOptEntry, entry) {
+  foreach_array(GgdOptEntry, entry, group->prefs) {
     if (entry->optvar == optvar) {
       return entry;
     }
@@ -228,7 +220,7 @@ ggd_opt_group_lookup_entry_from_proxy (GgdOptGroup *group,
 {
   GgdOptEntry *entry;
   
-  foreach_array (group->prefs, GgdOptEntry, entry) {
+  foreach_array(GgdOptEntry, entry, group->prefs) {
     if (entry->proxy == proxy) {
       return entry;
     }
@@ -287,8 +279,8 @@ ggd_opt_group_sync_to_proxies (GgdOptGroup *group)
 {
   GgdOptEntry *entry;
   
-  foreach_array (group->prefs, GgdOptEntry, entry) {
-    ggd_opt_entry_sync_to_proxy (entry);
+  foreach_array(GgdOptEntry, entry, group->prefs) {
+    ggd_opt_entry_sync_to_proxy(entry);
   }
 }
 
@@ -303,8 +295,8 @@ ggd_opt_group_sync_from_proxies (GgdOptGroup *group)
 {
   GgdOptEntry *entry;
   
-  foreach_array (group->prefs, GgdOptEntry, entry) {
-    ggd_opt_entry_sync_from_proxy (entry);
+  foreach_array(GgdOptEntry, entry, group->prefs) {
+    ggd_opt_entry_sync_from_proxy(entry);
   }
 }
 
@@ -471,7 +463,7 @@ ggd_opt_group_manage_key_file (GgdOptGroup  *group,
 {
   GgdOptEntry *entry;
   
-  foreach_array (group->prefs, GgdOptEntry, entry) {
+  foreach_array(GgdOptEntry, entry, group->prefs) {
     GError *err = NULL;
     
     switch (entry->type) {
@@ -541,30 +533,21 @@ ggd_opt_group_load_from_key_file (GgdOptGroup  *group,
 /**
  * ggd_opt_group_load_from_file:
  * @group: A #GgdOptGroup
- * @filename: Name of the file from which load values in the GLib file names
- *            encoding
- * @error: return location for or %NULL to ignore them
+ * @filename: Name of the file from which load values in the GLib file names encoding
  * 
  * Loads values of a #GgdOptGroup from a file.
  * 
  * Returns: %TRUE on success, %FALSE otherwise
  */
-gboolean
-ggd_opt_group_load_from_file (GgdOptGroup  *group,
-                              const gchar  *filename,
-                              GError      **error)
+gboolean ggd_opt_group_load_from_file(GgdOptGroup *group, const gchar *filename)
 {
-  gboolean  success = FALSE;
-  GKeyFile *key_file;
+  gboolean result = FALSE;
+  GKeyFile *config = load_config_from_file(filename, &result);
   
-  key_file = g_key_file_new ();
-  if (g_key_file_load_from_file (key_file, filename, 0, error)) {
-    ggd_opt_group_load_from_key_file (group, key_file);
-    success = TRUE;
-  }
-  g_key_file_free (key_file);
+  if (result) ggd_opt_group_load_from_key_file(group, config);
+  g_key_file_free(config);
   
-  return success;
+  return result;
 }
 
 /**
@@ -574,11 +557,9 @@ ggd_opt_group_load_from_file (GgdOptGroup  *group,
  * 
  * Writes the values of a #GgdOptGroup to a #GkeyFile.
  */
-void
-ggd_opt_group_write_to_key_file (GgdOptGroup *group,
-                                 GKeyFile    *key_file)
+void ggd_opt_group_write_to_key_file(GgdOptGroup *group, GKeyFile *key_file)
 {
-  ggd_opt_group_manage_key_file (group, FALSE, key_file);
+  ggd_opt_group_manage_key_file(group, FALSE, key_file);
 }
 
 /**
@@ -586,7 +567,6 @@ ggd_opt_group_write_to_key_file (GgdOptGroup *group,
  * @group: A #GgdOptGroup
  * @filename: Name of the file in which save the values, in the GLib file names
  *            encoding
- * @error: Return location for errors or %NULL to ignore them
  * 
  * Writes a #GgdOptGroup to a file.
  * It keeps everything in the file, overwriting only the group managed by the
@@ -597,31 +577,15 @@ ggd_opt_group_write_to_key_file (GgdOptGroup *group,
  * 
  * Returns: %TRUE on success, %FALSE otherwise.
  */
-gboolean
-ggd_opt_group_write_to_file (GgdOptGroup *group,
-                             const gchar *filename,
-                             GError     **error)
+gboolean ggd_opt_group_write_to_file(GgdOptGroup *group, const gchar *filename)
 {
-  gboolean  success = FALSE;
-  GKeyFile *key_file;
-  gchar    *data;
-  gsize     data_length;
-  
-  key_file = g_key_file_new ();
   /* try to load the original file but blindly ignore errors because they are
    * unlikely to be interesting (the file doesn't already exist, a syntax error
-   * because the file exists but is empty (yes, this throws a parse error),
-   * etc.) */
-  g_key_file_load_from_file (key_file, filename,
-                             G_KEY_FILE_KEEP_COMMENTS |
-                             G_KEY_FILE_KEEP_TRANSLATIONS, NULL);
-  ggd_opt_group_write_to_key_file (group, key_file);
-  data = g_key_file_to_data (key_file, &data_length, error);
-  if (data) {
-    success = g_file_set_contents (filename, data, data_length, error);
-    g_free (data);
-  }
-  g_key_file_free (key_file);
+   * because the file exists but is empty (yes, this throws a parse error), etc.) */
+  GKeyFile *config = load_config_from_file(filename, NULL);
+  ggd_opt_group_write_to_key_file(group, config);
   
-  return success;
+  gboolean result = write_config_to_file(config, filename, SYSLOG);
+  g_key_file_free(config);
+  return result;
 }

@@ -22,8 +22,7 @@
  * A GtkFrame subclass that reproduce Glade's frames.
  */
 
-#include <gtk/gtk.h>
-
+#include <gtkcompat.h>
 #include "ggd-widget-frame.h"
 
 

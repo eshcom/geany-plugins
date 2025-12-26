@@ -85,8 +85,6 @@ extern const gchar FILE_LIST[];
 extern const gchar MESSAGE[];
 
 
-
-
 /* this string is used when action require to run several commands */
 extern const gchar CMD_SEPARATOR[];
 
@@ -127,8 +125,19 @@ typedef struct _CommitItem
 	const gchar *status;
 } CommitItem;
 
-#define REGISTER_VC(vc,enable) {extern VC_RECORD VC_##vc;if(enable){path = g_find_program_in_path(VC_##vc.program); \
-							if (path) { g_free(path); VC = g_slist_append(VC, &VC_##vc);} }}
+#define REGISTER_VC(vc, enable)									\
+{																\
+	extern VC_RECORD VC_##vc;									\
+	if (enable)													\
+	{															\
+		gchar *path = g_find_program_in_path(VC_##vc.program);	\
+		if (path)												\
+		{														\
+			g_free(path);										\
+			VC = g_slist_append(VC, &VC_##vc);					\
+		}														\
+	}															\
+}
 
 /* Blank functions and values */
 GSList *get_commit_files_null(const gchar * dir);

@@ -14,17 +14,17 @@
 
 #include <fcntl.h>
 #include <glib/gstdio.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
-#include <geanyplugin.h>	// includes geany.h
-
+#include "../../utils/src/common.h"
 #include "../../utils/src/spawn.h"
-#include "../../utils/src/ui_plugins.h"
-
+#include "../../utils/src/ui.h"
 
 /* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin					*geany_plugin;
-GeanyData					*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 static gint					page_number					= 0;
 static GtkTreeStore			*treestore;
@@ -1142,8 +1142,7 @@ static void activate_filter()
 #ifndef G_OS_WIN32
 	result = find_and_expand_to_paths();
 #endif
-	if (!result)
-		treebrowser_track_current_cb();
+	if (!result) treebrowser_track_current_cb();
 }
 
 
@@ -2321,82 +2320,112 @@ static struct
 
 static void load_settings(void)
 {
-	GKeyFile *config = g_key_file_new();
+	GKeyFile *config = load_config_from_file(CONFIG_FILE, NULL);
 	
-	g_key_file_load_from_file(config, CONFIG_FILE, G_KEY_FILE_NONE, NULL);
-	
-	CONFIG_OPEN_EXTERNAL_CMD	= utils_get_setting_string(config, "treebrowser", "open_external_cmd",		CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
-	CONFIG_OPEN_TERMINAL		= utils_get_setting_string(config, "treebrowser", "open_terminal",			CONFIG_OPEN_TERMINAL_DEFAULT);
-	CONFIG_REVERSE_FILTER		= utils_get_setting_boolean(config, "treebrowser", "reverse_filter",		CONFIG_REVERSE_FILTER);
-	CONFIG_ONE_CLICK_CHDOC		= utils_get_setting_boolean(config, "treebrowser", "one_click_chdoc",		CONFIG_ONE_CLICK_CHDOC);
-	CONFIG_SHOW_HIDDEN_FILES	= utils_get_setting_boolean(config, "treebrowser", "show_hidden_files",		CONFIG_SHOW_HIDDEN_FILES);
-	CONFIG_HIDE_OBJECT_FILES	= utils_get_setting_boolean(config, "treebrowser", "hide_object_files",		CONFIG_HIDE_OBJECT_FILES);
-	CONFIG_OBJECT_FILES_MASK	= utils_get_setting_string(config, "treebrowser", "object_files_mask",		CONFIG_OBJECT_FILES_MASK_DEFAULT);
-	CONFIG_HIDE_IGNORED_DIRS	= utils_get_setting_boolean(config, "treebrowser", "hide_ignored_dirs",		CONFIG_HIDE_IGNORED_DIRS);
-	CONFIG_IGNORED_DIRS_MASK	= utils_get_setting_string(config, "treebrowser", "ignored_dirs_mask",		"");
-	CONFIG_SHOW_BARS			= utils_get_setting_integer(config, "treebrowser", "show_bars",				CONFIG_SHOW_BARS);
-	CONFIG_CHROOT_ON_DCLICK		= utils_get_setting_boolean(config, "treebrowser", "chroot_on_dclick",		CONFIG_CHROOT_ON_DCLICK);
-	CONFIG_FOLLOW_CURRENT_DOC	= utils_get_setting_boolean(config, "treebrowser", "follow_current_doc",	CONFIG_FOLLOW_CURRENT_DOC);
-	CONFIG_ON_DELETE_CLOSE_FILE	= utils_get_setting_boolean(config, "treebrowser", "on_delete_close_file",	CONFIG_ON_DELETE_CLOSE_FILE);
-	CONFIG_ON_OPEN_FOCUS_EDITOR	= utils_get_setting_boolean(config, "treebrowser", "on_open_focus_editor",	CONFIG_ON_OPEN_FOCUS_EDITOR);
-	CONFIG_SHOW_TREE_LINES		= utils_get_setting_boolean(config, "treebrowser", "show_tree_lines",		CONFIG_SHOW_TREE_LINES);
-	CONFIG_SHOW_BOOKMARKS		= utils_get_setting_boolean(config, "treebrowser", "show_bookmarks",		CONFIG_SHOW_BOOKMARKS);
-	CONFIG_SHOW_ICONS			= utils_get_setting_integer(config, "treebrowser", "show_icons",			CONFIG_SHOW_ICONS);
-	CONFIG_OPEN_NEW_FILES		= utils_get_setting_boolean(config, "treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
-	
+	CONFIG_OPEN_EXTERNAL_CMD = utils_get_setting_string(config, CONFIG_SECTION,
+														"open_external_cmd",
+														CONFIG_OPEN_EXTERNAL_CMD_DEFAULT);
+	CONFIG_OPEN_TERMINAL = utils_get_setting_string(config, CONFIG_SECTION,
+													"open_terminal",
+													CONFIG_OPEN_TERMINAL_DEFAULT);
+	CONFIG_REVERSE_FILTER = utils_get_setting_boolean(config, CONFIG_SECTION,
+													  "reverse_filter",
+													  CONFIG_REVERSE_FILTER);
+	CONFIG_ONE_CLICK_CHDOC = utils_get_setting_boolean(config, CONFIG_SECTION,
+													   "one_click_chdoc",
+													   CONFIG_ONE_CLICK_CHDOC);
+	CONFIG_SHOW_HIDDEN_FILES = utils_get_setting_boolean(config, CONFIG_SECTION,
+														 "show_hidden_files",
+														 CONFIG_SHOW_HIDDEN_FILES);
+	CONFIG_HIDE_OBJECT_FILES = utils_get_setting_boolean(config, CONFIG_SECTION,
+														 "hide_object_files",
+														 CONFIG_HIDE_OBJECT_FILES);
+	CONFIG_OBJECT_FILES_MASK = utils_get_setting_string(config, CONFIG_SECTION,
+														"object_files_mask",
+														CONFIG_OBJECT_FILES_MASK_DEFAULT);
+	CONFIG_HIDE_IGNORED_DIRS = utils_get_setting_boolean(config, CONFIG_SECTION,
+														 "hide_ignored_dirs",
+														 CONFIG_HIDE_IGNORED_DIRS);
+	CONFIG_IGNORED_DIRS_MASK = utils_get_setting_string(config, CONFIG_SECTION,
+														"ignored_dirs_mask", "");
+	CONFIG_SHOW_BARS = utils_get_setting_integer(config, CONFIG_SECTION,
+												 "show_bars", CONFIG_SHOW_BARS);
+	CONFIG_CHROOT_ON_DCLICK = utils_get_setting_boolean(config, CONFIG_SECTION,
+														"chroot_on_dclick",
+														CONFIG_CHROOT_ON_DCLICK);
+	CONFIG_FOLLOW_CURRENT_DOC = utils_get_setting_boolean(config, CONFIG_SECTION,
+														  "follow_current_doc",
+														  CONFIG_FOLLOW_CURRENT_DOC);
+	CONFIG_ON_DELETE_CLOSE_FILE = utils_get_setting_boolean(config, CONFIG_SECTION,
+															"on_delete_close_file",
+															CONFIG_ON_DELETE_CLOSE_FILE);
+	CONFIG_ON_OPEN_FOCUS_EDITOR = utils_get_setting_boolean(config, CONFIG_SECTION,
+															"on_open_focus_editor",
+															CONFIG_ON_OPEN_FOCUS_EDITOR);
+	CONFIG_SHOW_TREE_LINES = utils_get_setting_boolean(config, CONFIG_SECTION,
+													   "show_tree_lines",
+													   CONFIG_SHOW_TREE_LINES);
+	CONFIG_SHOW_BOOKMARKS = utils_get_setting_boolean(config, CONFIG_SECTION,
+													  "show_bookmarks",
+													  CONFIG_SHOW_BOOKMARKS);
+	CONFIG_SHOW_ICONS = utils_get_setting_integer(config, CONFIG_SECTION,
+												  "show_icons", CONFIG_SHOW_ICONS);
+	CONFIG_OPEN_NEW_FILES = utils_get_setting_boolean(config, CONFIG_SECTION,
+													  "open_new_files",
+													  CONFIG_OPEN_NEW_FILES);
 	LOAD_IGNORE_LISTS;
-	
 	g_key_file_free(config);
 }
 
 static gboolean save_settings(void)
 {
-	GKeyFile *config = g_key_file_new();
-	gchar *config_dir = g_path_get_dirname(CONFIG_FILE);
+	GKeyFile *config = load_config_from_file(CONFIG_FILE, NULL);
 	
-	g_key_file_load_from_file(config, CONFIG_FILE, G_KEY_FILE_NONE, NULL);
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-		utils_mkdir(config_dir, TRUE) != 0)
-	{
-		g_free(config_dir);
-		g_key_file_free(config);
-		return FALSE;
-	}
+	g_key_file_set_string(config, CONFIG_SECTION, "open_external_cmd",
+						  CONFIG_OPEN_EXTERNAL_CMD);
+	g_key_file_set_string(config, CONFIG_SECTION, "open_terminal",
+						  CONFIG_OPEN_TERMINAL);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "reverse_filter",
+						   CONFIG_REVERSE_FILTER);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "one_click_chdoc",
+						   CONFIG_ONE_CLICK_CHDOC);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_hidden_files",
+						   CONFIG_SHOW_HIDDEN_FILES);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "hide_object_files",
+						   CONFIG_HIDE_OBJECT_FILES);
+	g_key_file_set_string(config, CONFIG_SECTION, "object_files_mask",
+						  CONFIG_OBJECT_FILES_MASK);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "hide_ignored_dirs",
+						   CONFIG_HIDE_IGNORED_DIRS);
+	g_key_file_set_string(config, CONFIG_SECTION, "ignored_dirs_mask",
+						  CONFIG_IGNORED_DIRS_MASK);
+	g_key_file_set_integer(config, CONFIG_SECTION, "show_bars",
+						   CONFIG_SHOW_BARS);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "chroot_on_dclick",
+						   CONFIG_CHROOT_ON_DCLICK);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "follow_current_doc",
+						   CONFIG_FOLLOW_CURRENT_DOC);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "on_delete_close_file",
+						   CONFIG_ON_DELETE_CLOSE_FILE);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "on_open_focus_editor",
+						   CONFIG_ON_OPEN_FOCUS_EDITOR);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_tree_lines",
+						   CONFIG_SHOW_TREE_LINES);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_bookmarks",
+						   CONFIG_SHOW_BOOKMARKS);
+	g_key_file_set_integer(config, CONFIG_SECTION, "show_icons", CONFIG_SHOW_ICONS);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "open_new_files",
+						   CONFIG_OPEN_NEW_FILES);
 	
-	g_key_file_set_string(config,	"treebrowser", "open_external_cmd",		CONFIG_OPEN_EXTERNAL_CMD);
-	g_key_file_set_string(config,	"treebrowser", "open_terminal",			CONFIG_OPEN_TERMINAL);
-	g_key_file_set_boolean(config,	"treebrowser", "reverse_filter",		CONFIG_REVERSE_FILTER);
-	g_key_file_set_boolean(config,	"treebrowser", "one_click_chdoc",		CONFIG_ONE_CLICK_CHDOC);
-	g_key_file_set_boolean(config,	"treebrowser", "show_hidden_files",		CONFIG_SHOW_HIDDEN_FILES);
-	g_key_file_set_boolean(config,	"treebrowser", "hide_object_files",		CONFIG_HIDE_OBJECT_FILES);
-	g_key_file_set_string(config,	"treebrowser", "object_files_mask",		CONFIG_OBJECT_FILES_MASK);
-	g_key_file_set_boolean(config,	"treebrowser", "hide_ignored_dirs",		CONFIG_HIDE_IGNORED_DIRS);
-	g_key_file_set_string(config,	"treebrowser", "ignored_dirs_mask",		CONFIG_IGNORED_DIRS_MASK);
-	g_key_file_set_integer(config,	"treebrowser", "show_bars",				CONFIG_SHOW_BARS);
-	g_key_file_set_boolean(config,	"treebrowser", "chroot_on_dclick",		CONFIG_CHROOT_ON_DCLICK);
-	g_key_file_set_boolean(config,	"treebrowser", "follow_current_doc",	CONFIG_FOLLOW_CURRENT_DOC);
-	g_key_file_set_boolean(config,	"treebrowser", "on_delete_close_file",	CONFIG_ON_DELETE_CLOSE_FILE);
-	g_key_file_set_boolean(config,	"treebrowser", "on_open_focus_editor",	CONFIG_ON_OPEN_FOCUS_EDITOR);
-	g_key_file_set_boolean(config,	"treebrowser", "show_tree_lines",		CONFIG_SHOW_TREE_LINES);
-	g_key_file_set_boolean(config,	"treebrowser", "show_bookmarks",		CONFIG_SHOW_BOOKMARKS);
-	g_key_file_set_integer(config,	"treebrowser", "show_icons",			CONFIG_SHOW_ICONS);
-	g_key_file_set_boolean(config,	"treebrowser", "open_new_files",		CONFIG_OPEN_NEW_FILES);
-	
-	gchar *data = g_key_file_to_data(config, NULL, NULL);
-	utils_write_file(CONFIG_FILE, data);
-	g_free(data);
-	
-	g_free(config_dir);
+	gboolean result = write_config_to_file(config, CONFIG_FILE, MSGBOX);
 	g_key_file_free(config);
-	
-	return TRUE;
+	return result;
 }
 
 static void on_configure_response(GtkDialog *dialog, gint response,
 								  gpointer user_data)
 {
-	if (!(response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY))
-		return;
+	if (!ok_apply(response)) return;
 	
 	CONFIG_OPEN_EXTERNAL_CMD	= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_EXTERNAL_CMD), 0, -1);
 	CONFIG_OPEN_TERMINAL		= gtk_editable_get_chars(GTK_EDITABLE(configure_widgets.OPEN_TERMINAL), 0, -1);
@@ -2428,9 +2457,6 @@ static void on_configure_response(GtkDialog *dialog, gint response,
 			treebrowser_load_bookmarks();
 		showbars(CONFIG_SHOW_BARS);
 	}
-	else
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-			_("Plugin configuration directory could not be created."));
 }
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
@@ -2564,9 +2590,8 @@ static void project_close_cb(G_GNUC_UNUSED GObject *obj,
 
 static void kb_activate(guint key_id)
 {
-	gtk_notebook_set_current_page(
-						GTK_NOTEBOOK(geany->main_widgets->sidebar_notebook),
-						page_number);
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(geany->main_widgets->sidebar_notebook),
+								  page_number);
 	switch (key_id)
 	{
 		case KB_FOCUS_FILE_LIST:
@@ -2599,13 +2624,7 @@ static void kb_activate(guint key_id)
 
 void plugin_init(GeanyData *data)
 {
-	GeanyKeyGroup *key_group;
-	
-	CONFIG_FILE = g_strconcat(geany->app->configdir,
-							  G_DIR_SEPARATOR_S, "plugins",
-							  G_DIR_SEPARATOR_S, "treebrowser",
-							  G_DIR_SEPARATOR_S, "treebrowser.conf", NULL);
-	
+	CONFIG_FILE = get_config_filepath(PLUGIN, NULL);
 	flag_on_expand_refresh = FALSE;
 	
 	load_settings();
@@ -2616,8 +2635,8 @@ void plugin_init(GeanyData *data)
 	on_button_current_path();
 	
 	/* setup keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "file_browser",
-									 KB_COUNT, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT, NULL);
 	
 	keybindings_set_item(key_group, KB_FOCUS_FILE_LIST, kb_activate,
 		0, 0, "focus_file_list", _("Focus File List"), NULL);

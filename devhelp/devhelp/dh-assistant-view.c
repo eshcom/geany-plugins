@@ -19,10 +19,15 @@
  * USA
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #include <string.h>
+#include <gtkcompat.h>
 #include <glib/gi18n-lib.h>
 #include <webkit/webkit.h>
+
 #include "dh-assistant-view.h"
 #include "dh-link.h"
 #include "dh-util.h"

@@ -21,7 +21,7 @@
  *
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 #include "markdown-gtk-compat.h"
 
 GtkWidget *markdown_gtk_table_new(guint rows, guint columns, gboolean homogeneous)

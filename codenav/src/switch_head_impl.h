@@ -24,34 +24,25 @@
 #ifndef SWITCH_HEAD_IMPL_H
 #define SWITCH_HEAD_IMPL_H
 
-#include "codenavigation.h"
-
 /* Structure representing a handled language */
 typedef struct
 {
-	const gchar* name;			/* currently not used */
-	GSList* head_extensions;	/* e.g. : "h", "hpp", ... */
-	GSList* impl_extensions; /* e.g. : "cpp", "cxx", ... */
+	const gchar *name;			/* currently not used */
+	GSList *head_extensions;	/* e.g. : "h", "hpp", ... */
+	GSList *impl_extensions;	/* e.g. : "cpp", "cxx", ... */
 } Language;
 
 /* Initialization */
-void
-switch_head_impl_init(void);
+void switch_head_impl_init(void);
 
 /* Cleanup */
-void
-switch_head_impl_cleanup(void);
+void switch_head_impl_cleanup(void);
 
 /* Languages-related */
-void
-fill_default_languages_list(void);
+void fill_default_languages_list(void);
 
-void
-fill_languages_list(const gchar**, const gchar**, gsize);
+void fill_languages_list(const gchar **, const gchar **, gsize);
 
-
-
-GSList* switch_head_impl_get_languages(void);
-
+GSList *switch_head_impl_get_languages(void);
 
 #endif /* SWITCH_HEAD_IMPL_H */

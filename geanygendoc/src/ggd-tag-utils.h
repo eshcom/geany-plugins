@@ -21,14 +21,13 @@
 #ifndef H_GGD_TAG_UTILS
 #define H_GGD_TAG_UTILS
 
-#include <glib.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-macros.h"
 
+
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 /**
  * GGD_SORT_ASC:

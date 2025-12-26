@@ -19,19 +19,19 @@
  *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-
 #ifdef HAVE_CONFIG_H
-    #include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-#include "Scintilla.h"
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "lo_fns.h"
 #include "lo_prefs.h"
 
+GeanyData *geany_data;		// the code uses the macro "geany" (see geany->)
+
 
 static GtkWidget *main_menu_item = NULL;
-
 
 /* represents a selection of lines that will have Operation applied to */
 struct lo_lines
@@ -71,8 +71,7 @@ select_lines(GeanyEditor *editor, struct lo_lines *sel)
 
 
 /* get lo_lines struct 'sel' from document */
-static void
-get_current_sel_lines(ScintillaObject *sci, struct lo_lines *sel)
+static void get_current_sel_lines(ScintillaObject *sci, struct lo_lines *sel)
 {
 	gint start_posn     = 0;        /* position of selection start */
 	gint end_posn       = 0;        /* position of selection end   */
@@ -108,8 +107,8 @@ get_current_sel_lines(ScintillaObject *sci, struct lo_lines *sel)
 
 
 /* altered from geany/src/editor.c, ensure new line at file end */
-static void
-ensure_final_newline(GeanyEditor *editor, gint *num_lines, struct lo_lines *sel)
+static void ensure_final_newline(GeanyEditor *editor, gint *num_lines,
+								 struct lo_lines *sel)
 {
 	gint end_document   = sci_get_position_from_line(editor->sci, (*num_lines));
 	gboolean append_newline = end_document >
@@ -128,8 +127,8 @@ ensure_final_newline(GeanyEditor *editor, gint *num_lines, struct lo_lines *sel)
 
 
 /* set statusbar with message and select altered lines */
-static void
-user_indicate(GeanyEditor *editor, gint lines_affected, struct lo_lines *sel)
+static void user_indicate(GeanyEditor *editor, gint lines_affected,
+						  struct lo_lines *sel)
 {
 	if (lines_affected < 0)
 	{
@@ -171,8 +170,7 @@ user_indicate(GeanyEditor *editor, gint lines_affected, struct lo_lines *sel)
  * Use this if the line operation cannot be easily done with
  * scintilla functions.
 */
-static void
-action_indir_manip_item(GtkMenuItem *menuitem, gpointer gdata)
+static void action_indir_manip_item(GtkMenuItem *menuitem, gpointer gdata)
 {
 	/* function pointer to function to be used */
 	gint (*func)(gchar **lines, gint num_lines, gchar *new_file) = gdata;
@@ -236,8 +234,7 @@ action_indir_manip_item(GtkMenuItem *menuitem, gpointer gdata)
  * Use this if the line operation can be directly done with
  * scintilla functions.
 */
-static void
-action_sci_manip_item(GtkMenuItem *menuitem, gpointer gdata)
+static void action_sci_manip_item(GtkMenuItem *menuitem, gpointer gdata)
 {
 	/* function pointer to gdata -- function to be used */
 	gint (*func)(ScintillaObject *, gint, gint) = gdata;
@@ -297,73 +294,61 @@ static void lo_keybinding_callback(guint key_id)
 
 
 /* Initialization */
-static gboolean
-lo_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer gdata)
+static gboolean lo_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer gdata)
 {
-	GeanyData *geany_data = plugin->geany_data;
-	GeanyKeyGroup *key_group;
-	GtkWidget *submenu;
-	guint i;
-
+	geany_data = plugin->geany_data;
+	
 	lo_init_prefs(plugin);
-
+	
 	main_menu_item = gtk_menu_item_new_with_mnemonic(_("_Line Operations"));
 	gtk_widget_show(main_menu_item);
-
-	submenu = gtk_menu_new();
+	
+	GtkWidget *submenu = gtk_menu_new();
 	gtk_widget_show(submenu);
-
-	for (i = 0; i < G_N_ELEMENTS(menu_items); i++)
+	
+	for (guint i = 0; i < G_N_ELEMENTS(menu_items); i++)
 	{
 		GtkWidget *item;
-
-		if (! menu_items[i].label) /* separator */
+		
+		if (!menu_items[i].label) /* separator */
 			item = gtk_separator_menu_item_new();
 		else
 		{
 			item = gtk_menu_item_new_with_mnemonic(_(menu_items[i].label));
-			g_signal_connect(item,
-							"activate",
-							menu_items[i].cb_activate,
-							menu_items[i].cb_data);
+			g_signal_connect(item, "activate", menu_items[i].cb_activate,
+											   menu_items[i].cb_data);
 			ui_add_document_sensitive(item);
 		}
-
 		gtk_widget_show(item);
 		gtk_menu_shell_append(GTK_MENU_SHELL(submenu), item);
 	}
-
+	
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(main_menu_item), submenu);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
-									main_menu_item);
-
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), main_menu_item);
+	
 	/* Setup keybindings. */
-	key_group = plugin_set_key_group
-		(plugin, "Line Operations", G_N_ELEMENTS(menu_items), NULL);
-	for (i = 0; i < G_N_ELEMENTS(menu_items); i++)
+	GeanyKeyGroup *key_group = plugin_set_key_group(plugin, PLUGIN,
+													G_N_ELEMENTS(menu_items), NULL);
+	for (guint i = 0; i < G_N_ELEMENTS(menu_items); i++)
 	{
 		if (menu_items[i].label != NULL)
-		{
-			keybindings_set_item(key_group, i,
-				lo_keybinding_callback, 0, 0, menu_items[i].kb_section_name,
-					menu_items[i].label, NULL);
-		}
+			keybindings_set_item(key_group, i, lo_keybinding_callback, 0, 0,
+								 menu_items[i].kb_section_name, menu_items[i].label,
+								 NULL);
 	}
-
+	
 	return TRUE;
 }
 
 
 /* Show help */
-static void
-lo_help (G_GNUC_UNUSED GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
+static void lo_help(G_GNUC_UNUSED GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 {
 	utils_open_browser("https://plugins.geany.org/lineoperations.html");
 }
 
 
-static void
-lo_cleanup(GeanyPlugin *plugin, gpointer pdata)
+static void lo_cleanup(GeanyPlugin *plugin, gpointer pdata)
 {
 	gtk_widget_destroy(main_menu_item);
 	lo_free_info();
@@ -374,16 +359,19 @@ G_MODULE_EXPORT
 void geany_load_module(GeanyPlugin *plugin)
 {
 	main_locale_init(LOCALEDIR, GETTEXT_PACKAGE);
-
+	
 	plugin->info->name        = _("Line Operations");
-	plugin->info->description = _("Line Operations provides a handful of functions that can be applied to a document or selection such as, removing duplicate lines, removing empty lines, removing lines with only whitespace, and sorting lines.");
+	plugin->info->description = _("Line Operations provides a handful of functions "
+								  "that can be applied to a document or selection such as, "
+								  "removing duplicate lines, removing empty lines, "
+								  "removing lines with only whitespace, and sorting lines.");
 	plugin->info->version     = "0.3";
 	plugin->info->author      = "Sylvan Mostert <smostert.dev@gmail.com>";
-
+	
 	plugin->funcs->init       = lo_init;
 	plugin->funcs->cleanup    = lo_cleanup;
 	plugin->funcs->configure  = lo_configure;
 	plugin->funcs->help       = lo_help;
-
+	
 	GEANY_PLUGIN_REGISTER(plugin, 225);
 }

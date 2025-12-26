@@ -19,11 +19,8 @@
  * MA 02110-1301, USA.
  */
 
-
 #ifndef GEANYPY_KEYBINDINGS_H
 #define GEANYPY_KEYBINDINGS_H
-
-#include <glib.h>
 
 typedef struct
 {
@@ -33,7 +30,7 @@ typedef struct
 	gint item_index;
 } KeyGroup;
 
-extern PyObject *
-KeyGroup_new_with_geany_key_group(GeanyKeyGroup *group, gboolean has_cb);
+extern PyObject *KeyGroup_new_with_geany_key_group(GeanyKeyGroup *group,
+												   gboolean has_cb);
 
 #endif /* GEANYPY_KEYBINDINGS_H */

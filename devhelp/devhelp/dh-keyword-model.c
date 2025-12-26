@@ -20,9 +20,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
-#include <gtk/gtk.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #include <string.h>
+#include <gtkcompat.h>
 
 #include "dh-link.h"
 #include "dh-book.h"

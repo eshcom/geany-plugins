@@ -26,20 +26,16 @@ libgeanylua_la_SOURCES = \
 	glspi_ver.h \
 	gsdlg.h
 
-geanylua_la_CFLAGS = \
-	$(AM_CFLAGS) \
-	$(GMODULE_CFLAGS) \
-	$(LUA_CFLAGS)
-
-geanylua_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyLua\"
-geanylua_la_LIBADD = \
-	$(COMMONLIBS) \
-	$(GMODULE_LIBS) \
-	$(LUA_LIBS)
+geanylua_la_CFLAGS = $(AM_CFLAGS) $(GMODULE_CFLAGS) $(LUA_CFLAGS)
+geanylua_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyLua\" \
+					   -Wno-deprecated-declarations
+geanylua_la_LIBADD = $(COMMONLIBS) $(GMODULE_LIBS) $(LUA_LIBS) \
+					 $(top_builddir)/utils/src/libgeanypluginutils.la
 
 libgeanylua_la_CFLAGS = $(geanylua_la_CFLAGS)
 libgeanylua_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyLua\"
-libgeanylua_la_LIBADD = $(geanylua_la_LIBADD)
+libgeanylua_la_LIBADD = $(geanylua_la_LIBADD) \
+						$(top_builddir)/utils/src/libgeanypluginutils.la
 
 SUBDIRS = docs examples
 

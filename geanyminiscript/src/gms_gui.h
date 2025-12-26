@@ -23,14 +23,14 @@
 #ifndef GMS_GUI_H
 #define GMS_GUI_H
 
-#define GMS_HANDLE(p) ((gms_handle_t *) p)
-typedef void* gms_handle_t ;
+#define GMS_HANDLE(p) ((gms_handle_t *)p)
+typedef void *gms_handle_t;
 
 typedef enum {
     IN_SELECTION    =0,
     IN_CURRENT_DOC  =1,
     IN_DOCS_SESSION =3
-} gms_input_t ;
+} gms_input_t;
 
 typedef enum {
     OUT_CURRENT_DOC    =0,

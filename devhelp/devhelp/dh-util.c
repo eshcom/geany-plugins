@@ -19,15 +19,21 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
+#ifdef GDK_WINDOWING_QUARTZ
+  #include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
-#include <gtk/gtk.h>
-#ifdef GDK_WINDOWING_QUARTZ
-#include <CoreFoundation/CoreFoundation.h>
-#endif
+#include <gtkcompat.h>
+
 #include "ige-conf.h"
 #include "dh-util.h"
+
 
 static GList *views;
 
@@ -38,16 +44,11 @@ get_builder_file (const gchar *filename,
                   const gchar *first_required_widget,
                   va_list args)
 {
-        GtkBuilder  *builder;
         const char  *name;
         GObject    **object_ptr;
 
-        builder = gtk_builder_new ();
-        if (!gtk_builder_add_from_file (builder, filename, NULL)) {
-                g_warning ("Couldn't find necessary UI file '%s'", filename);
-                g_object_unref (builder);
-                return NULL;
-        }
+        GtkBuilder *builder = get_ui_builder_from_file(filename);
+        if (!builder) return NULL;
 
         for (name = first_required_widget; name; name = va_arg (args, char *)) {
                 object_ptr = va_arg (args, void *);

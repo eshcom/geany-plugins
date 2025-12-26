@@ -17,16 +17,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
+#include <gdk/gdkkeysyms.h>	// for the key bindings
 #include "geanyprj.h"
 
 
@@ -325,7 +320,7 @@ static void prepare_file_view(void)
 	gtk_tree_view_set_enable_search(GTK_TREE_VIEW(file_view), TRUE);
 	gtk_tree_view_set_search_column(GTK_TREE_VIEW(file_view), FILEVIEW_COLUMN_NAME);
 
-	pfd = pango_font_description_from_string(geany_data->interface_prefs->tagbar_font);
+	pfd = pango_font_description_from_string(geany->interface_prefs->tagbar_font);
 	gtk_widget_modify_font(file_view, pfd);
 	pango_font_description_free(pfd);
 
@@ -358,14 +353,14 @@ static gint mycmp(const gchar *a, const gchar *b)
 
 	while (*p1)
 	{
-		if (*p1 == G_DIR_SEPARATOR_S[0])
+		if (*p1 == G_DIR_SEPARATOR)
 			cnt1++;
 		p1++;
 	}
 
 	while (*p2)
 	{
-		if (*p2 == G_DIR_SEPARATOR_S[0])
+		if (*p2 == G_DIR_SEPARATOR)
 			cnt2++;
 		p2++;
 	}
@@ -380,9 +375,9 @@ static gint mycmp(const gchar *a, const gchar *b)
 	{
 		if (*p1 != *p2)
 		{
-			if (*p1 == G_DIR_SEPARATOR_S[0])
+			if (*p1 == G_DIR_SEPARATOR)
 				return -1;
-			else if (*p2 == G_DIR_SEPARATOR_S[0])
+			else if (*p2 == G_DIR_SEPARATOR)
 				return 1;
 			return *p1 - *p2;
 		}

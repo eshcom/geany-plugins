@@ -16,22 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"				// for the gettext domain
 #endif
-#include <geanyplugin.h>
-#include <gtkcompat.h>
+
+#include <gdk/gdkkeysyms.h>			// for the key bindings
+#include <geanyplugin.h>			// includes geany.h, gtkcompat.h, etc.
 
 #include "prjorg-utils.h"
 #include "prjorg-project.h"
 #include "prjorg-sidebar.h"
 
-extern GeanyPlugin *geany_plugin;
-extern GeanyData *geany_data;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 enum
 {
@@ -265,7 +263,7 @@ static gchar *build_path(GtkTreeIter *iter)
 }
 
 
-static void on_expand_all(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_expand_all(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	gtk_tree_view_expand_all(GTK_TREE_VIEW(s_file_view));
 }
@@ -287,7 +285,7 @@ static void collapse(void)
 }
 
 
-static void on_collapse_all(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_collapse_all(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	collapse();
 }
@@ -300,7 +298,7 @@ static void on_follow_active(GtkToggleToolButton *button, G_GNUC_UNUSED gpointer
 }
 
 
-static void on_add_external(G_GNUC_UNUSED GtkMenuItem * menuitem, G_GNUC_UNUSED gpointer user_data)
+static void on_add_external(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
 	gchar *utf8_base_path = get_project_base_path();
 	gchar *locale_path = utils_get_locale_from_utf8(utf8_base_path);
@@ -556,7 +554,7 @@ static void find_file_recursive(GtkTreeIter *iter, gboolean case_sensitive, gboo
 		if (!case_sensitive)
 			SETPTR(utf8_name, g_utf8_strdown(utf8_name, -1));
 
-		if (g_pattern_match_string(pattern, utf8_name))
+		if (g_pattern_spec_match_string(pattern, utf8_name))
 		{
 			gchar *utf8_base_path = get_project_base_path();
 			gchar *utf8_path, *rel_path;
@@ -739,7 +737,7 @@ static gboolean match(TMTag *tag, const gchar *name, gboolean declaration, gbool
 				matches = g_strcmp0(name_case, name) == 0;
 				break;
 			case MATCH_PATTERN:
-				matches = g_pattern_match_string(pspec, name_case);
+				matches = g_pattern_spec_match_string(pspec, name_case);
 				break;
 			case MATCH_PREFIX:
 				matches = g_str_has_prefix(name_case, name);
@@ -767,7 +765,7 @@ static void find_tags(const gchar *name, gboolean declaration, gboolean case_sen
 {
 	gchar *utf8_base_path = get_project_base_path();
 	gchar *locale_base_path = utils_get_locale_from_utf8(utf8_base_path);
-	GPtrArray *tags_array = geany_data->app->tm_workspace->tags_array;
+	GPtrArray *tags_array = geany->app->tm_workspace->tags_array;
 	guint i;
 	gchar *name_case;
 	GPatternSpec *pspec;
@@ -1252,7 +1250,7 @@ static void load_project(void)
 
 	gtk_tree_store_clear(s_file_store);
 
-	if (!prj_org || !geany_data->app->project)
+	if (!prj_org || !geany->app->project)
 		return;
 
 	icon_dir = g_themed_icon_new("folder");
@@ -1269,7 +1267,7 @@ static void load_project(void)
 		gchar *name;
 
 		if (first)
-			name = g_strconcat("<b>", geany_data->app->project->name, "</b>", NULL);
+			name = g_strconcat("<b>", geany->app->project->name, "</b>", NULL);
 		else
 			name = g_strdup(root->base_dir);
 
@@ -1392,7 +1390,7 @@ static gboolean expand_on_idle(ExpandData *expand_data)
 	if (!prj_org)
 		return FALSE;
 
-	if (geany_data->app->project == expand_data->project &&
+	if (geany->app->project == expand_data->project &&
 		expand_data->expanded_paths)
 	{
 		gchar *item;
@@ -1463,7 +1461,7 @@ void prjorg_sidebar_update(gboolean reload)
 {
 	ExpandData *expand_data = g_new0(ExpandData, 1);
 
-	expand_data->project = geany_data->app->project;
+	expand_data->project = geany->app->project;
 
 	if (reload)
 	{
@@ -1588,7 +1586,7 @@ void prjorg_sidebar_init(void)
 	gtk_tree_view_set_enable_search(GTK_TREE_VIEW(s_file_view), TRUE);
 	gtk_tree_view_set_search_column(GTK_TREE_VIEW(s_file_view), FILEVIEW_COLUMN_NAME);
 
-	pfd = pango_font_description_from_string(geany_data->interface_prefs->tagbar_font);
+	pfd = pango_font_description_from_string(geany->interface_prefs->tagbar_font);
 	gtk_widget_modify_font(s_file_view, pfd);
 	pango_font_description_free(pfd);
 

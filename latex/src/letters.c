@@ -19,7 +19,8 @@
  *      MA 02110-1301, USA.
  */
 
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
+
 #include "support.h"
 #include "datatypes.h"
 #include "letters.h"

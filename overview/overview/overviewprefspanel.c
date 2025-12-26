@@ -21,15 +21,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+  #include "config.h" // for the gettext domain
 #endif
+
+#include <gtkcompat.h>
 
 #include "overviewprefspanel.h"
 #include "overviewcolor.h"
-#include "overviewplugin.h"
 #include "overviewui.h"
 
-#include "../../utils/src/ui_plugins.h"
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
 
 
 struct OverviewPrefsPanel_
@@ -195,24 +197,12 @@ overview_prefs_panel_load_prefs (OverviewPrefsPanel *self)
   g_signal_emit_by_name (self, "prefs-loaded", self->prefs);
 }
 
-static void
-overview_prefs_panel_init (OverviewPrefsPanel *self)
+static void overview_prefs_panel_init(OverviewPrefsPanel *self)
 {
-  GtkBuilder *builder;
-  GError     *error = NULL;
-  GtkWidget  *overlay_frame;
-  gchar      *ui_file_path = get_data_dir_path ("prefs.ui");
-
-  builder = gtk_builder_new ();
-  if (! gtk_builder_add_from_file (builder, ui_file_path, &error))
-    {
-      g_critical ("failed to open UI file '%s': %s", ui_file_path, error->message);
-      g_error_free (error);
-      g_object_unref (builder);
-      return;
-    }
-
-  g_free (ui_file_path);
+  gchar *filepath = get_data_filepath(PLUGIN, "prefs.ui");
+  GtkBuilder *builder = get_ui_builder_from_file(filepath);
+  g_free(filepath);
+  if (!builder) return;
 
   self->prefs_table    = builder_get_widget (builder, "prefs-table");
   self->width_spin     = builder_get_widget (builder, "width-spin");
@@ -221,14 +211,15 @@ overview_prefs_panel_init (OverviewPrefsPanel *self)
   self->pos_left_check = builder_get_widget (builder, "position-left-check");
   self->hide_tt_check  = builder_get_widget (builder, "hide-tooltip-check");
   self->hide_sb_check  = builder_get_widget (builder, "hide-scrollbar-check");
-  self->ovl_inv_check = builder_get_widget (builder, "overlay-inverted-check");
+  self->ovl_inv_check  = builder_get_widget (builder, "overlay-inverted-check");
   self->ovl_clr_btn    = builder_get_widget (builder, "overlay-color");
   self->out_clr_btn    = builder_get_widget (builder, "overlay-outline-color");
 
   // The "Draw over visible area" checkbox hides/shows the "Overlay" frame
-  self->ovl_dis_check  = builder_get_widget (builder, "overlay-disable-check");
-  overlay_frame = builder_get_widget (builder, "overlay-frame");
-  g_object_bind_property (self->ovl_dis_check, "active", overlay_frame, "sensitive", G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
+  self->ovl_dis_check  = builder_get_widget(builder, "overlay-disable-check");
+  
+  GtkWidget *overlay_frame = builder_get_widget(builder, "overlay-frame");
+  g_object_bind_property(self->ovl_dis_check, "active", overlay_frame, "sensitive", G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN);
 
   gtk_widget_show_all (self->prefs_table);
   gtk_container_add (GTK_CONTAINER (self), self->prefs_table);

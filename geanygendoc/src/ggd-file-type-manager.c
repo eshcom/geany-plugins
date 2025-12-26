@@ -18,21 +18,17 @@
  *  
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd-file-type-manager.h"
-
-#include <glib.h>
 #include <glib/gi18n-lib.h>
-#include <geanyplugin.h>
 
-#include "ggd-plugin.h" /* to be able to use Geany data */
+#include "ggd-plugin.h"   // to be able to use Geany data
+#include "ggd-utils.h"
 #include "ggd-file-type.h"
 #include "ggd-file-type-loader.h"
-#include "ggd-utils.h"
+#include "ggd-file-type-manager.h"
 
 
 /**
@@ -112,21 +108,16 @@ ggd_file_type_manager_add_file_type (GgdFileType *filetype)
 /* Same as ggd_file_type_manager_get_conf_path() but uses a #GeanyFiletype and
  * don't do some safety checks.
  * Returns filename encoded in GLib file names encoding */
-static gchar *
-ggd_file_type_manager_get_conf_path_intern (GeanyFiletype  *geany_ft,
-                                            GgdPerms        prems_req,
-                                            GError        **error)
+static gchar *ggd_file_type_manager_get_conf_path_intern(GeanyFiletype *geany_ft,
+                                                         GgdPerms prems_req,
+                                                         GError **error)
 {
-  gchar  *ft_name_down;
-  gchar  *ft_name_conf;
-  gchar  *filename;
-  
-  ft_name_down = g_ascii_strdown (geany_ft->name, -1);
-  ft_name_conf = g_strconcat (ft_name_down, ".conf", NULL);
-  g_free (ft_name_down);
-  filename = ggd_get_config_file (ft_name_conf, "filetypes", prems_req, error);
-  g_free (ft_name_conf);
-  
+  gchar *ft_name_down = g_ascii_strdown(geany_ft->name, -1);
+  gchar *ft_name_conf = g_strconcat(ft_name_down, ".conf", NULL);
+  g_free(ft_name_down);
+  gchar *filename = ggd_get_config_file(ft_name_conf, "filetypes",
+                                        prems_req, error);
+  g_free(ft_name_conf);
   return filename;
 }
 

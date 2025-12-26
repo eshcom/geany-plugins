@@ -22,14 +22,11 @@
 #ifndef ENVTREE_H
 #define ENVTREE_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
-GtkWidget*		envtree_init(void);
-void			envtree_destroy(void);
-void			envtree_clear(void);
-void			envtree_set_readonly(gboolean readonly);
-void			envtree_add_environment(const gchar *name, const gchar *value);
-GList*			envpage_get_environment(void);
+GtkWidget *envtree_init(void);
+void envtree_destroy(void);
+void envtree_clear(void);
+void envtree_set_readonly(gboolean readonly);
+void envtree_add_environment(const gchar *name, const gchar *value);
+GList *envpage_get_environment(void);
 
 #endif /* guard */

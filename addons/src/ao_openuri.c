@@ -20,22 +20,17 @@
  * $Id$
  */
 
-#include <glib-object.h>
-#include <string.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_openuri.h"
 
 
-typedef struct _AoOpenUriPrivate			AoOpenUriPrivate;
-
-#define AO_OPEN_URI_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_OPEN_URI_TYPE, AoOpenUriPrivate))
+typedef struct _AoOpenUriPrivate AoOpenUriPrivate;
 
 struct _AoOpenUri
 {
@@ -69,7 +64,7 @@ static void ao_open_uri_set_property		(GObject *object, guint prop_id,
 											 const GValue *value, GParamSpec *pspec);
 
 
-G_DEFINE_TYPE(AoOpenUri, ao_open_uri, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoOpenUri, ao_open_uri, G_TYPE_OBJECT)
 
 
 
@@ -81,8 +76,6 @@ static void ao_open_uri_class_init(AoOpenUriClass *klass)
 
 	g_object_class->finalize = ao_open_uri_finalize;
 	g_object_class->set_property = ao_open_uri_set_property;
-
-	g_type_class_add_private(klass, sizeof(AoOpenUriPrivate));
 
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_OPENURI,
@@ -98,7 +91,7 @@ static void ao_open_uri_class_init(AoOpenUriClass *klass)
 static void ao_open_uri_set_property(GObject *object, guint prop_id,
 									 const GValue *value, GParamSpec *pspec)
 {
-	AoOpenUriPrivate *priv = AO_OPEN_URI_GET_PRIVATE(object);
+	AoOpenUriPrivate *priv = ao_open_uri_get_instance_private((AoOpenUri *)object);
 
 	switch (prop_id)
 	{
@@ -114,7 +107,7 @@ static void ao_open_uri_set_property(GObject *object, guint prop_id,
 
 static void ao_open_uri_finalize(GObject *object)
 {
-	AoOpenUriPrivate *priv = AO_OPEN_URI_GET_PRIVATE(object);
+	AoOpenUriPrivate *priv = ao_open_uri_get_instance_private((AoOpenUri *)object);
 
 	g_free(priv->uri);
 	gtk_widget_destroy(priv->menu_item_open);
@@ -127,7 +120,7 @@ static void ao_open_uri_finalize(GObject *object)
 
 static void ao_menu_open_activate_cb(GtkMenuItem *item, AoOpenUri *self)
 {
-	AoOpenUriPrivate *priv = AO_OPEN_URI_GET_PRIVATE(self);
+	AoOpenUriPrivate *priv = ao_open_uri_get_instance_private(self);
 
 	if (!EMPTY(priv->uri))
 		utils_open_browser(priv->uri);
@@ -137,7 +130,7 @@ static void ao_menu_open_activate_cb(GtkMenuItem *item, AoOpenUri *self)
 
 static void ao_menu_copy_activate_cb(GtkMenuItem *item, AoOpenUri *self)
 {
-	AoOpenUriPrivate *priv = AO_OPEN_URI_GET_PRIVATE(self);
+	AoOpenUriPrivate *priv = ao_open_uri_get_instance_private(self);
 
 	if (!EMPTY(priv->uri))
 		gtk_clipboard_set_text(gtk_clipboard_get(gdk_atom_intern("CLIPBOARD", FALSE)), priv->uri, -1);
@@ -157,7 +150,7 @@ static const gchar *ao_find_icon_name(const gchar *request, const gchar *fallbac
 
 static void ao_open_uri_init(AoOpenUri *self)
 {
-	AoOpenUriPrivate *priv = AO_OPEN_URI_GET_PRIVATE(self);
+	AoOpenUriPrivate *priv = ao_open_uri_get_instance_private(self);
 
 	priv->uri = NULL;
 
@@ -237,7 +230,7 @@ void ao_open_uri_update_menu(AoOpenUri *openuri, GeanyDocument *doc, gint pos)
 	g_return_if_fail(openuri != NULL);
 	g_return_if_fail(doc != NULL);
 
-	priv = AO_OPEN_URI_GET_PRIVATE(openuri);
+	priv = ao_open_uri_get_instance_private(openuri);
 
 	if (! priv->enable_openuri)
 		return;

@@ -19,17 +19,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+	#include "config.h" // for the gettext domain
+#endif
+
 #include "dh-error.h"
 
-GQuark
-dh_error_quark (void)
+GQuark dh_error_quark(void)
 {
-        static GQuark q = 0;
-
-        if (q == 0) {
-                q = g_quark_from_static_string ("dh-error-quark");
-        }
-
-        return q;
+	static GQuark q = 0;
+	if (q == 0) q = g_quark_from_static_string("dh-error-quark");
+	return q;
 }

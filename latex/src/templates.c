@@ -20,6 +20,8 @@
  */
 
 #include "templates.h"
+#include "../../utils/src/common.h"
+
 
 GString *glatex_get_template_from_file(gchar *filepath)
 {
@@ -40,48 +42,38 @@ GString *glatex_get_template_from_file(gchar *filepath)
 static void glatex_init_cutom_template_item(gchar *file, GPtrArray *array)
 {
 	TemplateEntry *template = NULL;
-	gchar *tmp = NULL;
-
+	
 	/* Return if its not a searched file */
-	if (g_str_has_suffix(file,".gtl") == FALSE)
-		return;
-
+	if (!g_str_has_suffix(file, ".gtl")) return;
+	
 	template = g_new0(TemplateEntry, 1);
-
 	template->filepath = g_strdup(file);
-
-	tmp = g_path_get_basename(file);
+	
+	gchar *tmp = g_path_get_basename(file);
 	template->label = utils_remove_ext_from_filename(tmp, FALSE);
 	g_free(tmp);
-
+	
 	/* Adding struct to array */
 	template->template = glatex_get_template_from_file(file);
 	g_ptr_array_add(array, template);
 }
 
 
-GPtrArray* glatex_init_custom_templates(void)
+GPtrArray *glatex_init_custom_templates(void)
 {
-	gchar *tmp_basedir = NULL;
-	GSList *file_list = NULL;
-	GPtrArray *templates = NULL;
-
 	/* Creating up config dir for checking for templates */
-	tmp_basedir = g_strconcat(geany->app->configdir,
-			G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-			"LaTeX", G_DIR_SEPARATOR_S, NULL);
-
+	gchar *tmp_basedir = get_config_filepath(PLUGIN, "");
 	/* Putting all files in configdir to a file list */
-	file_list = utils_get_file_list_full(tmp_basedir, TRUE, TRUE, NULL);
-
+	GSList *file_list = utils_get_file_list_full(tmp_basedir, TRUE, TRUE, NULL);
+	
 	/* Init GPtrArray */
-	templates = g_ptr_array_new();
-
+	GPtrArray *templates = g_ptr_array_new();
+	
 	/* Iterating on all list items */
 	g_slist_foreach(file_list, (GFunc)glatex_init_cutom_template_item, templates);
  	g_slist_foreach(file_list, (GFunc) g_free, NULL);
 	g_slist_free(file_list);
-
+	
 	g_free(tmp_basedir);
 	return templates;
 }

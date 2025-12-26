@@ -21,13 +21,12 @@
  *
  */
 
-#ifndef GSDLG_ALL_IN_ONE
-#include "gsdlg.h"
-#endif
-
 #include <stdlib.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
-#include <geanyplugin.h>
+#ifndef GSDLG_ALL_IN_ONE
+	#include "gsdlg.h"
+#endif
 
 
 #define TextKey "gsdlg_TextKey_bc4871f4e3478ab5234e28432460a6b8"

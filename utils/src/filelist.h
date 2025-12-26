@@ -19,8 +19,6 @@
 #ifndef GP_UTILS_FILELIST_H
 #define GP_UTILS_FILELIST_H
 
-#include <glib.h>
-
 G_BEGIN_DECLS
 
 typedef enum

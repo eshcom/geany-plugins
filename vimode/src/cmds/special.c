@@ -16,10 +16,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "cmds/special.h"
-#include "utils.h"
+#include <gdk/gdkkeysyms.h> // for the key bindings
 
-#include <gdk/gdkkeysyms.h>
+#include "utils.h"
+#include "cmds/special.h"
 
 
 void cmd_swap_anchor(CmdContext *c, CmdParams *p)

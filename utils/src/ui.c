@@ -16,12 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "ui_plugins.h"
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
+#include "ui.h"
 
 
 #define PACK_PADDING 4
 #define DOUBLE_PACK_PADDING 8
-
 
 #define ADD_AND_PACK_HBOX															\
 	GtkWidget *hbox;																\
@@ -288,19 +289,21 @@ DoubleWidget add_checkbutton(GtkWidget *parent_box, const gchar *check_text,
 	return (DoubleWidget){check, button};
 }
 
-gchar *get_data_dir_path(const gchar *filename)
+GtkBuilder *get_ui_builder_from_file(const gchar *filepath)
 {
-	gchar *prefix = NULL;
+	GError *error = NULL;
+	GtkBuilder *builder = gtk_builder_new();
 	
-#ifdef G_OS_WIN32
-	prefix = g_win32_get_package_installation_directory_of_module(NULL);
-#elif defined(__APPLE__)
-	if (g_getenv("GEANY_PLUGINS_SHARE_PATH"))
-		return g_build_filename(g_getenv("GEANY_PLUGINS_SHARE_PATH"), 
-								PLUGIN, filename, NULL);
-#endif
-	gchar *path = g_build_filename(prefix ? prefix : "", PLUGINDATADIR,
-								   filename, NULL);
-	g_free(prefix);
-	return path;
+	gtk_builder_set_translation_domain(builder, GETTEXT_PACKAGE);
+	
+	if (!gtk_builder_add_from_file(builder, filepath, &error))
+	{
+		msgwin_status_add(_("Plugin error: %s"), error->message);
+		g_critical(_("Failed to load UI definition, please check your "
+					 "installation. The error was: %s"), error->message);
+		g_error_free(error);
+		g_object_unref(builder);
+		builder = NULL;
+	}
+	return builder;
 }

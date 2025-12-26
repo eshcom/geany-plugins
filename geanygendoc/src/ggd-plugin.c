@@ -19,23 +19,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"       // for the gettext domain
 #endif
 
-#include "ggd-plugin.h"
+#include <gdk/gdkkeysyms.h> // for the key bindings
 
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-#include <gdk/gdkkeysyms.h> /* for the key bindings */
-#include <ctpl/ctpl.h>
-#include <geanyplugin.h>
-
+#include "ggd-plugin.h"     // to access Geany data/funcs
 #include "ggd.h"
 #include "ggd-file-type.h"
 #include "ggd-file-type-manager.h"
 #include "ggd-tag-utils.h"
 #include "ggd-options.h"
 
+/* These items are set by Geany before plugin_init() is called. */
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;    // the code uses the macro "geany" (see geany->)
 
 
 /*
@@ -44,12 +42,8 @@
  *    symbols table)
  */
 
-/* These items are set by Geany before plugin_init() is called. */
-GeanyPlugin     *geany_plugin;
-GeanyData       *geany_data;
-
 /* TODO check minimum requierment */
-PLUGIN_VERSION_CHECK (227)
+PLUGIN_VERSION_CHECK(227)
 
 PLUGIN_SET_TRANSLATABLE_INFO (
   LOCALEDIR, GETTEXT_PACKAGE,
@@ -183,80 +177,62 @@ normalize_key (const gchar *key)
   return g_string_free (nkey, FALSE);
 }
 
-static gboolean
-load_configuration (void)
+static gboolean load_configuration(void)
 {
-  gboolean  success = FALSE;
-  gchar    *conffile;
-  GError   *err = NULL;
-  guint     i;
-  
   /* default options that needs to be set dynamically */
   GGD_OPT_doctype[0] = g_strdup ("doxygen");
   
-  plugin->config = ggd_opt_group_new ("General");
-  ggd_opt_group_add_string (plugin->config, &GGD_OPT_doctype[0], "doctype");
-  for (i = 1; i < GEANY_MAX_BUILT_IN_FILETYPES; i++) {
-    gchar *name;
-    gchar *normal_ftname;
-    
-    normal_ftname = normalize_key (filetypes[i]->name);
-    name = g_strconcat ("doctype_", normal_ftname, NULL);
-    ggd_opt_group_add_string (plugin->config, &GGD_OPT_doctype[i], name);
-    g_free (name);
-    g_free (normal_ftname);
+  plugin->config = ggd_opt_group_new("General");
+  ggd_opt_group_add_string(plugin->config, &GGD_OPT_doctype[0], "doctype");
+  for (guint i = 1; i < GEANY_MAX_BUILT_IN_FILETYPES; i++) {
+    gchar *normal_ftname = normalize_key(filetypes[i]->name);
+    gchar *name = g_strconcat("doctype_", normal_ftname, NULL);
+    ggd_opt_group_add_string(plugin->config, &GGD_OPT_doctype[i], name);
+    g_free(name);
+    g_free(normal_ftname);
   }
-  ggd_opt_group_add_boolean (plugin->config, &GGD_OPT_save_to_refresh, "save_to_refresh");
-  ggd_opt_group_add_boolean (plugin->config, &GGD_OPT_indent, "indent");
-  ggd_opt_group_add_string (plugin->config, &GGD_OPT_environ, "environ");
-  conffile = ggd_get_config_file ("ggd.conf", NULL, GGD_PERM_R, &err);
-  if (conffile) {
-    success = ggd_opt_group_load_from_file (plugin->config, conffile, &err);
-  }
-  if (err) {
-    GLogLevelFlags level = G_LOG_LEVEL_WARNING;
-    
-    if (err->domain == G_FILE_ERROR && err->code == G_FILE_ERROR_NOENT) {
-      level = G_LOG_LEVEL_INFO;
-    }
-    g_log (G_LOG_DOMAIN, level,
-           _("Failed to load configuration: %s"), err->message);
-    g_error_free (err);
-  }
-  g_free (conffile);
+  ggd_opt_group_add_boolean(plugin->config, &GGD_OPT_save_to_refresh, "save_to_refresh");
+  ggd_opt_group_add_boolean(plugin->config, &GGD_OPT_indent, "indent");
+  ggd_opt_group_add_string(plugin->config, &GGD_OPT_environ, "environ");
+  
+  gboolean success = FALSE;
+  GError *err = NULL;
+  
+  gchar *filepath = ggd_get_config_file("ggd.conf", NULL, GGD_PERM_R, &err);
+  if (filepath)
+    success = ggd_opt_group_load_from_file(plugin->config, filepath);
+  
+  if (!success) g_warning(_("Failed to load configuration file '%s'"), filepath);
+  g_free(filepath);
+  
   /* init filetype manager */
-  ggd_file_type_manager_init ();
+  ggd_file_type_manager_init();
   
   return success;
 }
 
-static void
-unload_configuration (void)
+static void unload_configuration(void)
 {
-  gchar  *conffile;
   GError *err = NULL;
+  gboolean result = FALSE;
+  gchar *filepath = ggd_get_config_file("ggd.conf", NULL, GGD_PERM_RW, &err);
   
-  conffile = ggd_get_config_file ("ggd.conf", NULL, GGD_PERM_RW, &err);
-  if (conffile) {
-    ggd_opt_group_write_to_file (plugin->config, conffile, &err);
-  }
-  if (err) {
-    g_warning (_("Failed to save configuration: %s"), err->message);
-    g_error_free (err);
-  }
-  g_free (conffile);
-  ggd_opt_group_free (plugin->config, TRUE);
+  if (filepath) result = ggd_opt_group_write_to_file(plugin->config, filepath);
+  if (!result) g_warning(_("Failed to save configuration file '%s'"), filepath);
+  g_free(filepath);
+  
+  ggd_opt_group_free(plugin->config, TRUE);
   plugin->config = NULL;
+  
   /* uninit filetype manager */
-  ggd_file_type_manager_uninit ();
+  ggd_file_type_manager_uninit();
 }
 
 /* forces reloading of configuration files */
-static gboolean
-reload_configuration (void)
+static gboolean reload_configuration(void)
 {
-  unload_configuration ();
-  return load_configuration ();
+  unload_configuration();
+  return load_configuration();
 }
 
 
@@ -553,15 +529,13 @@ destroy_menus (PluginData *pdata)
   remove_edit_menu_item (pdata);
 }
 
-void
-plugin_init (GeanyData *data G_GNUC_UNUSED)
+void plugin_init(GeanyData *data G_GNUC_UNUSED)
 {
-  plugin->kb_group = plugin_set_key_group (geany_plugin, GGD_PLUGIN_CNAME,
-                                           NUM_KB, NULL);
-  load_configuration ();
-  build_menus (plugin);
-  plugin_signal_connect (geany_plugin, NULL, "update-editor-menu", FALSE,
-                         G_CALLBACK (update_editor_menu_handler), plugin);
+  plugin->kb_group = plugin_set_key_group(geany_plugin, PLUGIN, NUM_KB, NULL);
+  load_configuration();
+  build_menus(plugin);
+  plugin_signal_connect(geany_plugin, NULL, "update-editor-menu", FALSE,
+                        G_CALLBACK(update_editor_menu_handler), plugin);
 }
 
 void

@@ -22,17 +22,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
-#include "PluginEntry.h"
+#include <ctype.h>
 #include <errno.h>
 
-#include "ctype.h"
-
-
-GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
+#include "PluginEntry.h"
 
 /*========================================== PLUGIN INFORMATION ==========================================================*/
 
@@ -60,61 +56,34 @@ static void config_closed(GtkWidget *configWidget, gint response, gpointer data)
 
 static gchar *get_config_file(void)
 {
-	gchar *dir = g_build_filename(geany_data->app->configdir, "plugins",
-								  "pretty-printer", NULL);
-	gchar *fn = g_build_filename(dir, "prefs.conf", NULL);
+	gchar *filepath = get_config_filepath(PLUGIN, NULL);
 	
-	if (!g_file_test(fn, G_FILE_TEST_IS_DIR))
+	if (!g_file_test(filepath, G_FILE_TEST_EXISTS))
 	{
-		if (g_mkdir_with_parents(dir, 0755) != 0)
-		{
-			g_critical("failed to create config dir '%s': %s", dir, g_strerror(errno));
-			g_free(dir);
-			g_free(fn);
-			return NULL;
-		}
-	}
-	g_free(dir);
-	
-	if (!g_file_test(fn, G_FILE_TEST_EXISTS))
-	{
-		GError *error = NULL;
-		const gchar *def_config = getDefaultPrefs(&error);
+		PrettyPrintingOptions *ppo = createDefaultPrettyPrintingOptions();
+		if (!ppo) return NULL;
 		
-		if (def_config == NULL)
+		GKeyFile *config = prefsToConfig(ppo);
+		gboolean result = write_config_to_file(config, filepath, SYSLOG);
+		g_key_file_free(config);
+		
+		if (!result)
 		{
-			g_critical("failed to fetch default config data (%s)",
-						error->message);
-			g_error_free(error);
-			g_free(fn);
-			return NULL;
-		}
-		if (!g_file_set_contents(fn, def_config, -1, &error))
-		{
-			g_critical("failed to save default config to file '%s': %s",
-						fn, error->message);
-			g_error_free(error);
-			g_free(fn);
+			g_free(filepath);
 			return NULL;
 		}
 	}
-	
-	return fn;
+	return filepath;
 }
 
 void plugin_init(GeanyData *data)
 {
-	gchar *conf_file = get_config_file();
-	GError *error = NULL;
+	gchar *filepath = get_config_file();
 	
 	/* load preferences */
-	if (!prefsLoad(conf_file, &error))
-	{
-		g_critical("failed to load preferences file '%s': %s",
-				   conf_file, error->message);
-		g_error_free(error);
-	}
-	g_free(conf_file);
+	if (!prefsLoad(filepath))
+		g_critical("failed to load preferences file '%s'", filepath);
+	g_free(filepath);
 	
 	/* initializes the libxml2 */
 	LIBXML_TEST_VERSION
@@ -142,8 +111,7 @@ void plugin_init(GeanyData *data)
 	ui_add_document_sensitive(menu_item_prettify);
 	
 	/* init keybindings */
-	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, "xml_prettifier",
-													2, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN, 2, NULL);
 	keybindings_set_item(key_group, 0, kb_activate, 0, 0,
 						 "run_xml_minifier", _("Run the XML Minifier"),
 						 menu_item_minify);
@@ -172,20 +140,17 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 void config_closed(GtkWidget *configWidget, gint response, gpointer gdata)
 {
 	/* if the user clicked OK or APPLY, then save the settings */
-	if (response == GTK_RESPONSE_OK ||
-		response == GTK_RESPONSE_APPLY)
-	{
-		gchar *conf_file = get_config_file();
-		GError *error = NULL;
-		
-		if (!prefsSave(conf_file, &error))
-		{
-			g_critical("failed to save preferences to file '%s': %s",
-					   conf_file, error->message);
-			g_error_free(error);
-		}
-		g_free(conf_file);
-	}
+	if (!ok_apply(response)) return;
+	
+	gchar *filename = get_config_file();
+	if (!filename) return;
+	
+	fetchSettingsFromConfigUI(prettyPrintingOptions);
+	
+	GKeyFile *config = prefsToConfig(prettyPrintingOptions);
+	write_config_to_file(config, filename, SYSLOG);
+	g_key_file_free(config);
+	g_free(filename);
 }
 
 void my_xml_prettify(GeanyDocument *doc, gboolean beautify)
@@ -196,7 +161,7 @@ void my_xml_prettify(GeanyDocument *doc, gboolean beautify)
 	ScintillaObject *sci = editor->sci;
 	
 	/* default printing options */
-	if (prettyPrintingOptions == NULL)
+	if (!prettyPrintingOptions)
 		prettyPrintingOptions = createDefaultPrettyPrintingOptions();
 	
 	gboolean has_selection = sci_has_selection(sci);

@@ -22,10 +22,8 @@
  * $Id$
  */
 
-
 #ifndef SC_GUI_H
 #define SC_GUI_H 1
-
 
 void sc_gui_kb_run_activate_cb(guint key_id);
 
@@ -42,11 +40,9 @@ gboolean sc_gui_editor_notify(GObject *object, GeanyEditor *editor,
 void sc_gui_document_open_cb(GObject *obj, GeanyDocument *doc, gpointer user_data);
 
 void sc_gui_update_toolbar(void);
-
 void sc_gui_update_menu(void);
 
 void sc_gui_init(void);
-
 void sc_gui_free(void);
 
 #endif

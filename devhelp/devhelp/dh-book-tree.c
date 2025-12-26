@@ -20,14 +20,18 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+	#include "config.h"		// for the gettext domain
+#endif
+
 #include <string.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
 
 #include "dh-marshal.h"
 #include "dh-book-tree.h"
 #include "dh-book.h"
+
 
 typedef struct {
         const gchar *uri;

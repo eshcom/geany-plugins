@@ -5,23 +5,26 @@
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-#include <string.h>
 #include <ctype.h>
-
-#include <geanyplugin.h>
-#define main_widgets	geany->main_widgets
+#include <string.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "glspi_ver.h"
 
-#define tokenWordChars  "wordchars"
+
+extern GeanyData *glspi_geany_data;
+#define geany_data glspi_geany_data
+
+#define main_widgets geany->main_widgets
+
+#define tokenWordChars "wordchars"
 #define tokenRectSel "rectsel"
 #define tokenBanner "banner"
 #define tokenCaller "caller"
@@ -68,12 +71,6 @@
 
 
 #define push_number(L,n) lua_pushnumber(L,(lua_Number)n)
-
-
-
-extern GeanyData *glspi_geany_data;
-
-#define geany_data glspi_geany_data
 
 
 #ifdef NEED_FAIL_ARG_TYPE

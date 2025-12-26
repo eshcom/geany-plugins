@@ -18,15 +18,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <gdk/gdkkeysyms.h>
-
 #include "common.h"
+
 
 enum
 {
@@ -86,7 +83,8 @@ static const char
 	*const BP_BORTS   = "bhtf",
 	*const BP_WHATS   = "warc",
 	*const BP_KNOWNS  = "btfwar",
-	*const BP_WATCHES = "war",
+	// esh: fixed warning: ‘BP_WATCHES’ defined but not used
+	//~ *const BP_WATCHES = "war",
 	*const BP_WATOPTS = "ar";
 
 typedef struct _BreakType

@@ -21,14 +21,19 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #include <string.h>
+#include <gtkcompat.h>
 
 #include "dh-link.h"
 #include "dh-util.h"
 #include "dh-book.h"
 #include "dh-book-manager.h"
 #include "dh-marshal.h"
+
 
 typedef struct {
         /* The list of all DhBooks found in the system */

@@ -20,15 +20,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_xmltagging.h"
 
 
-static void enter_key_pressed_in_entry(G_GNUC_UNUSED GtkWidget *widget, gpointer dialog)
+static void enter_key_pressed_in_entry(G_GNUC_UNUSED GtkWidget *widget,
+									   gpointer dialog)
 {
 	gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
 }
@@ -36,12 +38,9 @@ static void enter_key_pressed_in_entry(G_GNUC_UNUSED GtkWidget *widget, gpointer
 
 void ao_xmltagging(void)
 {
-	GeanyDocument *doc = NULL;
-
-	doc = document_get_current();
-
+	GeanyDocument *doc = document_get_current();
 	g_return_if_fail(doc != NULL);
-
+	
 	if (sci_has_selection(doc->editor->sci) == TRUE)
 	{
 		GtkWidget *dialog = NULL;

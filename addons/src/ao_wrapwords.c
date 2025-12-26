@@ -18,13 +18,16 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_wrapwords.h"
+
+#include "../../utils/src/common.h"
+
 
 enum
 {
@@ -34,10 +37,10 @@ enum
 	NUM_COLUMNS
 };
 
-void enclose_text_action (guint);
-gboolean on_key_press (GtkWidget *, GdkEventKey *, gpointer);
-void configure_response (GtkDialog *, gint, gpointer);
-void enclose_chars_changed (GtkCellRendererText *, gchar *, gchar *, gpointer);
+void enclose_text_action(guint);
+gboolean on_key_press(GtkWidget *, GdkEventKey *, gpointer);
+void configure_response(GtkDialog *, gint, gpointer);
+void enclose_chars_changed(GtkCellRendererText *, gchar *, gchar *, gpointer);
 
 gchar *enclose_chars [8];
 gboolean auto_enabled = FALSE;
@@ -46,11 +49,11 @@ gchar *config_file;
 GtkListStore *chars_list;
 
 /*
- * Called when a keybinding associated with the plugin is pressed.  Encloses the selected text in
- * the characters associated with this keybinding.
+ * Called when a keybinding associated with the plugin is pressed.
+ * Encloses the selected text in the characters associated with this keybinding.
  */
 
-void enclose_text_action (guint key_id)
+void enclose_text_action(guint key_id)
 {
 	gint selection_end;
 	gchar insert_chars [2] = {0, 0};
@@ -143,28 +146,28 @@ gboolean on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data
  * Loads the enclosing characters from the config file and sets keybindings.
  */
 
-void ao_enclose_words_init (gchar *config_file_name, GeanyKeyGroup *key_group, gint ao_kb_count)
+void ao_enclose_words_init(gchar *config_file_name, GeanyKeyGroup *key_group,
+						   gint ao_kb_count)
 {
-	GKeyFile *config = g_key_file_new();
 	gchar key_name[] = "Enclose_x";
-	gint i;
-
-	config_file = g_strdup (config_file_name);
-	g_key_file_load_from_file (config, config_file, G_KEY_FILE_NONE, NULL);
-
-	for (i = 0; i < AO_WORDWRAP_KB_COUNT; i++)
+	
+	config_file = g_strdup(config_file_name);
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	for (gint i = 0; i < AO_WORDWRAP_KB_COUNT; i++)
 	{
-		key_name [8] = (gchar) (i + '0');
-		enclose_chars [i] = utils_get_setting_string (config, "addons", key_name, "  ");
-		key_name [8] = (gchar) ((i + 1) + '0');
-		keybindings_set_item (key_group, i + ao_kb_count,
-			(GeanyKeyCallback) enclose_text_action, 0, 0, key_name, key_name, NULL);
+		key_name[8] = (gchar)(i + '0');
+		enclose_chars[i] = utils_get_setting_string(config, CONFIG_SECTION,
+													key_name, "  ");
+		key_name[8] = (gchar)((i + 1) + '0');
+		keybindings_set_item(key_group, i + ao_kb_count,
+			(GeanyKeyCallback)enclose_text_action, 0, 0, key_name, key_name, NULL);
 	}
-
+	
 	g_key_file_free(config);
-
-	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->window), "key-press-event",
-			FALSE, G_CALLBACK(on_key_press), NULL);
+	
+	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->window),
+						  "key-press-event", FALSE, G_CALLBACK(on_key_press), NULL);
 }
 
 void ao_enclose_words_set_enabled (gboolean enabled_w, gboolean enabled_a)
@@ -178,54 +181,47 @@ void ao_enclose_words_set_enabled (gboolean enabled_w, gboolean enabled_a)
  * update the array of enclosing characters and config file with the new enclosing characters
  */
 
-void configure_response (GtkDialog *dialog, gint response, gpointer char_tree_view)
+void configure_response(GtkDialog *dialog, gint response, gpointer char_tree_view)
 {
-	GtkTreeIter char_iter;
-	GKeyFile *config;
-	gchar *config_data = NULL;
+	if (!ok_accept(response)) return;
+	
 	gchar key_name[] = "Enclose_x";
-	gint i;
-
-	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_ACCEPT)
-		return;
-
-	gtk_tree_model_get_iter_first (GTK_TREE_MODEL(chars_list), &char_iter);
-
-	config = g_key_file_new();
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-	for (i = 0; i < 8; i++)
+	
+	GtkTreeIter char_iter;
+	gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chars_list), &char_iter);
+	
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	for (gint i = 0; i < 8; i++)
 	{
 		gchar *prior_char_str, *end_char_str;
-
-		key_name [8] = (gchar) (i + '0');
-
-		gtk_tree_model_get (GTK_TREE_MODEL(chars_list), &char_iter,
-			COLUMN_PRIOR_CHAR, &prior_char_str, COLUMN_END_CHAR, &end_char_str, -1);
-		*enclose_chars [i] = prior_char_str [0];
-		*(enclose_chars [i] + 1) = end_char_str [0];
-		gtk_tree_model_iter_next (GTK_TREE_MODEL(chars_list), &char_iter);
-
-		g_key_file_set_string (config, "addons", key_name, enclose_chars [i]);
-
-		g_free (prior_char_str);
-		g_free (end_char_str);
+		
+		key_name[8] = (gchar)(i + '0');
+		
+		gtk_tree_model_get(GTK_TREE_MODEL(chars_list), &char_iter,
+						   COLUMN_PRIOR_CHAR, &prior_char_str,
+						   COLUMN_END_CHAR, &end_char_str, -1);
+		*enclose_chars[i] = prior_char_str[0];
+		*(enclose_chars[i] + 1) = end_char_str[0];
+		gtk_tree_model_iter_next(GTK_TREE_MODEL(chars_list), &char_iter);
+		
+		g_key_file_set_string(config, CONFIG_SECTION, key_name, enclose_chars[i]);
+		
+		g_free(prior_char_str);
+		g_free(end_char_str);
 	}
-
-	config_data = g_key_file_to_data (config, NULL, NULL);
-	utils_write_file (config_file, config_data);
-
-	g_free (config_data);
+	
+	write_config_to_file(config, config_file, MSGBOX);
 	g_key_file_free(config);
 }
 
 /*
- * When the user changes an entry in the preferences dialog, this updates the list of
- * enclosing characters with the new entry
+ * When the user changes an entry in the preferences dialog,
+ * this updates the list of enclosing characters with the new entry
  */
 
-void enclose_chars_changed (GtkCellRendererText *renderer, gchar *path, gchar *new_char_str,
-	gpointer column_num)
+void enclose_chars_changed(GtkCellRendererText *renderer, gchar *path,
+						   gchar *new_char_str, gpointer column_num)
 {
 	GtkTreeIter chars_iter;
 	gchar new_chars [2] = {0, 0};

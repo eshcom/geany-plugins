@@ -19,58 +19,54 @@
  * MA 02110-1301, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+	#include "config.h" // for the gettext domain
+#endif
+
 #include <stdlib.h>
 #include <string.h>
-#include <gtk/gtk.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <geanyplugin.h>
-
-#include <devhelp/dh-base.h>
-#include <devhelp/dh-book-tree.h>
-#include <devhelp/dh-search.h>
-#include <devhelp/dh-link.h>
-
-#ifdef HAVE_BOOK_MANAGER /* for newer api */
-#include <devhelp/dh-book-manager.h>
-#endif
-
 #include <webkit/webkitwebview.h>
 
+#include "devhelp/dh-base.h"
+#include "devhelp/dh-book-tree.h"
+#include "devhelp/dh-search.h"
+#include "devhelp/dh-link.h"
+
+#ifdef HAVE_BOOK_MANAGER /* for newer api */
+	#include "devhelp/dh-book-manager.h"
+#endif
+
 #include "dhp.h"
-#include "dhp-plugin.h"
 
 
 struct _DevhelpPluginPrivate
 {
 	/* Devhelp stuff */
 	DhBase*			dhbase;
-    GtkWidget*		book_tree;			/* "Contents" in the sidebar */
-    GtkWidget*		search;				/* "Search" in the sidebar */
-    GtkWidget*		sb_notebook;		/* Notebook that holds contents/search */
+	GtkWidget*		book_tree;			/* "Contents" in the sidebar */
+	GtkWidget*		search;				/* "Search" in the sidebar */
+	GtkWidget*		sb_notebook;		/* Notebook that holds contents/search */
 
-    /* Webview stuff */
-    GtkWidget*		webview;			/* Webkit that shows documentation */
-    GtkWidget*		webview_tab;		/* The widget that has webview related stuff */
-    GtkToolItem*	btn_back;			/* the webkit browser back button in the toolbar */
-    GtkToolItem*	btn_forward;		/* the webkit browser forward button in the toolbar */
-    DevhelpPluginWebViewLocation location; /* where to pack the webview */
+	/* Webview stuff */
+	GtkWidget*		webview;			/* Webkit that shows documentation */
+	GtkWidget*		webview_tab;		/* The widget that has webview related stuff */
+	GtkToolItem*	btn_back;			/* the webkit browser back button in the toolbar */
+	GtkToolItem*	btn_forward;		/* the webkit browser forward button in the toolbar */
+	DevhelpPluginWebViewLocation location; /* where to pack the webview */
 
 	/* Other widgets */
-    GtkWidget*		main_notebook;		/* Notebook that holds Geany doc notebook and and webkit view */
-    GtkWidget*		editor_menu_item;	/* Item in the editor's context menu */
-    GtkWidget*		editor_menu_sep;	/* Separator item above menu item */
+	GtkWidget*		main_notebook;		/* Notebook that holds Geany doc notebook and and webkit view */
+	GtkWidget*		editor_menu_item;	/* Item in the editor's context menu */
+	GtkWidget*		editor_menu_sep;	/* Separator item above menu item */
 
 	/* Position/tab number tracking */
-    gboolean		last_main_tab_id;	/* These track the last id of the tabs */
-    gboolean		last_sb_tab_id;		/*   before toggling */
-    gboolean		tabs_toggled;		/* Tracks state of whether to toggle to Devhelp or back to code */
-    GtkPositionType	orig_sb_tab_pos;	/* The tab idx of the initial sidebar tab */
-    gboolean		in_message_window;	/* whether the webkit stuff is in the msgwin */
+	gboolean		last_main_tab_id;	/* These track the last id of the tabs */
+	gboolean		last_sb_tab_id;		/*   before toggling */
+	gboolean		tabs_toggled;		/* Tracks state of whether to toggle to Devhelp or back to code */
+	GtkPositionType	orig_sb_tab_pos;	/* The tab idx of the initial sidebar tab */
+	gboolean		in_message_window;	/* whether the webkit stuff is in the msgwin */
 
-    GList*			temp_files;			/* Tracks temp files made by the plugin to delete later. */
+	GList*			temp_files;			/* Tracks temp files made by the plugin to delete later. */
 
 	GKeyFile*	kf;
 	gboolean	focus_webview_on_search;
@@ -88,7 +84,7 @@ struct _DevhelpPluginPrivate
 	gchar*		codesearch_params;
 	gboolean	codesearch_use_lang;
 
-    GtkPositionType main_nb_tab_pos;
+	GtkPositionType main_nb_tab_pos;
 };
 
 
@@ -117,8 +113,8 @@ static DhBase *dhbase = NULL;
 
 
 /* Internal callbacks */
-static void on_search_help_activate(GtkMenuItem * menuitem, DevhelpPlugin *self);
-static void on_search_help_man_activate(GtkMenuItem * menuitem, DevhelpPlugin *self);
+static void on_search_help_activate(GtkMenuItem *menuitem, DevhelpPlugin *self);
+static void on_search_help_man_activate(GtkMenuItem *menuitem, DevhelpPlugin *self);
 static void on_editor_menu_popup(GtkWidget * widget, DevhelpPlugin *self);
 static void on_link_clicked(GObject * ignored, DhLink * dhlink, DevhelpPlugin *self);
 static void on_back_button_clicked(GtkToolButton * btn, DevhelpPlugin *self);
@@ -399,9 +395,10 @@ static void devhelp_plugin_init_edit_menu(DevhelpPlugin *self)
 		g_signal_connect(man_item, "activate", G_CALLBACK(on_search_help_man_activate), self);
 		gtk_widget_show(man_item);
 	}
-
-	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->editor_menu), "show", TRUE,
-		G_CALLBACK(on_editor_menu_popup), self);
+	
+	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->editor_menu),
+						  "show", TRUE, G_CALLBACK(on_editor_menu_popup), self);
+	
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(p->editor_menu_item), doc_menu);
 	gtk_menu_shell_append(GTK_MENU_SHELL(geany->main_widgets->editor_menu), p->editor_menu_sep);
 	gtk_menu_shell_append(GTK_MENU_SHELL(geany->main_widgets->editor_menu), p->editor_menu_item);
@@ -536,7 +533,7 @@ static void devhelp_plugin_init(DevhelpPlugin * self)
 	p->codesearch_params = NULL;
 	p->codesearch_use_lang = TRUE;
 
-    p->main_nb_tab_pos = GTK_POS_BOTTOM;
+	p->main_nb_tab_pos = GTK_POS_BOTTOM;
 
 	devhelp_plugin_init_edit_menu(self);
 	devhelp_plugin_init_sidebar(self);
@@ -584,17 +581,12 @@ const gchar *devhelp_plugin_get_webview_uri(DevhelpPlugin *self)
 void devhelp_plugin_set_webview_uri(DevhelpPlugin *self, const gchar *uri)
 {
 	/* stolen from Webhelper plugin */
-	gchar *real_uri;
-	gchar *scheme;
-
 	g_return_if_fail(DEVHELP_IS_PLUGIN(self));
-
-	if (uri == NULL)
-		real_uri = g_filename_to_uri(DHPLUG_WEBVIEW_HOME_FILE, NULL, NULL);
-	else
-		real_uri = g_strdup(uri);
-
-	scheme = g_uri_parse_scheme(real_uri);
+	
+	gchar *real_uri = uri ? g_strdup(uri)
+						  : g_filename_to_uri(DHPLUG_WEBVIEW_HOME_FILE, NULL, NULL);
+	
+	gchar *scheme = g_uri_parse_scheme(real_uri);
 	if (!scheme)
 	{
 		gchar *tmp = g_strconcat("http://", uri, NULL);
@@ -602,7 +594,7 @@ void devhelp_plugin_set_webview_uri(DevhelpPlugin *self, const gchar *uri)
 		real_uri = tmp;
 	}
 	g_free(scheme);
-
+	
 	if (g_strcmp0(real_uri, devhelp_plugin_get_webview_uri(self)) != 0)
 	{
 		webkit_web_view_open(WEBKIT_WEB_VIEW(self->priv->webview), real_uri);
@@ -816,7 +808,7 @@ gboolean devhelp_plugin_get_in_message_window(DevhelpPlugin *self)
 
 /* Refs the webkit tab stuff and removes it from parents, returns pointer to
  * widget that was ref'd. */
-static GtkWidget* devhelp_plugin_ref_unpack_webview_tab(DevhelpPlugin *self)
+static GtkWidget *devhelp_plugin_ref_unpack_webview_tab(DevhelpPlugin *self)
 {
 	GtkWidget *parent, *doc_nb;
 
@@ -977,7 +969,7 @@ void devhelp_plugin_set_zoom_level(DevhelpPlugin *self, gfloat zoom_level)
 }
 
 
-WebKitWebView* devhelp_plugin_get_webview(DevhelpPlugin *self)
+WebKitWebView *devhelp_plugin_get_webview(DevhelpPlugin *self)
 {
 	g_return_val_if_fail(DEVHELP_IS_PLUGIN(self), NULL);
 	return WEBKIT_WEB_VIEW(self->priv->webview);
@@ -1252,7 +1244,7 @@ void devhelp_plugin_activate_all_tabs(DevhelpPlugin *self)
 
 
 /* Called when the editor menu item is selected */
-static void on_search_help_activate(GtkMenuItem * menuitem, DevhelpPlugin *self)
+static void on_search_help_activate(GtkMenuItem *menuitem, DevhelpPlugin *self)
 {
 	gchar *current_tag;
 
@@ -1268,7 +1260,7 @@ static void on_search_help_activate(GtkMenuItem * menuitem, DevhelpPlugin *self)
 
 
 /* Called when the editor menu item is selected */
-static void on_search_help_man_activate(GtkMenuItem * menuitem, DevhelpPlugin *self)
+static void on_search_help_man_activate(GtkMenuItem *menuitem, DevhelpPlugin *self)
 {
 	gchar *current_tag;
 
@@ -1388,4 +1380,3 @@ static void on_load_status_changed_notify(GObject *object, GParamSpec *pspec, De
 {
 	update_history_buttons(self);
 }
-

@@ -21,12 +21,11 @@
  * $Id$
  */
 
-
 #ifdef HAVE_CONFIG_H
 	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>	// includes geany.h
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_blanklines.h"
@@ -42,8 +41,8 @@
 #include "ao_copyfilepath.h"
 #include "ao_colortip.h"
 
-#include "../../utils/src/ui_plugins.h"
-
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
 
 GeanyPlugin		*geany_plugin = NULL;
 GeanyData		*geany_data = NULL;
@@ -244,205 +243,184 @@ GtkWidget *ao_image_menu_item_new(const gchar *stock_id, const gchar *label)
 static void ao_configure_tasks_toggled_cb(GtkToggleButton *togglebutton,
 										  gpointer data)
 {
-	gboolean sens = gtk_toggle_button_get_active(togglebutton);
-	
 	gtk_widget_set_sensitive(g_object_get_data(G_OBJECT(data), "vbox_tasks"),
-							 sens);
+							 gtk_toggle_button_get_active(togglebutton));
 }
 
 
 static void ao_configure_markword_toggled_cb(GtkToggleButton *togglebutton,
 											 gpointer data)
 {
-	gboolean sens = gtk_toggle_button_get_active(togglebutton);
-	
 	gtk_widget_set_sensitive(g_object_get_data(G_OBJECT(data), "vbox_markword"),
-							 sens);
+							 gtk_toggle_button_get_active(togglebutton));
 }
 
 
 static void ao_configure_doclist_toggled_cb(GtkToggleButton *togglebutton,
 											gpointer data)
 {
-	gboolean sens = gtk_toggle_button_get_active(togglebutton);
-	
 	gtk_widget_set_sensitive(g_object_get_data(G_OBJECT(data), "vbox_doclist"),
-							 sens);
+							 gtk_toggle_button_get_active(togglebutton));
 }
 
 
 static void ao_configure_response_cb(GtkDialog *dialog, gint response,
 									 gpointer user_data)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		GKeyFile *config = g_key_file_new();
-		gchar *data;
-		gchar *config_dir = g_path_get_dirname(ao_info->config_file);
-		
-		ao_info->enable_doclist = gtk_toggle_button_get_active(
-									GTK_TOGGLE_BUTTON(g_object_get_data(
-										G_OBJECT(dialog), "check_doclist")));
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_object_get_data(
-										G_OBJECT(dialog), "radio_doclist_name"))))
-			ao_info->doclist_sort_mode = DOCLIST_SORT_BY_NAME;
-		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_object_get_data(
-										G_OBJECT(dialog), "radio_doclist_tab_order_reversed"))))
-			ao_info->doclist_sort_mode = DOCLIST_SORT_BY_TAB_ORDER_REVERSE;
-		else
-			ao_info->doclist_sort_mode = DOCLIST_SORT_BY_TAB_ORDER;
-		
-		ao_info->enable_openuri = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_openuri"))));
-		ao_info->enable_tasks = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_tasks"))));
-		ao_info->tasks_scan_all_documents = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_tasks_scan_mode"))));
-		g_free(ao_info->tasks_token_list);
-		ao_info->tasks_token_list = g_strdup(gtk_entry_get_text(GTK_ENTRY(
-			g_object_get_data(G_OBJECT(dialog), "entry_tasks_tokens"))));
-		ao_info->enable_systray = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_systray"))));
-		ao_info->enable_bookmarklist = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_bookmarklist"))));
-		ao_info->enable_markword = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_markword"))));
-		ao_info->enable_markword_single_click_deselect = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_markword_single_click_deselect"))));
-		ao_info->strip_trailing_blank_lines = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_blanklines"))));
-		ao_info->enable_xmltagging = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_xmltagging"))));
-		ao_info->enable_enclose_words = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_enclose_words"))));
-		ao_info->enable_enclose_words_auto = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_enclose_words_auto"))));
-		ao_info->enable_colortip = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_colortip"))));
-		ao_info->enable_double_click_color_chooser = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
-			g_object_get_data(G_OBJECT(dialog), "check_double_click_color_chooser"))));
-		
-		ao_enclose_words_set_enabled(ao_info->enable_enclose_words, ao_info->enable_enclose_words_auto);
-		
-		g_key_file_load_from_file(config, ao_info->config_file, G_KEY_FILE_NONE, NULL);
-		g_key_file_set_boolean(config, "addons",
-			"show_toolbar_doclist_item", ao_info->enable_doclist);
-		g_key_file_set_integer(config, "addons", "doclist_sort_mode", ao_info->doclist_sort_mode);
-		g_key_file_set_boolean(config, "addons", "enable_openuri", ao_info->enable_openuri);
-		g_key_file_set_boolean(config, "addons", "enable_tasks", ao_info->enable_tasks);
-		g_key_file_set_string(config, "addons", "tasks_token_list", ao_info->tasks_token_list);
-		g_key_file_set_boolean(config, "addons", "tasks_scan_all_documents",
-			ao_info->tasks_scan_all_documents);
-		g_key_file_set_boolean(config, "addons", "enable_systray", ao_info->enable_systray);
-		g_key_file_set_boolean(config, "addons", "enable_bookmarklist",
-			ao_info->enable_bookmarklist);
-		g_key_file_set_boolean(config, "addons", "enable_markword", ao_info->enable_markword);
-		g_key_file_set_boolean(config, "addons", "enable_markword_single_click_deselect",
-			ao_info->enable_markword_single_click_deselect);
-		g_key_file_set_boolean(config, "addons", "strip_trailing_blank_lines",
-		  ao_info->strip_trailing_blank_lines);
-		g_key_file_set_boolean(config, "addons", "enable_xmltagging",
-			ao_info->enable_xmltagging);
-		g_key_file_set_boolean(config, "addons", "enable_enclose_words",
-			ao_info->enable_enclose_words);
-		g_key_file_set_boolean(config, "addons", "enable_enclose_words_auto",
-			ao_info->enable_enclose_words_auto);
-		g_key_file_set_boolean(config, "addons", "enable_colortip", ao_info->enable_colortip);
-		g_key_file_set_boolean(config, "addons", "enable_double_click_color_chooser",
-			ao_info->enable_double_click_color_chooser);
-		
-		g_object_set(ao_info->doclist, "enable-doclist", ao_info->enable_doclist, NULL);
-		g_object_set(ao_info->doclist, "sort-mode", ao_info->doclist_sort_mode, NULL);
-		g_object_set(ao_info->openuri, "enable-openuri", ao_info->enable_openuri, NULL);
-		g_object_set(ao_info->systray, "enable-systray", ao_info->enable_systray, NULL);
-		g_object_set(ao_info->bookmarklist, "enable-bookmarklist",
-			ao_info->enable_bookmarklist, NULL);
-		g_object_set(ao_info->markword,
-			"enable-markword", ao_info->enable_markword,
-			"enable-single-click-deselect", ao_info->enable_markword_single_click_deselect,
-			NULL);
-		g_object_set(ao_info->tasks,
-			"enable-tasks", ao_info->enable_tasks,
-			"scan-all-documents", ao_info->tasks_scan_all_documents,
-			"tokens", ao_info->tasks_token_list,
-			NULL);
-		ao_blanklines_set_enable(ao_info->strip_trailing_blank_lines);
-		g_object_set(ao_info->colortip,
-			"enable-colortip", ao_info->enable_colortip,
-			"enable-double-click-color-chooser", ao_info->enable_double_click_color_chooser,
-			NULL);
-		
-		if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-			utils_mkdir(config_dir, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-		else
-		{
-			/* write config to file */
-			data = g_key_file_to_data(config, NULL, NULL);
-			utils_write_file(ao_info->config_file, data);
-			g_free(data);
-		}
-		g_free(config_dir);
-		g_key_file_free(config);
-	}
+	if (!ok_apply(response)) return;
+	
+	ao_info->enable_doclist = gtk_toggle_button_get_active(
+								GTK_TOGGLE_BUTTON(g_object_get_data(
+									G_OBJECT(dialog), "check_doclist")));
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+									G_OBJECT(dialog), "radio_doclist_name"))))
+		ao_info->doclist_sort_mode = DOCLIST_SORT_BY_NAME;
+	else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(g_object_get_data(
+									G_OBJECT(dialog), "radio_doclist_tab_order_reversed"))))
+		ao_info->doclist_sort_mode = DOCLIST_SORT_BY_TAB_ORDER_REVERSE;
+	else
+		ao_info->doclist_sort_mode = DOCLIST_SORT_BY_TAB_ORDER;
+	
+	ao_info->enable_openuri = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_openuri"))));
+	ao_info->enable_tasks = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_tasks"))));
+	ao_info->tasks_scan_all_documents = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_tasks_scan_mode"))));
+	g_free(ao_info->tasks_token_list);
+	ao_info->tasks_token_list = g_strdup(gtk_entry_get_text(GTK_ENTRY(
+		g_object_get_data(G_OBJECT(dialog), "entry_tasks_tokens"))));
+	ao_info->enable_systray = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_systray"))));
+	ao_info->enable_bookmarklist = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_bookmarklist"))));
+	ao_info->enable_markword = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_markword"))));
+	ao_info->enable_markword_single_click_deselect = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_markword_single_click_deselect"))));
+	ao_info->strip_trailing_blank_lines = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_blanklines"))));
+	ao_info->enable_xmltagging = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_xmltagging"))));
+	ao_info->enable_enclose_words = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_enclose_words"))));
+	ao_info->enable_enclose_words_auto = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_enclose_words_auto"))));
+	ao_info->enable_colortip = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_colortip"))));
+	ao_info->enable_double_click_color_chooser = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+		g_object_get_data(G_OBJECT(dialog), "check_double_click_color_chooser"))));
+	
+	ao_enclose_words_set_enabled(ao_info->enable_enclose_words,
+								 ao_info->enable_enclose_words_auto);
+	
+	GKeyFile *config = load_config_from_file(ao_info->config_file, NULL);
+	
+	g_key_file_set_boolean(config, CONFIG_SECTION, "show_toolbar_doclist_item",
+						   ao_info->enable_doclist);
+	g_key_file_set_integer(config, CONFIG_SECTION, "doclist_sort_mode",
+						   ao_info->doclist_sort_mode);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_openuri",
+						   ao_info->enable_openuri);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_tasks",
+						   ao_info->enable_tasks);
+	g_key_file_set_string(config, CONFIG_SECTION, "tasks_token_list",
+						  ao_info->tasks_token_list);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "tasks_scan_all_documents",
+						   ao_info->tasks_scan_all_documents);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_systray",
+						   ao_info->enable_systray);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_bookmarklist",
+						   ao_info->enable_bookmarklist);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_markword",
+						   ao_info->enable_markword);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_markword_single_click_deselect",
+						   ao_info->enable_markword_single_click_deselect);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "strip_trailing_blank_lines",
+						   ao_info->strip_trailing_blank_lines);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_xmltagging",
+						   ao_info->enable_xmltagging);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_enclose_words",
+						   ao_info->enable_enclose_words);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_enclose_words_auto",
+						   ao_info->enable_enclose_words_auto);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_colortip",
+						   ao_info->enable_colortip);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "enable_double_click_color_chooser",
+						   ao_info->enable_double_click_color_chooser);
+	
+	g_object_set(ao_info->doclist, "enable-doclist", ao_info->enable_doclist, NULL);
+	g_object_set(ao_info->doclist, "sort-mode", ao_info->doclist_sort_mode, NULL);
+	g_object_set(ao_info->openuri, "enable-openuri", ao_info->enable_openuri, NULL);
+	g_object_set(ao_info->systray, "enable-systray", ao_info->enable_systray, NULL);
+	g_object_set(ao_info->bookmarklist, "enable-bookmarklist",
+				 ao_info->enable_bookmarklist, NULL);
+	g_object_set(ao_info->markword,
+				 "enable-markword", ao_info->enable_markword,
+				 "enable-single-click-deselect", ao_info->enable_markword_single_click_deselect,
+				 NULL);
+	g_object_set(ao_info->tasks,
+				 "enable-tasks", ao_info->enable_tasks,
+				 "scan-all-documents", ao_info->tasks_scan_all_documents,
+				 "tokens", ao_info->tasks_token_list,
+				 NULL);
+	ao_blanklines_set_enable(ao_info->strip_trailing_blank_lines);
+	g_object_set(ao_info->colortip,
+				 "enable-colortip", ao_info->enable_colortip,
+				 "enable-double-click-color-chooser", ao_info->enable_double_click_color_chooser,
+				 NULL);
+	
+	write_config_to_file(config, ao_info->config_file, MSGBOX);
+	g_key_file_free(config);
 }
 
 
 /* Initialization */
 static gboolean plugin_addons_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 {
-	GKeyFile *config = g_key_file_new();
 	GtkWidget *ao_copy_file_name_menu_item;
 	GtkWidget *ao_copy_file_path_menu_item;
-	GeanyKeyGroup *key_group;
 	
 	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	
 	ao_info = g_new0(AddonsInfo, 1);
+	ao_info->config_file = get_config_filepath(PLUGIN, NULL);
 	
-	ao_info->config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-									   "plugins", G_DIR_SEPARATOR_S,
-									   "addons", G_DIR_SEPARATOR_S,
-									   "addons.conf", NULL);
+	GKeyFile *config = load_config_from_file(ao_info->config_file, NULL);
 	
-	g_key_file_load_from_file(config, ao_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
 	ao_info->enable_doclist = utils_get_setting_boolean(config,
-		"addons", "show_toolbar_doclist_item", TRUE);
+		CONFIG_SECTION, "show_toolbar_doclist_item", TRUE);
 	ao_info->doclist_sort_mode = utils_get_setting_integer(config,
-		"addons", "doclist_sort_mode", DOCLIST_SORT_BY_TAB_ORDER);
+		CONFIG_SECTION, "doclist_sort_mode", DOCLIST_SORT_BY_TAB_ORDER);
 	ao_info->enable_openuri = utils_get_setting_boolean(config,
-		"addons", "enable_openuri", FALSE);
+		CONFIG_SECTION, "enable_openuri", FALSE);
 	ao_info->enable_tasks = utils_get_setting_boolean(config,
-		"addons", "enable_tasks", TRUE);
+		CONFIG_SECTION, "enable_tasks", TRUE);
 	ao_info->tasks_scan_all_documents = utils_get_setting_boolean(config,
-		"addons", "tasks_scan_all_documents", FALSE);
+		CONFIG_SECTION, "tasks_scan_all_documents", FALSE);
 	ao_info->tasks_token_list = utils_get_setting_string(config,
-		"addons", "tasks_token_list", "TODO;FIXME");
+		CONFIG_SECTION, "tasks_token_list", "TODO;FIXME");
 	ao_info->enable_systray = utils_get_setting_boolean(config,
-		"addons", "enable_systray", FALSE);
+		CONFIG_SECTION, "enable_systray", FALSE);
 	ao_info->enable_bookmarklist = utils_get_setting_boolean(config,
-		"addons", "enable_bookmarklist", FALSE);
+		CONFIG_SECTION, "enable_bookmarklist", FALSE);
 	ao_info->enable_markword = utils_get_setting_boolean(config,
-		"addons", "enable_markword", FALSE);
+		CONFIG_SECTION, "enable_markword", FALSE);
 	ao_info->enable_markword_single_click_deselect = utils_get_setting_boolean(config,
-		"addons", "enable_markword_single_click_deselect", FALSE);
+		CONFIG_SECTION, "enable_markword_single_click_deselect", FALSE);
 	ao_info->strip_trailing_blank_lines = utils_get_setting_boolean(config,
-		"addons", "strip_trailing_blank_lines", FALSE);
-	ao_info->enable_xmltagging = utils_get_setting_boolean(config, "addons",
-		"enable_xmltagging", FALSE);
-	ao_info->enable_enclose_words = utils_get_setting_boolean(config, "addons",
-		"enable_enclose_words", FALSE);
-	ao_info->enable_enclose_words_auto = utils_get_setting_boolean(config, "addons",
-		"enable_enclose_words_auto", FALSE);
+		CONFIG_SECTION, "strip_trailing_blank_lines", FALSE);
+	ao_info->enable_xmltagging = utils_get_setting_boolean(config,
+		CONFIG_SECTION, "enable_xmltagging", FALSE);
+	ao_info->enable_enclose_words = utils_get_setting_boolean(config,
+		CONFIG_SECTION, "enable_enclose_words", FALSE);
+	ao_info->enable_enclose_words_auto = utils_get_setting_boolean(config,
+		CONFIG_SECTION, "enable_enclose_words_auto", FALSE);
 	ao_info->enable_colortip = utils_get_setting_boolean(config,
-		"addons", "enable_colortip", FALSE);
+		CONFIG_SECTION, "enable_colortip", FALSE);
 	ao_info->enable_double_click_color_chooser = utils_get_setting_boolean(config,
-		"addons", "enable_double_click_color_chooser", FALSE);
+		CONFIG_SECTION, "enable_double_click_color_chooser", FALSE);
 	
 	plugin_module_make_resident(geany_plugin);
 	
@@ -464,8 +442,9 @@ static gboolean plugin_addons_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer p
 	ao_blanklines_set_enable(ao_info->strip_trailing_blank_lines);
 	
 	/* setup keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "addons",
-									 KB_COUNT + AO_WORDWRAP_KB_COUNT, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													KB_COUNT + AO_WORDWRAP_KB_COUNT,
+													NULL);
 	keybindings_set_item(key_group, KB_FOCUS_BOOKMARK_LIST, kb_bmlist_activate,
 		0, 0, "focus_bookmark_list", _("Focus Bookmark List"), NULL);
 	keybindings_set_item(key_group, KB_FOCUS_TASKS, kb_tasks_activate,

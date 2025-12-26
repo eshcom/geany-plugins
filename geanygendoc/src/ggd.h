@@ -21,21 +21,19 @@
 #ifndef H_GGD
 #define H_GGD
 
-#include <glib.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-macros.h"
 
+
 G_BEGIN_DECLS
 GGD_BEGIN_PLUGIN_API
-
 
 gboolean        ggd_insert_comment            (GeanyDocument *doc,
                                                gint           line,
                                                const gchar   *doc_type);
 gboolean        ggd_insert_all_comments       (GeanyDocument *doc,
                                                const gchar   *doc_type);
-
 
 GGD_END_PLUGIN_API
 G_END_DECLS

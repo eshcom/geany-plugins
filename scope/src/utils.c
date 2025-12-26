@@ -18,18 +18,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include "common.h"
 
@@ -190,29 +185,28 @@ void store_save(ScpTreeStore *store, GKeyFile *config, const gchar *prefix,
 	} while (valid);
 }
 
-gint store_gint_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b, gpointer gdata)
+gint store_gint_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b,
+						gpointer gdata)
 {
 	const gchar *s1, *s2;
-
+	
 	scp_tree_store_get(store, a, GPOINTER_TO_INT(gdata), &s1, -1);
 	scp_tree_store_get(store, b, GPOINTER_TO_INT(gdata), &s2, -1);
 	return utils_atoi0(s1) - utils_atoi0(s2);
 }
 
 gint store_seek_compare(ScpTreeStore *store, GtkTreeIter *a, GtkTreeIter *b,
-	G_GNUC_UNUSED gpointer gdata)
+						G_GNUC_UNUSED gpointer gdata)
 {
 	gint result = scp_tree_store_compare_func(store, a, b, GINT_TO_POINTER(COLUMN_FILE));
-
 	if (!result)
 	{
 		gint i1, i2;
-
+		
 		scp_tree_store_get(store, a, COLUMN_LINE, &i1, -1);
 		scp_tree_store_get(store, b, COLUMN_LINE, &i2, -1);
 		result = i1 - i2;
 	}
-
 	return result;
 }
 
@@ -458,18 +452,6 @@ guint utils_parse_sci_color(const gchar *string)
 	red = color.red * 0xFF;
 	return (blue << 16) + (green << 8) + red;
 #endif
-}
-
-gboolean utils_key_file_write_to_file(GKeyFile *config, const char *configfile)
-{
-	gchar *data = g_key_file_to_data(config, NULL, NULL);
-	gint error = utils_write_file(configfile, data);
-
-	g_free(data);
-	if (error)
-		msgwin_status_add(_("Scope: %s: %s."), configfile, g_strerror(error));
-
-	return !error;
 }
 
 gchar *utils_key_file_get_string(GKeyFile *config, const char *section, const char *key)

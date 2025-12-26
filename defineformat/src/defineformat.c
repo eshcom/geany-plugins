@@ -17,23 +17,19 @@
  *      MA 02110-1301, USA.
  */
 
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <string.h>
 #ifdef HAVE_LOCALE_H
 	#include <locale.h>
 #endif
 
-#include <gdk/gdkkeysyms.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+#include <SciLexer.h>
 
-#include <geanyplugin.h>
-#include <geany.h>
+GeanyData *geany_data;		// the code uses the macro "geany" (see geany->)
 
-#include "Scintilla.h"
-#include "SciLexer.h"
 
 /* #define DEBUG */
 
@@ -44,9 +40,6 @@
 #endif
 
 #define SSM(s, m, w, l) scintilla_send_message(s, m, w, l)
-
-GeanyPlugin		*geany_plugin;
-GeanyData		*geany_data;
 
 static GArray *lines_stack = NULL;
 
@@ -145,7 +138,7 @@ define_format_line(ScintillaObject *sci, gint current_line)
 	gint    length;
 	gint    first_line;
 	gint    first_end;
-	gint    max = geany_data->editor_prefs->long_line_column;
+	gint    max = geany->editor_prefs->long_line_column;
 
 	if(!inside_define(sci, current_line, FALSE))
 		return;
@@ -238,7 +231,6 @@ static PluginCallback plugin_defineformat_callbacks[] =
 
 static gboolean plugin_defineformat_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointer pdata)
 {
-	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	lines_stack = g_array_new (TRUE, FALSE, sizeof(gint));
 	return TRUE;

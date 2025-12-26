@@ -17,21 +17,18 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <sys/time.h>
-#include <string.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "prjorg-project.h"
 #include "prjorg-sidebar.h"
 #include "prjorg-menu.h"
 
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
-GeanyPlugin *geany_plugin;
-GeanyData *geany_data;
 
 PLUGIN_VERSION_CHECK(235)
 PLUGIN_SET_TRANSLATABLE_INFO(
@@ -180,13 +177,13 @@ PluginCallback plugin_callbacks[] = {
 
 static gboolean write_config_cb(gpointer user_data)
 {
-	if (geany_data->app->project && !prj_org)
+	if (geany->app->project && !prj_org)
 		project_write_config();
 	return FALSE;
 }
 
 
-void plugin_init(G_GNUC_UNUSED GeanyData * data)
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
 	prjorg_menu_init();
 	prjorg_sidebar_init();
@@ -206,7 +203,7 @@ void plugin_init(G_GNUC_UNUSED GeanyData * data)
 
 void plugin_cleanup(void)
 {
-	if (geany_data->app->project)
+	if (geany->app->project)
 	{
 		prjorg_project_close();
 		prjorg_sidebar_update(TRUE);

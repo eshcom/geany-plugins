@@ -21,20 +21,23 @@
 
 /*========================================== INCLUDES ==========================================================*/
 
-#include <stdlib.h>
-#include <stdio.h>
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/parser.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "PrettyPrinter.h"
 #include "ConfigUI.h"
 
+#include "../../utils/src/common.h"
+
 /*========================================== PROPERTIES ========================================================*/
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
 
 /*========================================== FUNCTIONS =========================================================*/
 

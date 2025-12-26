@@ -19,20 +19,25 @@
  * MA 02110-1301, USA.
  */
 
-#include "config.h"
-#include <string.h>
-#include <gtk/gtk.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h"     // for the gettext domain
+#endif
+
 #ifdef MARKDOWN_WEBKIT2
-# include <webkit2/webkit2.h>
+  #include <webkit2/webkit2.h>
 #else
-# include <webkit/webkitwebview.h>
+  #include <webkit/webkitwebview.h>
 #endif
-#include <geanyplugin.h>
+
 #ifndef FULL_PRICE
-# include <mkdio.h>
+  #include <mkdio.h>
 #else
-# include "markdown_lib.h"
+  #include "markdown_lib.h"
 #endif
+
+#include <string.h>
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
+
 #include "viewer.h"
 #include "conf.h"
 

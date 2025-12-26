@@ -16,11 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef GP_UTILS_UI_PLUGINS_H
-#define GP_UTILS_UI_PLUGINS_H
-
-#include <geanyplugin.h> // includes geany.h
-
+#ifndef GP_UTILS_UI_H
+#define GP_UTILS_UI_H
 
 /* Pre-GTK 2.24 compatibility */
 #ifndef GTK_COMBO_BOX_TEXT
@@ -28,7 +25,6 @@
 	#define gtk_combo_box_text_new gtk_combo_box_new_text
 	#define gtk_combo_box_text_append_text gtk_combo_box_append_text
 #endif
-
 
 G_BEGIN_DECLS
 
@@ -79,8 +75,8 @@ DoubleWidget add_checkbutton(GtkWidget *parent_box, const gchar *check_text,
 							 const gboolean checked, const gchar *tooltip_text,
 							 const gboolean add_offset);
 
-gchar *get_data_dir_path(const gchar *filename);
+GtkBuilder *get_ui_builder_from_file(const gchar *filepath);
 
 G_END_DECLS
 
-#endif /* GP_UTILS_UI_PLUGINS_H */
+#endif /* GP_UTILS_UI_H */

@@ -18,25 +18,19 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_colortip.h"
 
-typedef struct _AoColorTipPrivate			AoColorTipPrivate;
 
-#define AO_COLORTIP_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_COLORTIP_TYPE, AoColorTipPrivate))
+typedef struct _AoColorTipPrivate AoColorTipPrivate;
 
 // This is helpful for making the color-tip larger on 4K screens or for people with less acute vision 
 #if (!(defined(COLOR_TIP_TEMPLATE) || defined(LARGE_COLOR_TIP)))
-#   define COLOR_TIP_TEMPLATE   "    "
+	#define COLOR_TIP_TEMPLATE   "    "
 #else
-#   define COLOR_TIP_TEMPLATE   "        \n        "
+	#define COLOR_TIP_TEMPLATE   "        \n        "
 #endif
 
 struct _AoColorTip
@@ -62,9 +56,9 @@ enum
 	PROP_ENABLE_DOUBLE_CLICK_COLOR_CHOOSER,
 };
 
-G_DEFINE_TYPE(AoColorTip, ao_color_tip, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoColorTip, ao_color_tip, G_TYPE_OBJECT)
 
-#  define SSM(s, m, w, l) scintilla_send_message (s, m, w, l)
+#define SSM(s, m, w, l) scintilla_send_message(s, m, w, l)
 
 
 /* Find a color value (short or long form, e.g. #fff or #ffffff) in the
@@ -192,7 +186,7 @@ static gboolean on_editor_button_press_event(GtkWidget *widget, GdkEventButton *
 	{
 		if (event->type == GDK_2BUTTON_PRESS)
 		{
-			AoColorTipPrivate *priv = AO_COLORTIP_GET_PRIVATE(colortip);
+			AoColorTipPrivate *priv = ao_color_tip_get_instance_private(colortip);
 
 			if (!priv->enable_double_click_color_chooser)
 				return FALSE;
@@ -211,7 +205,7 @@ static gboolean on_editor_button_press_event(GtkWidget *widget, GdkEventButton *
 void ao_color_tip_editor_notify(AoColorTip *colortip, GeanyEditor *editor, SCNotification *nt)
 {
 	ScintillaObject *sci = editor->sci;
-	AoColorTipPrivate *priv = AO_COLORTIP_GET_PRIVATE(colortip);
+	AoColorTipPrivate *priv = ao_color_tip_get_instance_private(colortip);
 
 	if (!priv->enable_colortip)
 	{
@@ -309,7 +303,7 @@ static void ao_color_tip_finalize(GObject *object)
 static void ao_color_tip_set_property(GObject *object, guint prop_id,
 									  const GValue *value, GParamSpec *pspec)
 {
-	AoColorTipPrivate *priv = AO_COLORTIP_GET_PRIVATE(object);
+	AoColorTipPrivate *priv = ao_color_tip_get_instance_private((AoColorTip *)object);
 
 	switch (prop_id)
 	{
@@ -363,7 +357,6 @@ static void ao_color_tip_class_init(AoColorTipClass *klass)
 	g_object_class = G_OBJECT_CLASS(klass);
 	g_object_class->finalize = ao_color_tip_finalize;
 	g_object_class->set_property = ao_color_tip_set_property;
-	g_type_class_add_private(klass, sizeof(AoColorTipPrivate));
 
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_COLORTIP,
@@ -386,7 +379,7 @@ static void ao_color_tip_class_init(AoColorTipClass *klass)
 
 static void ao_color_tip_init(AoColorTip *self)
 {
-	AoColorTipPrivate *priv = AO_COLORTIP_GET_PRIVATE(self);
+	AoColorTipPrivate *priv = ao_color_tip_get_instance_private(self);
 	memset(priv, 0, sizeof(*priv));
 }
 

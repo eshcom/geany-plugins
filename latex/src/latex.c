@@ -25,14 +25,18 @@
 /* LaTeX plugin */
 /* This plugin improves the work with LaTeX and Geany.*/
 
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <glib/gstdio.h>
+#include <ctype.h>
+
 #include "latex.h"
-#include "ctype.h"
+#include "../../utils/src/common.h"
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -44,8 +48,6 @@ PLUGIN_SET_TRANSLATABLE_INFO(
 	"0.7",
 	"Frank Lanitz <frank@frank.uvena.de>")
 
-GeanyPlugin	 *geany_plugin;
-GeanyData	   *geany_data;
 
 /* Widgets for plugin */
 static GtkWidget *menu_latex = NULL;
@@ -182,170 +184,76 @@ static GtkWidget *init_toolbar(void)
 }
 
 
-/* Move "geanyLaTex/general.conf" to "LaTex/general.conf"
-   if it still exists. */
-static void
-move_old_config_file(void)
+static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
+								  G_GNUC_UNUSED gpointer user_data)
 {
-	gchar *filename_old, *filename_new, *dir_new;
-	GFile *file_old, *file_new;
-
-	filename_old = g_strconcat(geany->app->configdir,
-		G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-		"geanyLaTeX", G_DIR_SEPARATOR_S, "general.conf", NULL);
-
-	if (g_file_test(filename_old, G_FILE_TEST_EXISTS))
+	if (!ok_apply(response)) return;
+	
+	config_file = get_config_filepath(PLUGIN, NULL);
+	
+	glatex_set_koma_active =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.koma_active));
+	glatex_set_toolbar_active =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.toolbar_active));
+	glatex_capitalize_sentence_starts =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.glatex_capitalize_sentence));
+	glatex_wizard_to_generic_toolbar =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.wizard_to_generic_toolbar));
+	glatex_lowercase_on_smallcaps =
+		gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.lower_selection_on_smallcaps));
+	
+	/* Check the response code for LaTeX's autocompletion functions.
+	 * Due compatibility with oder Geany versions cass 0 will be treated
+	 * as FALSE, which means autocompletion is deactivated. */
+	gint glatex_autocompletion_active_response =
+				gtk_combo_box_get_active(GTK_COMBO_BOX(
+					config_widgets.glatex_autocompletion_active));
+	
+	glatex_autocompletion_active = (glatex_autocompletion_active_response != 0);
+	
+	/* write stuff to file */
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	g_key_file_set_boolean(config, "general", "glatex_set_koma_active",
+		glatex_set_koma_active);
+	g_key_file_set_boolean(config, "general", "glatex_set_toolbar_active",
+		glatex_set_toolbar_active);
+	g_key_file_set_boolean(config, "general", "glatex_set_autocompletion",
+		glatex_autocompletion_active);
+	g_key_file_set_boolean(config, "general", "glatex_lowercase_on_smallcaps",
+		glatex_lowercase_on_smallcaps);
+	g_key_file_set_boolean(config, "autocompletion",
+		"glatex_capitalize_sentence_starts", glatex_capitalize_sentence_starts);
+	g_key_file_set_boolean(config, "toolbar", "glatex_wizard_to_generic_toolbar",
+		glatex_wizard_to_generic_toolbar);
+	
+	write_config_to_file(config, config_file, MSGBOX);
+	g_key_file_free(config);
+	
+	/* Apply changes to Geany */
+	/* Add toolbar if requested */
+	if (glatex_set_toolbar_active)
 	{
-		filename_new = g_strconcat(geany->app->configdir,
-			G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-			"LaTeX", G_DIR_SEPARATOR_S, "general.conf", NULL);
-
-		dir_new = g_path_get_dirname(filename_new);
-		if (!g_file_test(dir_new, G_FILE_TEST_IS_DIR)
-			&& utils_mkdir(dir_new, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-
-		file_old = g_file_new_for_path(filename_old);
-		file_new = g_file_new_for_path(filename_new);
-
-		g_file_move(file_old, file_new, 0, NULL, NULL, NULL, NULL);
-
-		g_object_unref(file_old);
-		g_object_unref(file_new);
-
-		if (!g_file_test(filename_old, G_FILE_TEST_EXISTS))
-		{
-			gchar *dir_old;
-
-			/* File move successful, remove old dir. */
-			dir_old = g_path_get_dirname(filename_old);
-			g_rmdir(dir_old);
-			g_free(dir_old);
-		}
-
-		g_free(filename_new);
-		g_free(dir_new);
+		if (glatex_toolbar)
+			gtk_widget_show(glatex_toolbar);
+		else
+			glatex_toolbar = init_toolbar();
 	}
-
-	g_free(filename_old);
+	else if (!glatex_set_toolbar_active && glatex_toolbar) // Hide toolbar
+		gtk_widget_hide(glatex_toolbar);
+	
+	/* Add wizard to generic toolbar if requested */
+	if (glatex_wizard_to_generic_toolbar && !glatex_wizard_generic_toolbar_item)
+		add_wizard_to_generic_toolbar();
+	else if (!glatex_wizard_to_generic_toolbar && glatex_wizard_generic_toolbar_item)
+		remove_wizard_from_generic_toolbar();
 }
 
-
-static void
-on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
-					  G_GNUC_UNUSED gpointer user_data)
+GtkWidget *plugin_configure(GtkDialog * dialog)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		GKeyFile *config = g_key_file_new();
-		gchar *data;
-		gchar *config_dir = g_path_get_dirname(config_file);
-		gint glatex_autocompletion_active_response;
-
-		config_file = g_strconcat(geany->app->configdir,
-			G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-			"LaTeX", G_DIR_SEPARATOR_S, "general.conf", NULL);
-		glatex_set_koma_active =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.koma_active));
-		glatex_set_toolbar_active =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.toolbar_active));
-		glatex_capitalize_sentence_starts =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.glatex_capitalize_sentence));
-		glatex_wizard_to_generic_toolbar =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.wizard_to_generic_toolbar));
-		glatex_lowercase_on_smallcaps =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.lower_selection_on_smallcaps));
-
-		/* Check the response code for LaTeX's autocompletion functions.
-		 * Due compatibility with oder Geany versions cass 0 will be treated
-		 * as FALSE, which means autocompletion is deactivated. */
-		glatex_autocompletion_active_response = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(config_widgets.glatex_autocompletion_active));
-		if (glatex_autocompletion_active_response == 0)
-			glatex_autocompletion_active = FALSE;
-		else
-			glatex_autocompletion_active = TRUE;
-
-		/* write stuff to file */
-		g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-		g_key_file_set_boolean(config, "general", "glatex_set_koma_active",
-			glatex_set_koma_active);
-		g_key_file_set_boolean(config, "general", "glatex_set_toolbar_active",
-			glatex_set_toolbar_active);
-		g_key_file_set_boolean(config, "general", "glatex_set_autocompletion",
-			glatex_autocompletion_active);
-		g_key_file_set_boolean(config, "general", "glatex_lowercase_on_smallcaps",
-			glatex_lowercase_on_smallcaps);
-		g_key_file_set_boolean(config, "autocompletion",
-			"glatex_capitalize_sentence_starts", glatex_capitalize_sentence_starts);
-		g_key_file_set_boolean(config, "toolbar", "glatex_wizard_to_generic_toolbar",
-			glatex_wizard_to_generic_toolbar);
-
-
-		if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR)
-			&& utils_mkdir(config_dir, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-		else
-		{
-			/* write config to file */
-			data = g_key_file_to_data(config, NULL, NULL);
-			utils_write_file(config_file, data);
-			g_free(data);
-		}
-
-		g_free(config_dir);
-		g_key_file_free(config);
-
-		/* Apply changes to Geany */
-		/* Add toolbar if requested */
-		if (glatex_set_toolbar_active == TRUE)
-		{
-			if (glatex_toolbar == NULL)
-			{
-				glatex_toolbar = init_toolbar();
-			}
-			else
-			{
-				gtk_widget_show(glatex_toolbar);
-			}
-		}
-		/* Hide toolbar */
-		else if (glatex_set_toolbar_active == FALSE && glatex_toolbar != NULL)
-		{
-			gtk_widget_hide(glatex_toolbar);
-		}
-
-		/* Add wizard to generic toolbar if requested */
-		if (glatex_wizard_to_generic_toolbar == TRUE &&
-			glatex_wizard_generic_toolbar_item == NULL)
-		{
-			add_wizard_to_generic_toolbar();
-		}
-		else if (glatex_wizard_to_generic_toolbar == FALSE &&
-				 glatex_wizard_generic_toolbar_item != NULL)
-		{
-			remove_wizard_from_generic_toolbar();
-		}
-	}
-}
-
-GtkWidget *
-plugin_configure(GtkDialog * dialog)
-{
-	GtkWidget   *vbox;
-	GtkWidget   *hbox_autocompletion;
-	GtkWidget   *label_autocompletion = NULL;
-	gint		tmp;
-
-	vbox = gtk_vbox_new(FALSE, 6);
-
+	GtkWidget *hbox_autocompletion;
+	GtkWidget *vbox = gtk_vbox_new(FALSE, 6);
+	
 	config_widgets.koma_active = gtk_check_button_new_with_label(
 		_("Use KOMA script by default"));
 	config_widgets.toolbar_active = gtk_check_button_new_with_label(
@@ -356,46 +264,49 @@ plugin_configure(GtkDialog * dialog)
 		_("Add a wizard icon to Geany's main toolbar"));
 	config_widgets.lower_selection_on_smallcaps = gtk_check_button_new_with_label(
 		_("Lower selection when formatting smallcaps (\\textsc{})"));
-
+	
 	config_widgets.glatex_autocompletion_active = gtk_combo_box_text_new();
-	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(config_widgets.glatex_autocompletion_active), 0,
+	gtk_combo_box_text_insert_text(
+		GTK_COMBO_BOX_TEXT(config_widgets.glatex_autocompletion_active), 0,
 		_("Don't care about this inside plugin"));
-	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(config_widgets.glatex_autocompletion_active), 1,
+	gtk_combo_box_text_insert_text(
+		GTK_COMBO_BOX_TEXT(config_widgets.glatex_autocompletion_active), 1,
 		_("Always perform autocompletion on LaTeX"));
-
+	
 	/* Configuration for auto completion feature */
 	hbox_autocompletion = gtk_hbox_new(FALSE, 3);
-
+	
 	/* Dirty workarround for transferring boolean into a valid interger value */
-	if (glatex_autocompletion_active == TRUE)
-		tmp = 1;
-	else
-		tmp = 0;
-
-	gtk_combo_box_set_active(GTK_COMBO_BOX(config_widgets.glatex_autocompletion_active), tmp);
-
-	label_autocompletion = gtk_label_new(_("Modus of autocompletion"));
-
-	gtk_box_pack_start(GTK_BOX(hbox_autocompletion), label_autocompletion, FALSE, FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(hbox_autocompletion), config_widgets.glatex_autocompletion_active, TRUE, TRUE, 3);
-
+	gint tmp = glatex_autocompletion_active ? 1 : 0;
+	gtk_combo_box_set_active(GTK_COMBO_BOX(config_widgets.glatex_autocompletion_active),
+							 tmp);
+	GtkWidget *label_autocompletion = gtk_label_new(_("Modus of autocompletion"));
+	
+	gtk_box_pack_start(GTK_BOX(hbox_autocompletion),
+					   label_autocompletion, FALSE, FALSE, 3);
+	gtk_box_pack_start(GTK_BOX(hbox_autocompletion),
+					   config_widgets.glatex_autocompletion_active, TRUE, TRUE, 3);
+	
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.koma_active),
-		glatex_set_koma_active);
+								 glatex_set_koma_active);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.koma_active, FALSE, FALSE, 2);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.toolbar_active),
-		glatex_set_toolbar_active);
+								 glatex_set_toolbar_active);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.toolbar_active, FALSE, FALSE, 2);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.glatex_capitalize_sentence),
-		glatex_capitalize_sentence_starts);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.glatex_capitalize_sentence, FALSE, FALSE, 2);
+								 glatex_capitalize_sentence_starts);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.glatex_capitalize_sentence,
+					   FALSE, FALSE, 2);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.wizard_to_generic_toolbar),
-		glatex_wizard_to_generic_toolbar);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.lower_selection_on_smallcaps, FALSE, FALSE, 2);
+								 glatex_wizard_to_generic_toolbar);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.lower_selection_on_smallcaps,
+					   FALSE, FALSE, 2);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.lower_selection_on_smallcaps),
-		glatex_lowercase_on_smallcaps);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.wizard_to_generic_toolbar, FALSE, FALSE, 2);
+								 glatex_lowercase_on_smallcaps);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.wizard_to_generic_toolbar,
+					   FALSE, FALSE, 2);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox_autocompletion, FALSE, FALSE, 2);
-
+	
 	gtk_widget_show_all(vbox);
 	g_signal_connect(dialog, "response", G_CALLBACK(on_configure_response), NULL);
 	return vbox;
@@ -409,87 +320,71 @@ static void glatex_set_latextoggle_status(gboolean new_status)
 		toggle_active = new_status;
 }
 
-static void glatex_toggle_status(G_GNUC_UNUSED GtkMenuItem * menuitem)
+static void glatex_toggle_status(G_GNUC_UNUSED GtkMenuItem *menuitem)
 {
-	if (toggle_active == TRUE)
-		glatex_set_latextoggle_status(FALSE);
-	else
-		glatex_set_latextoggle_status(TRUE);
+	toggle_active ? glatex_set_latextoggle_status(FALSE)
+				  : glatex_set_latextoggle_status(TRUE);
 }
 
 static void toggle_toolbar_item(const gchar *path, gboolean new_status)
 {
 	if (gtk_action_get_sensitive(gtk_ui_manager_get_action(uim, path)) != new_status)
-	{
 		gtk_action_set_sensitive(gtk_ui_manager_get_action(uim, path), new_status);
-	}
 }
 
-static void
-check_for_menu(gint ft_id)
+static void check_for_menu(gint ft_id)
 {
 	/* We don't check whether the menu has been added here, as this
 	 * will is checked by add_menu_to_menubar() anyway */
 	if (ft_id == GEANY_FILETYPES_LATEX)
-	{
 		add_menu_to_menubar();
-	}
+	
 	if (ft_id != GEANY_FILETYPES_LATEX)
 	{
-		if (glatex_deactivate_menubarentry_with_non_latex == TRUE)
-		{
+		if (glatex_deactivate_menubarentry_with_non_latex)
 			remove_menu_from_menubar();
-		}
 	}
 }
 
 
 static void activate_toolbar_items(void)
 {
-	if (uim == NULL)
-	{
-		return;
-	}
-
+	if (!uim) return;
+	
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Bold", TRUE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Underline", TRUE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Centered", TRUE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Italic", TRUE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Left", TRUE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Right", TRUE);
+	
 	gtk_ui_manager_ensure_update(uim);
 }
 
 static void deactivate_toolbar_items(void)
 {
-	if (uim == NULL)
-	{
-		return;
-	}
-
+	if (!uim) return;
+	
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Bold", FALSE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Underline", FALSE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Centered", FALSE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Italic", FALSE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Left", FALSE);
 	toggle_toolbar_item("/ui/glatex_format_toolbar/Right", FALSE);
+	
 	gtk_ui_manager_ensure_update(uim);
 }
 
 
 static void toggle_toolbar_items_by_file_type(gint id)
 {
-	if (glatex_set_toolbar_active == TRUE)
+	if (glatex_set_toolbar_active)
 	{
-		if (id == GEANY_FILETYPES_LATEX ||
-			glatex_deactivate_toolbaritems_with_non_latex == FALSE)
-		{
+		if (id == GEANY_FILETYPES_LATEX
+			|| !glatex_deactivate_toolbaritems_with_non_latex)
 			activate_toolbar_items();
-		}
 		else
-		{
 			deactivate_toolbar_items();
-		}
 	}
 }
 
@@ -498,8 +393,8 @@ static void on_document_activate(G_GNUC_UNUSED GObject *object,
 								 GeanyDocument *doc, G_GNUC_UNUSED gpointer data)
 {
 	g_return_if_fail(doc != NULL);
-
-	if (main_is_realized() == TRUE)
+	
+	if (main_is_realized())
 	{
 		toggle_toolbar_items_by_file_type(doc->file_type->id);
 		check_for_menu(doc->file_type->id);
@@ -511,29 +406,22 @@ static void on_document_new(G_GNUC_UNUSED GObject *object, GeanyDocument *doc,
 							G_GNUC_UNUSED gpointer data)
 {
 	g_return_if_fail(doc != NULL);
-
-	if (main_is_realized() == TRUE)
-	{
+	
+	if (main_is_realized())
 		toggle_toolbar_items_by_file_type(doc->file_type->id);
-	}
 }
 
 
-static void
-on_geany_startup_complete(G_GNUC_UNUSED GObject *obj,
-						  G_GNUC_UNUSED gpointer user_data)
+static void on_geany_startup_complete(G_GNUC_UNUSED GObject *obj,
+									  G_GNUC_UNUSED gpointer user_data)
 {
-	GeanyDocument *doc = NULL;
-
-	doc = document_get_current();
-	if (doc != NULL)
+	GeanyDocument *doc = document_get_current();
+	
+	if (doc)
 	{
 		toggle_toolbar_items_by_file_type(doc->file_type->id);
-		if (glatex_add_menu_on_startup == TRUE||
-			doc->file_type->id == GEANY_FILETYPES_LATEX)
-		{
+		if (glatex_add_menu_on_startup || doc->file_type->id == GEANY_FILETYPES_LATEX)
 			add_menu_to_menubar();
-		}
 	}
 
 }
@@ -544,8 +432,8 @@ static void on_document_filetype_set(G_GNUC_UNUSED GObject *obj, GeanyDocument *
 									 G_GNUC_UNUSED gpointer user_data)
 {
 	g_return_if_fail(doc != NULL);
-
-	if (main_is_realized() == TRUE)
+	
+	if (main_is_realized())
 	{
 		toggle_toolbar_items_by_file_type(doc->file_type->id);
 		check_for_menu(doc->file_type->id);
@@ -555,7 +443,7 @@ static void on_document_filetype_set(G_GNUC_UNUSED GObject *obj, GeanyDocument *
 
 static gint get_position_relative(ScintillaObject *sci, gint pos, gint n)
 {
-	return (gint) scintilla_send_message(sci, SCI_POSITIONRELATIVE, (uptr_t) pos, n);
+	return (gint)scintilla_send_message(sci, SCI_POSITIONRELATIVE, (uptr_t) pos, n);
 }
 
 
@@ -581,9 +469,9 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 	 * EXtended for LaTeX with some more autocompletion features
 	 * for e.g. _{} and ^{}.*/
 
-	if (glatex_autocompletion_active == TRUE &&
-		!(glatex_autocompletion_only_for_latex == TRUE &&
-		editor->document->file_type->id != GEANY_FILETYPES_LATEX))
+	if (glatex_autocompletion_active &&
+		!(glatex_autocompletion_only_for_latex &&
+		  editor->document->file_type->id != GEANY_FILETYPES_LATEX))
 	{
 		pos = sci_get_current_position(sci);
 
@@ -692,7 +580,7 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 
 					/* Now we are handling the case, a new line has been inserted
 					* but no closing braces */
-					else if (glatex_autobraces_active == TRUE)
+					else if (glatex_autobraces_active)
 					{
 						gint line;
 
@@ -743,7 +631,7 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 				case '_':
 				case '^':
 				{
-					if (glatex_autobraces_active == TRUE)
+					if (glatex_autobraces_active)
 					{
 						sci_insert_text(sci, -1, "{}");
 						sci_set_current_position(sci, pos + 1, TRUE);
@@ -752,7 +640,7 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 				}
 				default:
 				{
-					if (glatex_capitalize_sentence_starts == TRUE &&
+					if (glatex_capitalize_sentence_starts &&
 						g_ascii_isspace(get_char_relative(sci, pos, -2)))
 					{
 						gint prevNonWhite = 0;
@@ -793,8 +681,8 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 	} /* End of latex autocpletion */
 
 	/* Toggle special characters on input */
-	if (editor->document->file_type->id == GEANY_FILETYPES_LATEX &&
-		toggle_active == TRUE)
+	if (editor->document->file_type->id == GEANY_FILETYPES_LATEX
+		&& toggle_active)
 	{
 		if (nt->nmhdr.code == SCN_CHARADDED)
 		{
@@ -827,14 +715,13 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 
 
 static void on_document_close(G_GNUC_UNUSED GObject *obj, GeanyDocument *doc,
-					   G_GNUC_UNUSED gpointer user_data)
+							  G_GNUC_UNUSED gpointer user_data)
 {
 	g_return_if_fail(doc != NULL);
-
+	
 	if (doc->index < 2)
 		deactivate_toolbar_items();
-	if (doc->index < 1 &&
-		glatex_deactivate_menubarentry_with_non_latex == TRUE)
+	if (doc->index < 1 && glatex_deactivate_menubarentry_with_non_latex)
 		remove_menu_from_menubar();
 }
 
@@ -842,10 +729,7 @@ static void on_document_close(G_GNUC_UNUSED GObject *obj, GeanyDocument *doc,
 /* Called when keys were pressed */
 static void glatex_kblatex_toggle(G_GNUC_UNUSED guint key_id)
 {
-	if (toggle_active == TRUE)
-		glatex_set_latextoggle_status(FALSE);
-	else
-		glatex_set_latextoggle_status(TRUE);
+	glatex_toggle_status(NULL);
 }
 
 
@@ -861,23 +745,21 @@ PluginCallback plugin_callbacks[] =
 };
 
 
-static inline const gchar*
-get_latex_command(gint tab_index)
+static inline const gchar *get_latex_command(gint tab_index)
 {
 	return glatex_char_array[tab_index].latex;
 }
 
 
-static void
-char_insert_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
-					  G_GNUC_UNUSED gpointer gdata)
+static void char_insert_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
+								  G_GNUC_UNUSED gpointer gdata)
 {
 	glatex_insert_string(get_latex_command(GPOINTER_TO_INT(gdata)), TRUE);
 }
 
 
 void
-glatex_insert_label_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+glatex_insert_label_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 					   G_GNUC_UNUSED gpointer gdata)
 {
 	gchar *input = NULL;
@@ -900,7 +782,7 @@ glatex_insert_label_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 
 
 void
-glatex_insert_command_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+glatex_insert_command_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 					 G_GNUC_UNUSED gpointer gdata)
 {
 
@@ -932,7 +814,7 @@ glatex_insert_command_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 
 
 void
-glatex_insert_ref_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+glatex_insert_ref_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 					 G_GNUC_UNUSED gpointer gdata)
 {
 	GtkWidget *dialog;
@@ -1016,41 +898,36 @@ glatex_insert_ref_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 	{
 		gchar *ref_string = NULL;
 		GString *template_string = NULL;
-
+		
 		ref_string = g_strdup(gtk_combo_box_text_get_active_text(
 			GTK_COMBO_BOX_TEXT(textbox_ref)));
-
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio1)) == TRUE)
-		{
+		
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio1)))
 			template_string = g_string_new(glatex_ref_chapter_string);
-		}
-		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio2))== TRUE)
-		{
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio2)))
 			template_string = g_string_new(glatex_ref_page_string);
-		}
-		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio3))== TRUE)
-		{
+		else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radio3)))
 			template_string = g_string_new(glatex_ref_all_string);
-		}
-
-		if (ref_string != NULL && template_string != NULL)
+		
+		if (ref_string && template_string)
 		{
-			gchar *tmp;
 			utils_string_replace_all(template_string, "{{reference}}", ref_string);
-			tmp = g_string_free(template_string, FALSE);
+			
+			gchar *tmp = g_string_free(template_string, FALSE);
 			glatex_insert_string(tmp, TRUE);
+			
 			g_free(ref_string);
 			g_free(tmp);
 		}
 		else
 		{
-			if (ref_string != NULL)
+			if (ref_string)
 				g_free(ref_string);
-			if (template_string != NULL)
+			if (template_string)
 				g_string_free(template_string, TRUE);
 		}
 	}
-
+	
 	gtk_widget_destroy(dialog);
 }
 
@@ -1151,9 +1028,7 @@ static void glatex_sub_menu_init(GtkWidget *base_menu, SubMenuTemplate *menu_tem
 		/*  Default is, not to split anything to make menu not */
 		/*  deeper than realy needed.  */
 		if (item_count > MAX_MENU_ENTRIES)
-		{
 			split = TRUE;
-		}
 
 		/*  Setting active sub menu to sub menu of category */
 		sub_menu = sub_menu_cat[i][0];
@@ -1165,7 +1040,7 @@ static void glatex_sub_menu_init(GtkWidget *base_menu, SubMenuTemplate *menu_tem
 			if (menu_template[j].cat == i)
 			{
 				/*  Creates a new sub sub menu if needed */
-				if (split == TRUE && (local_count % MAX_MENU_ENTRIES) == 0)
+				if (split && (local_count % MAX_MENU_ENTRIES) == 0)
 				{
 					gint next_split_point = 0;
 					GtkWidget *tmp = NULL;
@@ -1184,7 +1059,7 @@ static void glatex_sub_menu_init(GtkWidget *base_menu, SubMenuTemplate *menu_tem
 
 					}
 
-					if (sorted == TRUE)
+					if (sorted)
 					{
 						create_sub_menu(sub_menu_cat[i][0], tmp, tmp_item,
 						g_strconcat(menu_template[j].label, " ... ",
@@ -1192,9 +1067,9 @@ static void glatex_sub_menu_init(GtkWidget *base_menu, SubMenuTemplate *menu_tem
 
 						sub_menu = tmp;
 					}
-					else if (sorted == FALSE)
+					else if (!sorted)
 					{
-						if (last_sub_menu == FALSE)
+						if (!last_sub_menu)
 						{
 							create_sub_menu(sub_menu, tmp, tmp_item, _("More"));
 							sub_menu = active_submenu;
@@ -1241,7 +1116,7 @@ show_output(const gchar * output, const gchar * name, const gint local_enc)
 	}
 }
 
-void glatex_insert_usepackage_dialog(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_usepackage_dialog(G_GNUC_UNUSED GtkMenuItem *menuitem,
 									 G_GNUC_UNUSED gpointer gdata)
 {
 	GtkWidget *dialog = NULL;
@@ -1397,395 +1272,298 @@ on_insert_bibtex_dialog_activate(G_GNUC_UNUSED GtkMenuItem *menuitem,
 }
 
 
-static void
-on_wizard_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
-				   G_GNUC_UNUSED gpointer user_data)
+static void on_wizard_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
+							   G_GNUC_UNUSED gpointer user_data)
 {
 	GString *code = NULL;
-	gchar *author = NULL;
 	gchar *date = NULL;
-	gchar *output = NULL;
-	gchar *classoptions = NULL;
 	gchar *title = NULL;
-	gchar *enc_latex_char = NULL;
-	gchar *documentclass_str = NULL;
-	gchar *papersize = NULL;
-	gchar *draft = NULL;
+	gchar *author = NULL;
+	gchar *encoding = NULL;
 	gchar *fontsize = NULL;
-	gchar *orientation_string = NULL;
+	gchar *papersize = NULL;
+	gchar *paperorient = NULL;
+	gchar *classoptions = NULL;
+	gchar *documentclass = NULL;
 	gboolean KOMA_active = FALSE;
 	gboolean draft_active = FALSE;
 	guint template_int;
-	gint documentclass_int;
 	gint encoding_int;
 	gint papersize_int;
-	gint paperorientation_int;
-
-	if (response == GTK_RESPONSE_OK ||
-		response == GTK_RESPONSE_APPLY ||
-		response == GTK_RESPONSE_ACCEPT)
+	gint documentclass_int;
+	gint paperorient_int;
+	
+	if (!ok_apply_accept(response)) return;
+	
+	KOMA_active = gtk_toggle_button_get_active(
+		GTK_TOGGLE_BUTTON(glatex_wizard.checkbox_KOMA));
+	draft_active = gtk_toggle_button_get_active(
+		GTK_TOGGLE_BUTTON(glatex_wizard.checkbox_draft));
+	documentclass_int = gtk_combo_box_get_active(
+		GTK_COMBO_BOX(glatex_wizard.documentclass_combobox));
+	template_int = gtk_combo_box_get_active(
+		GTK_COMBO_BOX(glatex_wizard.template_combobox));
+	encoding_int = gtk_combo_box_get_active(
+		GTK_COMBO_BOX(glatex_wizard.encoding_combobox));
+	
+	/* We don't want to set an encoding, if there is none choosen */
+	if (encoding_int != LATEX_ENCODINGS_MAX)
 	{
-		KOMA_active = gtk_toggle_button_get_active(
-			GTK_TOGGLE_BUTTON(glatex_wizard.checkbox_KOMA));
-		draft_active = gtk_toggle_button_get_active(
-			GTK_TOGGLE_BUTTON(glatex_wizard.checkbox_draft));
-		documentclass_int = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(glatex_wizard.documentclass_combobox));
-		template_int = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(glatex_wizard.template_combobox));
-		encoding_int = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(glatex_wizard.encoding_combobox));
-		/* We don't want to set an encoding, if there is none choosen */
-		if (encoding_int != LATEX_ENCODINGS_MAX)
+		encoding = g_strconcat("\\usepackage[", latex_encodings[encoding_int].latex,
+							   "]{inputenc}\n", NULL);
+	}
+	fontsize = gtk_combo_box_text_get_active_text(
+					GTK_COMBO_BOX_TEXT(glatex_wizard.fontsize_combobox));
+	author = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.author_textbox)));
+	date = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.date_textbox)));
+	title = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.title_textbox)));
+	
+	papersize_int = gtk_combo_box_get_active(
+						GTK_COMBO_BOX(glatex_wizard.papersize_combobox));
+	paperorient_int = gtk_combo_box_get_active(
+							GTK_COMBO_BOX(glatex_wizard.paperorient_combobox));
+	if (KOMA_active)
+	{
+		switch (papersize_int)
 		{
-			enc_latex_char = g_strconcat("\\usepackage[",
-				latex_encodings[encoding_int].latex,"]{inputenc}\n", NULL);
-		}
-		fontsize = gtk_combo_box_text_get_active_text(
-			GTK_COMBO_BOX_TEXT(glatex_wizard.fontsize_combobox));
-		author = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.author_textbox)));
-		date = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.date_textbox)));
-		title = g_strdup(gtk_entry_get_text(GTK_ENTRY(glatex_wizard.title_textbox)));
-		papersize_int = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(glatex_wizard.papersize_combobox));
-		paperorientation_int = gtk_combo_box_get_active(
-			GTK_COMBO_BOX(glatex_wizard.orientation_combobox));
-
-		if (KOMA_active == TRUE)
-		{
-			switch (papersize_int)
-			{
-				case 0:
-				{
-					papersize = g_utf8_casefold("paper=a4", -1);
-					break;
-				}
-				case 1:
-				{
-					papersize = g_utf8_casefold("paper=a5", -1);
-					break;
-				}
-				case 2:
-				{
-					papersize = g_utf8_casefold("paper=a6", -1);
-					break;
-				}
-			}
-
-		}
-		else
-		{
-			switch (papersize_int)
-			{
-				case 0:
-				{
-					papersize = g_utf8_casefold("a4paper", -1);
-					break;
-				}
-				case 1:
-				{
-					papersize = g_utf8_casefold("a5paper", -1);
-					break;
-				}
-				case 2:
-				{
-					papersize = g_utf8_casefold("a6paper", -1);
-					break;
-				}
-			}
-		}
-
-		if (papersize != NULL)
-		{
-			classoptions = g_strdup(papersize);
-			g_free(papersize);
-		}
-
-		switch (paperorientation_int)
-		{
-			case 2:
-			{
-				if (KOMA_active == TRUE)
-				{
-					orientation_string = g_utf8_casefold("paper=landscape", -1);
-				}
-				else
-				{
-					orientation_string = g_utf8_casefold("landscape", -1);
-				}
+			case 0:
+				papersize = g_utf8_casefold("paper=a4", -1);
 				break;
-			}
-			/* 1 and default currently not handled differently, but
-			 * already inside for future use. Dear future me, sorry */
 			case 1:
-			default:
-			{
-				orientation_string = g_utf8_casefold("", -1);
+				papersize = g_utf8_casefold("paper=a5", -1);
 				break;
-			}
+			case 2:
+				papersize = g_utf8_casefold("paper=a6", -1);
+				break;
 		}
-		if (classoptions != NULL && !EMPTY(orientation_string))
+	}
+	else
+	{
+		switch (papersize_int)
 		{
-			classoptions = g_strconcat(classoptions, ",", orientation_string, NULL);
-			g_free(orientation_string);
+			case 0:
+				papersize = g_utf8_casefold("a4paper", -1);
+				break;
+			case 1:
+				papersize = g_utf8_casefold("a5paper", -1);
+				break;
+			case 2:
+				papersize = g_utf8_casefold("a6paper", -1);
+				break;
 		}
-
-		if (classoptions != NULL && draft_active == TRUE)
-		{
-			draft = g_utf8_casefold("draft", -1);
-			classoptions = g_strconcat(classoptions,",", draft, NULL);
-			g_free(draft);
-		}
-		else if (classoptions == NULL && draft_active == TRUE)
-		{
-			draft = g_utf8_casefold("draft", -1);
-			classoptions = g_strconcat(draft, NULL);
-			g_free(draft);
-		}
-		if (classoptions != NULL && !EMPTY(fontsize))
-		{
-			classoptions = g_strconcat(classoptions, ",", fontsize, NULL);
-		}
-		else if (classoptions == NULL && !EMPTY(fontsize))
-		{
+	}
+	
+	if (papersize)
+	{
+		classoptions = g_strdup(papersize);
+		g_free(papersize);
+	}
+	
+	switch (paperorient_int)
+	{
+		case 2:
+			paperorient = KOMA_active ? g_utf8_casefold("paper=landscape", -1)
+									  : g_utf8_casefold("landscape", -1);
+			break;
+		/* 1 and default currently not handled differently, but
+		 * already inside for future use. Dear future me, sorry */
+		case 1:
+		default:
+			paperorient = g_utf8_casefold("", -1);
+			break;
+	}
+	if (classoptions && !EMPTY(paperorient))
+		SETPTR(classoptions, g_strconcat(classoptions, ",", paperorient, NULL));
+	g_free(paperorient);
+	
+	if (draft_active)
+	{
+		gchar *draft = g_utf8_casefold("draft", -1);
+		
+		if (classoptions)
+			SETPTR(classoptions, g_strconcat(classoptions, ",", draft, NULL));
+		else
+			classoptions = g_strdup(draft);
+		
+		g_free(draft);
+	}
+	
+	if (!EMPTY(fontsize))
+	{
+		if (classoptions)
+			SETPTR(classoptions, g_strconcat(classoptions, ",", fontsize, NULL));
+		else
 			classoptions = g_strdup(fontsize);
-		}
-		g_free(fontsize);
-
-
+	}
+	g_free(fontsize);
+	
+	switch (documentclass_int)
+	{
+		case 0:
+			documentclass = g_utf8_casefold("book", -1);
+			break;
+		case 1:
+			documentclass = g_utf8_casefold("article", -1);
+			break;
+		case 2:
+			documentclass = g_utf8_casefold("report", -1);
+			break;
+		case 3:
+			documentclass = g_utf8_casefold("letter", -1);
+			break;
+		case 4:
+			documentclass = g_utf8_casefold("beamer", -1);
+	}
+	
+	if (KOMA_active)
+	{
 		switch (documentclass_int)
 		{
 			case 0:
-			{
-				documentclass_str = g_utf8_casefold("book", -1);
+				documentclass = g_utf8_casefold("scrbook", -1);
 				break;
-			}
 			case 1:
-			{
-				documentclass_str = g_utf8_casefold("article", -1);
+				documentclass = g_utf8_casefold("scrartcl", -1);
 				break;
-			}
 			case 2:
-			{
-				documentclass_str = g_utf8_casefold("report", -1);
+				documentclass = g_utf8_casefold("scrreprt", -1);
 				break;
-			}
-			case 3:
-			{
-				documentclass_str = g_utf8_casefold("letter", -1);
-				break;
-			}
-			case 4:
-			{
-				documentclass_str = g_utf8_casefold("beamer", -1);
-			}
-		}
-
-		if (KOMA_active)
-		{
-			switch (documentclass_int)
-			{
-				case 0:
-				{
-					documentclass_str = g_utf8_casefold("scrbook", -1);
-					break;
-				}
-				case 1:
-				{
-					documentclass_str = g_utf8_casefold("scrartcl", -1);
-					break;
-				}
-				case 2:
-				{
-					documentclass_str = g_utf8_casefold("scrreprt", -1);
-					break;
-				}
-			}
-
-		}
-
-		/*  Get the correct template */
-		/*  First check whether its a build in one or a custom one than
-		 *  assign the wished template */
-		if (template_int < LATEX_WIZARD_TEMPLATE_END ||
-			glatex_wizard.template_list == NULL)
-		{
-			if (template_int == LATEX_WIZARD_TEMPLATE_DEFAULT)
-				code = g_string_new(TEMPLATE_LATEX);
-			else if (documentclass_int == 3)
-				code = g_string_new(TEMPLATE_LATEX_LETTER);
-			else if (documentclass_int == 4)
-				code = g_string_new(TEMPLATE_LATEX_BEAMER);
-			else
-				code = g_string_new(TEMPLATE_LATEX);
-		}
-		else
-		{
-			TemplateEntry *tmp = NULL;
-
-			/* Return if the value choose is for some uknown reason to high */
-			if (template_int > (glatex_wizard.template_list->len + LATEX_WIZARD_TEMPLATE_END))
-				return;
-
-			tmp = g_ptr_array_index(glatex_wizard.template_list, template_int - LATEX_WIZARD_TEMPLATE_END);
-			code = glatex_get_template_from_file(tmp->filepath);
-
-			/* Cleaning up template array as there is no usage for anymore */
-			g_ptr_array_foreach (glatex_wizard.template_list, (GFunc)glatex_free_template_entry, NULL);
-			g_ptr_array_free(glatex_wizard.template_list, TRUE);
-		}
-
-		if (code != NULL)
-		{
-			if (classoptions != NULL)
-			{
-				utils_string_replace_all(code, "{CLASSOPTION}", classoptions);
-				g_free(classoptions);
-			}
-			if (documentclass_str != NULL)
-			{
-				utils_string_replace_all(code, "{DOCUMENTCLASS}", documentclass_str);
-				g_free(documentclass_str);
-			}
-			if (enc_latex_char != NULL)
-			{
-				utils_string_replace_all(code, "{ENCODING}", enc_latex_char);
-				g_free(enc_latex_char);
-			}
-			else
-			/* If there is no encoding proberly set but {ENCODING} is set inside
-			 * the template, replace it with nothing */
-			{
-				utils_string_replace_all(code, "{ENCODING}", "");
-			}
-			switch (paperorientation_int){
-				case 2:
-				{
-					utils_string_replace_all(code, "{GEOMETRY}",
-						"\\usepackage[landscape]{geometry}\n");
-					break;
-				}
-				default:
-				{
-					utils_string_replace_all(code, "{GEOMETRY}", "");
-					break;
-				}
-			}
-			if (!EMPTY(author))
-			{
-				gchar* author_string = NULL;
-				if (documentclass_int == 3)
-				{
-					author_string = g_strconcat("\\signature{", author, "}\n", NULL);
-				}
-				else
-				{
-					author_string = g_strconcat("\\author{", author, "}\n", NULL);
-				}
-				utils_string_replace_all(code, "{AUTHOR}", author_string);
-				g_free(author);
-				g_free(author_string);
-			}
-			else
-			{
-				gchar* author_string = NULL;
-				if (documentclass_int == 3)
-				{
-					utils_string_replace_all(code, "{AUTHOR}", "% \\signature{}\n");
-				}
-				else
-				{
-					utils_string_replace_all(code, "{AUTHOR}", "% \\author{}\n");
-				}
-				utils_string_replace_all(code, "{AUTHOR}", author_string);
-				if (author != NULL)
-				{
-					g_free(author);
-				}
-				g_free(author_string);
-			}
-
-			if (!EMPTY(date))
-			{
-				gchar *date_string = NULL;
-				date_string = g_strconcat("\\date{", date, "}\n", NULL);
-				utils_string_replace_all(code, "{DATE}", date_string);
-				g_free(date);
-				g_free(date_string);
-			}
-			else
-			{
-				utils_string_replace_all(code, "{DATE}", "% \\date{}\n");
-				if (date != NULL)
-				{
-					g_free(date);
-				}
-			}
-
-			if (title != NULL)
-			{
-				gchar *title_string = NULL;
-				if (documentclass_int == 3)
-				{
-					title_string = g_strconcat("\\subject{", title, "}\n", NULL);
-				}
-				else
-				{
-					title_string = g_strconcat("\\title{", title, "}\n", NULL);
-				}
-
-				utils_string_replace_all(code, "{TITLE}", title_string);
-				g_free(title);
-				g_free(title_string);
-			}
-			else
-			{
-				if (documentclass_int == 3)
-				{
-					utils_string_replace_all(code, "{TITLE}", "% \\subject{} \n");
-				}
-				else
-				{
-					utils_string_replace_all(code, "{TITLE}", "% \\title{} \n");
-				}
-				if (title != NULL)
-				{
-					g_free(title);
-				}
-			}
-			utils_string_replace_all(code, "{OPENING}", _("Dear Sir or Madame"));
-			utils_string_replace_all(code, "{CLOSING}", _("With kind regards"));
-
-			output = g_string_free(code, FALSE);
-			show_output(output, NULL, encoding_int);
-			g_free(output);
-		}
-		else
-		{
-			g_warning(_("No template assigned. Aborting"));
 		}
 	}
+	
+	/*  Get the correct template */
+	/*  First check whether its a build in one or a custom one than
+	 *  assign the wished template */
+	if (template_int < LATEX_WIZARD_TEMPLATE_END
+		|| glatex_wizard.template_list == NULL)
+	{
+		if (template_int == LATEX_WIZARD_TEMPLATE_DEFAULT)
+			code = g_string_new(TEMPLATE_LATEX);
+		else if (documentclass_int == 3)
+			code = g_string_new(TEMPLATE_LATEX_LETTER);
+		else if (documentclass_int == 4)
+			code = g_string_new(TEMPLATE_LATEX_BEAMER);
+		else
+			code = g_string_new(TEMPLATE_LATEX);
+	}
+	else
+	{
+		/* Return if the value choose is for some uknown reason to high */
+		if (template_int > (glatex_wizard.template_list->len + LATEX_WIZARD_TEMPLATE_END))
+			goto free;
+		
+		TemplateEntry *tmp = g_ptr_array_index(glatex_wizard.template_list,
+											   template_int - LATEX_WIZARD_TEMPLATE_END);
+		code = glatex_get_template_from_file(tmp->filepath);
+		
+		/* Cleaning up template array as there is no usage for anymore */
+		g_ptr_array_foreach(glatex_wizard.template_list,
+							(GFunc)glatex_free_template_entry, NULL);
+		g_ptr_array_free(glatex_wizard.template_list, TRUE);
+	}
+	
+	if (code)
+	{
+		if (classoptions)
+			utils_string_replace_all(code, "{CLASSOPTION}", classoptions);
+		if (documentclass)
+			utils_string_replace_all(code, "{DOCUMENTCLASS}", documentclass);
+		if (encoding)
+			utils_string_replace_all(code, "{ENCODING}", encoding);
+		else
+		{	/* If there is no encoding proberly set but {ENCODING} is set inside
+			 * the template, replace it with nothing */
+			utils_string_replace_all(code, "{ENCODING}", "");
+		}
+		
+		switch (paperorient_int) {
+			case 2:
+				utils_string_replace_all(code, "{GEOMETRY}",
+										 "\\usepackage[landscape]{geometry}\n");
+				break;
+			default:
+				utils_string_replace_all(code, "{GEOMETRY}", "");
+				break;
+		}
+		
+		if (!EMPTY(author))
+		{
+			gchar *author_string = (documentclass_int == 3)
+										? g_strconcat("\\signature{", author, "}\n", NULL)
+										: g_strconcat("\\author{", author, "}\n", NULL);
+			utils_string_replace_all(code, "{AUTHOR}", author_string);
+			g_free(author_string);
+		}
+		else
+		{
+			(documentclass_int == 3)
+				? utils_string_replace_all(code, "{AUTHOR}", "% \\signature{}\n")
+				: utils_string_replace_all(code, "{AUTHOR}", "% \\author{}\n");
+		}
+		
+		if (!EMPTY(date))
+		{
+			gchar *date_string = NULL;
+			date_string = g_strconcat("\\date{", date, "}\n", NULL);
+			utils_string_replace_all(code, "{DATE}", date_string);
+			g_free(date_string);
+		}
+		else
+			utils_string_replace_all(code, "{DATE}", "% \\date{}\n");
+		
+		if (title)
+		{
+			gchar *title_string = (documentclass_int == 3)
+									? g_strconcat("\\subject{", title, "}\n", NULL)
+									: g_strconcat("\\title{", title, "}\n", NULL);
+			utils_string_replace_all(code, "{TITLE}", title_string);
+			g_free(title_string);
+		}
+		else
+		{
+			(documentclass_int == 3)
+				? utils_string_replace_all(code, "{TITLE}", "% \\subject{} \n")
+				: utils_string_replace_all(code, "{TITLE}", "% \\title{} \n");
+		}
+		
+		utils_string_replace_all(code, "{OPENING}", _("Dear Sir or Madame"));
+		utils_string_replace_all(code, "{CLOSING}", _("With kind regards"));
+		
+		gchar *output = g_string_free(code, FALSE);
+		show_output(output, NULL, encoding_int);
+		g_free(output);
+	}
+	else
+		g_warning(_("No template assigned. Aborting"));
+	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
+free:
+	g_free(date);
+	g_free(title);
+	g_free(author);
+	g_free(encoding);
+	g_free(classoptions);
+	g_free(documentclass);
 }
 
 void
-glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
+glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem *menuitem,
 				 G_GNUC_UNUSED gpointer gdata)
 {
 	gint i;
 	gchar *author;
 	GtkWidget *dialog = NULL;
 	GtkWidget *vbox = NULL;
+	GtkWidget *table = NULL;
 	GtkWidget *label_documentclass = NULL;
 	GtkWidget *label_encoding = NULL;
 	GtkWidget *label_fontsize = NULL;
-	GtkWidget *table = NULL;
 	GtkWidget *label_author = NULL;
 	GtkWidget *label_date = NULL;
 	GtkWidget *label_title = NULL;
-	GtkWidget *label_papersize = NULL;
 	GtkWidget *label_template = NULL;
-	GtkWidget *label_orientation = NULL;
+	GtkWidget *label_papersize = NULL;
+	GtkWidget *label_paperorient = NULL;
 	GtkWidget *fontsize_entry = NULL;
 
 	/*  Building the wizard-dialog and showing it */
@@ -1863,7 +1641,7 @@ glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 	}
 
 	gtk_combo_box_set_active(GTK_COMBO_BOX(glatex_wizard.encoding_combobox),
-		find_latex_enc(geany_data->file_prefs->default_new_encoding));
+		find_latex_enc(geany->file_prefs->default_new_encoding));
 
 	gtk_misc_set_alignment(GTK_MISC(label_encoding), 0, 0.5);
 
@@ -1893,9 +1671,9 @@ glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 	glatex_wizard.author_textbox = gtk_entry_new();
 	gtk_widget_set_tooltip_text(glatex_wizard.author_textbox,
 		_("Sets the value of the \\author command. In most cases this should be your name"));
-	if (geany_data->template_prefs->developer != NULL)
+	if (geany->template_prefs->developer != NULL)
 	{
-		author = geany_data->template_prefs->developer;
+		author = geany->template_prefs->developer;
 		gtk_entry_set_text(GTK_ENTRY(glatex_wizard.author_textbox), author);
 	}
 	gtk_misc_set_alignment(GTK_MISC(label_author), 0, 0.5);
@@ -1949,20 +1727,20 @@ glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 	gtk_table_attach_defaults(GTK_TABLE(table), glatex_wizard.papersize_combobox, 1, 2, 7, 8);
 
 	/* Paper direction */
-	label_orientation = gtk_label_new(_("Paper Orientation:"));
-	glatex_wizard.orientation_combobox = gtk_combo_box_text_new();
-	gtk_widget_set_tooltip_text(glatex_wizard.orientation_combobox,
+	label_paperorient = gtk_label_new(_("Paper Orientation:"));
+	glatex_wizard.paperorient_combobox = gtk_combo_box_text_new();
+	gtk_widget_set_tooltip_text(glatex_wizard.paperorient_combobox,
 		_("Choose the paper orientation for the newly created document"));
-	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.orientation_combobox), 0, "Default");
-	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.orientation_combobox), 1, "Portrait");
-	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.orientation_combobox), 2, "Landscape");
+	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.paperorient_combobox), 0, "Default");
+	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.paperorient_combobox), 1, "Portrait");
+	gtk_combo_box_text_insert_text(GTK_COMBO_BOX_TEXT(glatex_wizard.paperorient_combobox), 2, "Landscape");
 
-	gtk_combo_box_set_active(GTK_COMBO_BOX(glatex_wizard.orientation_combobox), 0);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(glatex_wizard.paperorient_combobox), 0);
 
-	gtk_misc_set_alignment(GTK_MISC(label_orientation), 0, 0.5);
+	gtk_misc_set_alignment(GTK_MISC(label_paperorient), 0, 0.5);
 
-	gtk_table_attach_defaults(GTK_TABLE(table), label_orientation, 0, 1, 8, 9);
-	gtk_table_attach_defaults(GTK_TABLE(table), glatex_wizard.orientation_combobox, 1, 2, 8, 9);
+	gtk_table_attach_defaults(GTK_TABLE(table), label_paperorient, 0, 1, 8, 9);
+	gtk_table_attach_defaults(GTK_TABLE(table), glatex_wizard.paperorient_combobox, 1, 2, 8, 9);
 
 
 	/* Doing the rest .... */
@@ -1996,10 +1774,10 @@ glatex_wizard_activated(G_GNUC_UNUSED GtkMenuItem * menuitem,
 
 static void init_keybindings(void)
 {
-	GeanyKeyGroup *key_group;
-
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													COUNT_KB, NULL);;
+	
 	/* init keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "latex", COUNT_KB, NULL);
 	keybindings_set_item(key_group, KB_LATEX_WIZARD, glatex_kbwizard,
 		0, 0, "run_latex_wizard", _("Run LaTeX-Wizard"), menu_latex_wizard);
 	keybindings_set_item(key_group, KB_LATEX_INSERT_LABEL, glatex_kblabel_insert,
@@ -2069,16 +1847,12 @@ void plugin_help(void)
 
 static void glatex_init_configuration(void)
 {
-	GKeyFile *config = g_key_file_new();
-
 	/* loading configurations from file ...*/
-	config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-	"plugins", G_DIR_SEPARATOR_S,
-	"LaTeX", G_DIR_SEPARATOR_S, "general.conf", NULL);
-
+	config_file = get_config_filepath(PLUGIN, NULL);
+	
 	/* ... and Initialising options from config file */
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
 	glatex_set_koma_active = utils_get_setting_boolean(config, "general",
 		"glatex_set_koma_active", FALSE);
 	glatex_set_toolbar_active = utils_get_setting_boolean(config, "general",
@@ -2089,14 +1863,13 @@ static void glatex_init_configuration(void)
 		"glatex_set_autobraces", TRUE);
 	glatex_lowercase_on_smallcaps = utils_get_setting_boolean(config, "general",
 		"glatex_lowercase_on_smallcaps", FALSE);
-
+	
 	/* Hidden preferences. Can be set directly via configuration file*/
 	glatex_autocompletion_context_size = utils_get_setting_integer(config, "autocompletion",
 		"glatex_set_autocompletion_contextsize", 5);
-
+	
 	/* Doing some input validation */
-	if (glatex_autocompletion_active == TRUE &&
-		glatex_autocompletion_context_size <= 0)
+	if (glatex_autocompletion_active && glatex_autocompletion_context_size <= 0)
 	{
 		glatex_autocompletion_context_size = 5;
 		g_warning(_("glatex_set_autocompletion_contextsize has been "
@@ -2105,12 +1878,12 @@ static void glatex_init_configuration(void)
 	}
 	/* Increase value by an offset as we add a new line so 2 really means 2 */
 	glatex_autocompletion_context_size = glatex_autocompletion_context_size + 2;
-
+	
 	glatex_autocompletion_only_for_latex = utils_get_setting_boolean(config, "autocompletion",
 		"glatex_autocompletion_only_for_latex", TRUE);
 	glatex_capitalize_sentence_starts = utils_get_setting_boolean(config, "autocompletion",
 		"glatex_capitalize_sentence_starts", FALSE);
-
+	
 	glatex_deactivate_toolbaritems_with_non_latex = utils_get_setting_boolean(config, "toolbar",
 		"glatex_deactivate_toolbaritems_with_non_latex", TRUE);
 	glatex_wizard_to_generic_toolbar = utils_get_setting_boolean(config, "toolbar",
@@ -2119,21 +1892,21 @@ static void glatex_init_configuration(void)
 		"glatex_deactivate_menubarentry_with_non_latex", TRUE);
 	glatex_add_menu_on_startup = utils_get_setting_boolean(config, "menu",
 		"glatex_add_menu_on_startup", FALSE);
-
+	
 	glatex_ref_page_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_page", _("page \\pageref{{{reference}}}"));
 	glatex_ref_chapter_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_chapter", "\\ref{{{reference}}}");
 	glatex_ref_all_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_all", _("\\ref{{{reference}}}, page \\pageref{{{reference}}}"));
-
+	
 	glatex_ref_page_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_page", _("page \\pageref{{{reference}}}"));
 	glatex_ref_chapter_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_chapter", "\\ref{{{reference}}}");
 	glatex_ref_all_string = utils_get_setting_string(config, "reference",
 		"glatex_reference_all", _("\\ref{{{reference}}}, page \\pageref{{{reference}}}"));
-
+	
 	g_key_file_free(config);
 }
 
@@ -2415,59 +2188,42 @@ add_wizard_to_tools_menu(void)
 }
 
 
-void
-plugin_init(G_GNUC_UNUSED GeanyData * data)
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
-	GeanyDocument *doc = NULL;
-
-	doc = document_get_current();
-
+	GeanyDocument *doc = document_get_current();
+	
 	glatex_init_configuration();
 	glatex_init_encodings_latex();
-
+	
 	add_wizard_to_tools_menu();
-
+	
 	init_keybindings();
-
+	
 	/* Check whether the toolbar should be shown or not and do so*/
-	if (glatex_set_toolbar_active == TRUE)
-	{
-		glatex_toolbar = init_toolbar();
-	}
-	else
-	{
-		glatex_toolbar = NULL;
-	}
-
-	if (glatex_wizard_to_generic_toolbar == TRUE)
-	{
+	glatex_toolbar = glatex_set_toolbar_active ? init_toolbar() : NULL;
+	
+	if (glatex_wizard_to_generic_toolbar)
 		add_wizard_to_generic_toolbar();
-	}
 	else
-	{
 		glatex_wizard_generic_toolbar_item = NULL;
-	}
-
-	if (doc != NULL)
+	
+	if (doc)
 	{
-		if (glatex_add_menu_on_startup == TRUE||
-			doc->file_type->id == GEANY_FILETYPES_LATEX)
-		{
+		if (glatex_add_menu_on_startup
+			|| doc->file_type->id == GEANY_FILETYPES_LATEX)
 			add_menu_to_menubar();
-		}
 	}
-
-	move_old_config_file();
 }
 
-void
-plugin_cleanup(void)
+void plugin_cleanup(void)
 {
-	if (glatex_toolbar != NULL)
+	if (glatex_toolbar)
 		gtk_widget_destroy(glatex_toolbar);
+	
 	remove_menu_from_menubar();
 	remove_menu_from_tools_menu();
 	remove_wizard_from_generic_toolbar();
+	
 	g_free(config_file);
 	g_free(glatex_ref_chapter_string);
 	g_free(glatex_ref_page_string);

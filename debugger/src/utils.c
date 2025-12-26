@@ -23,20 +23,15 @@
  *		Miscellaneous functions.
  */
 
-#include <stdlib.h>
-#include <memory.h>
-#include <stdio.h>
+#ifdef HAVE_CONFIG_H
+	#include "config.h"		// for the gettext domain
+#endif
+
 #include <ctype.h>
-#include <gtk/gtk.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "breakpoint.h"
 #include "debug_module.h"
-
-#ifdef HAVE_CONFIG_H
-	#include "config.h"
-#endif
-#include <geanyplugin.h>
-
 #include "utils.h"
 
 /*

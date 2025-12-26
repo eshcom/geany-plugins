@@ -19,15 +19,14 @@
 /*
  * This file contains all the code for the dialogs.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "wb_globals.h"
 #include "dialogs.h"
 #include "utils.h"
-
-extern GeanyPlugin *geany_plugin;
 
 
 /** Shows the dialog "Create new file".
@@ -139,31 +138,28 @@ gchar *dialogs_create_new_workbench(void)
  **/
 gchar *dialogs_open_workbench(void)
 {
-	gchar *filename = NULL;
-	GtkWidget *dialog;
 	GtkFileFilter *filter;
-
-	dialog = gtk_file_chooser_dialog_new(_("Open workbench"),
-		GTK_WINDOW(wb_globals.geany_plugin->geany_data->main_widgets->window), GTK_FILE_CHOOSER_ACTION_OPEN,
+	GtkWidget *dialog = gtk_file_chooser_dialog_new(_("Open workbench"),
+		GTK_WINDOW(wb_globals.geany_plugin->geany_data->main_widgets->window),
+		GTK_FILE_CHOOSER_ACTION_OPEN,
 		_("_Cancel"), GTK_RESPONSE_CANCEL,
 		_("_Open"), GTK_RESPONSE_ACCEPT, NULL);
-
+	
 	filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, _("Workbench files (.geanywb)"));
 	gtk_file_filter_add_pattern(filter, "*.geanywb");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
+	
 	filter = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, _("All Files"));
 	gtk_file_filter_add_pattern(filter, "*");
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
-
+	
+	gchar *filename = NULL;
 	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-	{
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-	}
-
+	
 	gtk_widget_destroy(dialog);
-
 	return filename;
 }
 

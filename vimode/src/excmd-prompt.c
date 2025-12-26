@@ -16,18 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <gdk/gdkkeysyms.h> // for the key bindings
+
 #include "excmd-prompt.h"
 #include "excmd-runner.h"
 
-#include <gdk/gdkkeysyms.h>
-#include <string.h>
 
-#if ! GTK_CHECK_VERSION (3, 0, 0) && ! defined (gtk_widget_get_allocated_width)
-# define gtk_widget_get_allocated_width(w) (GTK_WIDGET (w)->allocation.width)
+#if !GTK_CHECK_VERSION(3, 0, 0) && !defined(gtk_widget_get_allocated_width)
+	#define gtk_widget_get_allocated_width(w) (GTK_WIDGET(w)->allocation.width)
 #endif
-#if ! GTK_CHECK_VERSION (3, 0, 0) && ! defined (gtk_widget_get_allocated_height)
-# define gtk_widget_get_allocated_height(w) (GTK_WIDGET (w)->allocation.height)
+
+#if !GTK_CHECK_VERSION(3, 0, 0) && !defined(gtk_widget_get_allocated_height)
+	#define gtk_widget_get_allocated_height(w) (GTK_WIDGET(w)->allocation.height)
 #endif
+
 
 #define PROMPT_WIDTH 500
 

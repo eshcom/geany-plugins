@@ -19,16 +19,14 @@
 /*
  * Code for plugin setup/registration.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
-#include <sys/time.h>
-#include <string.h>
 #include <git2.h>
 
-#include <wb_globals.h>
-
+#include "wb_globals.h"
 #include "sidebar.h"
 #include "menu.h"
 #include "popup_menu.h"
@@ -37,13 +35,10 @@
 
 
 #if ! defined (LIBGIT2_VER_MINOR) || ( (LIBGIT2_VER_MAJOR == 0) && (LIBGIT2_VER_MINOR < 22))
-# define git_libgit2_init     git_threads_init
-# define git_libgit2_shutdown git_threads_shutdown
+	#define git_libgit2_init     git_threads_init
+	#define git_libgit2_shutdown git_threads_shutdown
 #endif
 
-
-GeanyPlugin *geany_plugin;
-GeanyData *geany_data;
 
 /* Callback function for document open */
 static void plugin_workbench_on_doc_open(G_GNUC_UNUSED GObject * obj, G_GNUC_UNUSED GeanyDocument * doc,
@@ -75,22 +70,20 @@ static gboolean plugin_workbench_init(GeanyPlugin *plugin, G_GNUC_UNUSED gpointe
 	/* Init/Update globals */
 	workbench_globals_init();
 	wb_globals.geany_plugin = plugin;
-	geany_plugin = plugin;
-	geany_data = plugin->geany_data;
-
+	
 	menu_init();
 	sidebar_init();
 	popup_menu_init();
 	wb_tm_control_init();
-
+	
 	/* At start there is no workbench open:
 	   deactive save and close menu item and sidebar */
 	menu_set_context(MENU_CONTEXT_WB_CLOSED);
-	sidebar_show_intro_message(_("Create or open a workbench\nusing the workbench menu."), FALSE);
-
+	sidebar_show_intro_message(_("Create or open a workbench\nusing the workbench menu."),
+							   FALSE);
 	/* Init libgit2. */
 	git_libgit2_init();
-
+	
 	return TRUE;
 }
 

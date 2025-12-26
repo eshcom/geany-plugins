@@ -23,14 +23,11 @@
  * 		buttons panel
  */
 
-#include <sys/stat.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-extern GeanyPlugin		*geany_plugin;
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "gui.h"
 #include "breakpoints.h"
@@ -41,6 +38,9 @@ extern GeanyPlugin		*geany_plugin;
 #include "wtree.h"
 #include "dpaned.h"
 #include "btnpanel.h"
+
+extern GeanyPlugin *geany_plugin;
+
 
 #define CP_BUTTONS_PAD 5
 

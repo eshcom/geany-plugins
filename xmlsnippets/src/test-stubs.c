@@ -22,11 +22,12 @@
 #ifdef TEST
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
-#include "test-stubs.h"
 #include <ctype.h>
+
+#include "test-stubs.h"
 
 
 GHashTable *completions;
@@ -50,33 +51,33 @@ const gchar *editor_find_snippet(GeanyEditor *editor, const gchar *snippet_name)
 /** Searches backward through @a size bytes looking for a '<'.
  * @param sel .
  * @param size .
- * @return pointer to '<' of the found opening tag within @a sel, or @c NULL if no opening tag was found.
+ * @return pointer to '<' of the found opening tag within @a sel,
+ *         or @c NULL if no opening tag was found.
  */
 const gchar *utils_find_open_xml_tag_pos(const gchar sel[], gint size)
 {
-	/* stolen from anjuta and modified */
-	const gchar *begin, *cur;
-
 	if (G_UNLIKELY(size < 3))
 	{	/* Smallest tag is "<p>" which is 3 characters */
 		return NULL;
 	}
-	begin = &sel[0];
-	cur = &sel[size - 1];
-
+	
+	/* stolen from anjuta and modified */
+	const gchar *begin = &sel[0];
+	const gchar *cur = &sel[size - 1];
+	
 	/* Skip to the character before the closing brace */
 	while (cur > begin)
 	{
-		if (*cur == '>')
-			break;
+		if (*cur == '>') break;
 		--cur;
 	}
 	--cur;
+	
 	/* skip whitespace */
-	while (cur > begin && isspace(*cur))
-		cur--;
-	if (*cur == '/')
-		return NULL; /* we found a short tag which doesn't need to be closed */
+	while (cur > begin && isspace(*cur)) cur--;
+	
+	if (*cur == '/') return NULL; // we found a short tag which doesn't need to be closed
+	
 	while (cur > begin)
 	{
 		if (*cur == '<')
@@ -86,11 +87,11 @@ const gchar *utils_find_open_xml_tag_pos(const gchar sel[], gint size)
 			break;
 		--cur;
 	}
-
+	
 	/* if the found tag is an opening, not a closing tag or empty <> */
 	if (*cur == '<' && *(cur + 1) != '/' && *(cur + 1) != '>')
 		return cur;
-
+	
 	return NULL;
 }
 

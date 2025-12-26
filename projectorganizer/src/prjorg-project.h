@@ -22,7 +22,8 @@
 typedef struct
 {
 	gchar *base_dir;
-	GHashTable *file_table; /* contains all file names within base_dir, maps file_name->TMSourceFile */
+	GHashTable *file_table; /* contains all file names within base_dir,
+							   maps file_name->TMSourceFile */
 } PrjOrgRoot;
 
 typedef enum
@@ -39,19 +40,20 @@ typedef struct
 	gchar **ignored_dirs_patterns;
 	gchar **ignored_file_patterns;
 	PrjOrgTagPrefs generate_tag_prefs;
-
-	GSList *roots;  /* list of PrjOrgRoot; the project root is always the first followed by external dirs roots */
+	
+	GSList *roots;  /* list of PrjOrgRoot; the project root is always
+					   the first followed by external dirs roots */
 } PrjOrg;
 
 extern PrjOrg *prj_org;
 
-void prjorg_project_open(GKeyFile * key_file);
+void prjorg_project_open(GKeyFile *key_file);
 
 GtkWidget *prjorg_project_add_properties_tab(GtkWidget *notebook);
 
 void prjorg_project_close(void);
 
-void prjorg_project_save(GKeyFile * key_file);
+void prjorg_project_save(GKeyFile *key_file);
 void prjorg_project_read_properties_tab(void);
 void prjorg_project_rescan(void);
 

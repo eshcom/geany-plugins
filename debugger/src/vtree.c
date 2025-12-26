@@ -24,19 +24,16 @@
  * 		Base class for autos and watch tree views.
  */
 
-#include <string.h>
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "vtree.h"
 #include "breakpoint.h"
 #include "debug_module.h"
-#include "watch_model.h"
 #include "utils.h"
 #include "pixbuf.h"
 
@@ -135,7 +132,8 @@ static void render_value(GtkTreeViewColumn *tree_column,
  * 		on_render_name - custom name column renderer function
  * 		on_expression_changed - callback to call on expression changed
  */
-GtkWidget* vtree_create(watch_render_name on_render_name, watch_expression_changed on_expression_changed)
+GtkWidget *vtree_create(watch_render_name on_render_name,
+						watch_expression_changed on_expression_changed)
 {
 	/* create tree view */
 	GtkCellRenderer *renderer;

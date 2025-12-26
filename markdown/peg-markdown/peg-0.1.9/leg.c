@@ -3,17 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define YYRULECOUNT 36
 
-# include "tree.h"
-# include "version.h"
+#include "tree.h"
+#include "version.h"
 
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-# include <libgen.h>
-# include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <libgen.h>
+#include <assert.h>
 
   typedef struct Header Header;
 
@@ -47,44 +48,44 @@
 # define YY_RULE(T)	static T
 
 #ifndef YY_LOCAL
-#define YY_LOCAL(T)	static T
+  #define YY_LOCAL(T)	static T
 #endif
 #ifndef YY_ACTION
-#define YY_ACTION(T)	static T
+  #define YY_ACTION(T)	static T
 #endif
 #ifndef YY_RULE
-#define YY_RULE(T)	static T
+  #define YY_RULE(T)	static T
 #endif
 #ifndef YY_PARSE
-#define YY_PARSE(T)	T
+  #define YY_PARSE(T)	T
 #endif
 #ifndef YYPARSE
-#define YYPARSE		yyparse
+  #define YYPARSE		yyparse
 #endif
 #ifndef YYPARSEFROM
-#define YYPARSEFROM	yyparsefrom
+  #define YYPARSEFROM	yyparsefrom
 #endif
 #ifndef YY_INPUT
-#define YY_INPUT(buf, result, max_size)			\
-  {							\
-    int yyc= getchar();					\
-    result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\
-    yyprintf((stderr, "<%c>", yyc));			\
-  }
+  #define YY_INPUT(buf, result, max_size)			\
+    {							\
+      int yyc= getchar();					\
+      result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\
+      yyprintf((stderr, "<%c>", yyc));			\
+    }
 #endif
 #ifndef YY_BEGIN
-#define YY_BEGIN	( ctx->begin= ctx->pos, 1)
+  #define YY_BEGIN	( ctx->begin= ctx->pos, 1)
 #endif
 #ifndef YY_END
-#define YY_END		( ctx->end= ctx->pos, 1)
+  #define YY_END		( ctx->end= ctx->pos, 1)
 #endif
 #ifdef YY_DEBUG
-# define yyprintf(args)	fprintf args
+  #define yyprintf(args)	fprintf args
 #else
-# define yyprintf(args)
+  #define yyprintf(args)
 #endif
 #ifndef YYSTYPE
-#define YYSTYPE	int
+  #define YYSTYPE	int
 #endif
 
 #ifndef YY_PART

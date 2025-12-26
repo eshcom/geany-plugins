@@ -17,25 +17,21 @@
  *  
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"     // for the gettext domain
+#endif
 
-#include <string.h>
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-
-#include <geanyplugin.h>
-#include <geany.h>
-#include <document.h>
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
 #include <SciLexer.h>
 
-#include "../../utils/src/ui_plugins.h"
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
+
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;  // the code uses the macro "geany" (see geany->)
 
 
-GeanyPlugin      *geany_plugin;
-GeanyData        *geany_data;
-
-
-PLUGIN_VERSION_CHECK (224)
+PLUGIN_VERSION_CHECK(224)
 
 PLUGIN_SET_TRANSLATABLE_INFO (
   LOCALEDIR, GETTEXT_PACKAGE,
@@ -555,7 +551,7 @@ on_document_close (GObject       *obj,
                    GeanyDocument *doc,
                    gpointer       user_data)
 {
-  GtkNotebook *nb = GTK_NOTEBOOK (geany_data->main_widgets->notebook);
+  GtkNotebook *nb = GTK_NOTEBOOK (geany->main_widgets->notebook);
   
   /* the :document-close signal is emitted before a document gets closed,
    * so there always still is the current document open (hence the < 2) */
@@ -920,7 +916,7 @@ on_kb_reflow (guint key_id)
       gint end = find_msgstr_end_at (doc, pos);
       glong len = g_utf8_strlen (msgstr->str, (gssize) msgstr->len);
       /* FIXME: line_break_column isn't supposedly public */
-      gint line_len = geany_data->editor_prefs->line_break_column;
+      gint line_len = geany->editor_prefs->line_break_column;
       gint msgstr_kw_len;
       
       /* if line break column doesn't have a reasonable value, don't use it */
@@ -1227,8 +1223,8 @@ on_document_save (GObject        *obj,
   
   if (doc_is_po (doc) && plugin.update_headers &&
       (header_start = find_header_start (doc)) >= 0) {
-    gchar *name = escape_string (geany_data->template_prefs->developer);
-    gchar *mail = escape_string (geany_data->template_prefs->mail);
+    gchar *name = escape_string (geany->template_prefs->developer);
+    gchar *mail = escape_string (geany->template_prefs->mail);
     gchar *date;
     gchar *translator;
     gchar *generator;
@@ -1431,93 +1427,86 @@ show_stats_dialog (guint  all,
                    guint  fuzzy,
                    guint  untranslated)
 {
-  GError     *error = NULL;
-  gchar      *ui_filename = get_data_dir_path ("stats.ui");;
-  GtkBuilder *builder = gtk_builder_new ();
+  gchar *filepath = get_data_filepath(PLUGIN, "stats.ui");
+  GtkBuilder *builder = get_ui_builder_from_file(filepath);
+  g_free(filepath);
+  if (!builder) return;
   
-  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
-  if (! gtk_builder_add_from_file (builder, ui_filename, &error)) {
-    g_critical (_("Failed to load UI definition, please check your "
-                  "installation. The error was: %s"), error->message);
-    g_error_free (error);
-  } else {
-    StatsGraphData  data;
-    GObject        *dialog;
-    GObject        *drawing_area;
-    
-    data.translated   = all ? (translated   * 1.0 / all) : 0;
-    data.fuzzy        = all ? (fuzzy        * 1.0 / all) : 0;
-    data.untranslated = all ? (untranslated * 1.0 / all) : 0;
-    
-    drawing_area = gtk_builder_get_object (builder, "drawing_area");
+  StatsGraphData  data;
+  GObject        *dialog;
+  GObject        *drawing_area;
+  
+  data.translated   = all ? (translated   * 1.0 / all) : 0;
+  data.fuzzy        = all ? (fuzzy        * 1.0 / all) : 0;
+  data.untranslated = all ? (untranslated * 1.0 / all) : 0;
+  
+  drawing_area = gtk_builder_get_object (builder, "drawing_area");
 #if ! GTK_CHECK_VERSION (3, 0, 0)
-    g_signal_connect (drawing_area,
-                      "expose-event", G_CALLBACK (on_stats_graph_expose_event),
-                      &data);
+  g_signal_connect (drawing_area,
+                    "expose-event", G_CALLBACK (on_stats_graph_expose_event),
+                    &data);
 #else
-    g_signal_connect (drawing_area,
-                      "draw", G_CALLBACK (stats_graph_draw),
-                      &data);
+  g_signal_connect (drawing_area,
+                    "draw", G_CALLBACK (stats_graph_draw),
+                    &data);
 #endif
-    g_signal_connect (drawing_area,
-                      "query-tooltip", G_CALLBACK (stats_graph_query_tooltip),
-                      &data);
-    gtk_widget_set_has_tooltip (GTK_WIDGET (drawing_area), TRUE);
-    
-    #define SET_LABEL_N(id, value)                                             \
-      do {                                                                     \
-        GObject *obj__ = gtk_builder_get_object (builder, (id));               \
-                                                                               \
-        if (! obj__) {                                                         \
-          g_warning ("Object \"%s\" is missing from the UI definition", (id)); \
-        } else {                                                               \
-          gchar *text__ = g_strdup_printf (_("%u (%.3g%%)"),                   \
-                                           (value),                            \
-                                           all ? ((value) * 100.0 / all) : 0); \
-                                                                               \
-          gtk_label_set_text (GTK_LABEL (obj__), text__);                      \
-          g_free (text__);                                                     \
-        }                                                                      \
-      } while (0)
-    
-    SET_LABEL_N ("n_translated",    translated);
-    SET_LABEL_N ("n_fuzzy",         fuzzy);
-    SET_LABEL_N ("n_untranslated",  untranslated);
-    
-    #undef SET_LABEL_N
-    
-    #define BIND_COLOR_BTN(id, color)                                          \
-      do {                                                                     \
-        GObject *obj__ = gtk_builder_get_object (builder, (id));               \
-                                                                               \
-        if (! obj__) {                                                         \
-          g_warning ("Object \"%s\" is missing from the UI definition", (id)); \
-        } else {                                                               \
-          gtk_color_button_set_color (GTK_COLOR_BUTTON (obj__), (color));      \
-          g_signal_connect (obj__, "notify::color",                            \
-                            G_CALLBACK (on_color_button_color_notify),         \
-                            (color));                                          \
-          /* queue a redraw on the drawing area so it uses the new color */    \
-          g_signal_connect_swapped (obj__, "notify::color",                    \
-                                    G_CALLBACK (gtk_widget_queue_draw),        \
-                                    drawing_area);                             \
-        }                                                                      \
-      } while (0)
-    
-    BIND_COLOR_BTN ("color_translated",   &plugin.color_translated);
-    BIND_COLOR_BTN ("color_fuzzy",        &plugin.color_fuzzy);
-    BIND_COLOR_BTN ("color_untranslated", &plugin.color_untranslated);
-    
-    #undef BIND_COLOR_BTN
-    
-    dialog = gtk_builder_get_object (builder, "dialog");
-    gtk_window_set_transient_for (GTK_WINDOW (dialog),
-                                  GTK_WINDOW (geany_data->main_widgets->window));
-    gtk_dialog_run (GTK_DIALOG (dialog));
-    gtk_widget_destroy (GTK_WIDGET (dialog));
-  }
-  g_free (ui_filename);
-  g_object_unref (builder);
+  g_signal_connect (drawing_area,
+                    "query-tooltip", G_CALLBACK (stats_graph_query_tooltip),
+                    &data);
+  gtk_widget_set_has_tooltip (GTK_WIDGET (drawing_area), TRUE);
+  
+  #define SET_LABEL_N(id, value)                                             \
+    do {                                                                     \
+      GObject *obj__ = gtk_builder_get_object (builder, (id));               \
+                                                                             \
+      if (! obj__) {                                                         \
+        g_warning ("Object \"%s\" is missing from the UI definition", (id)); \
+      } else {                                                               \
+        gchar *text__ = g_strdup_printf (_("%u (%.3g%%)"),                   \
+                                         (value),                            \
+                                         all ? ((value) * 100.0 / all) : 0); \
+                                                                             \
+        gtk_label_set_text (GTK_LABEL (obj__), text__);                      \
+        g_free (text__);                                                     \
+      }                                                                      \
+    } while (0)
+  
+  SET_LABEL_N ("n_translated",    translated);
+  SET_LABEL_N ("n_fuzzy",         fuzzy);
+  SET_LABEL_N ("n_untranslated",  untranslated);
+  
+  #undef SET_LABEL_N
+  
+  #define BIND_COLOR_BTN(id, color)                                          \
+    do {                                                                     \
+      GObject *obj__ = gtk_builder_get_object (builder, (id));               \
+                                                                             \
+      if (! obj__) {                                                         \
+        g_warning ("Object \"%s\" is missing from the UI definition", (id)); \
+      } else {                                                               \
+        gtk_color_button_set_color (GTK_COLOR_BUTTON (obj__), (color));      \
+        g_signal_connect (obj__, "notify::color",                            \
+                          G_CALLBACK (on_color_button_color_notify),         \
+                          (color));                                          \
+        /* queue a redraw on the drawing area so it uses the new color */    \
+        g_signal_connect_swapped (obj__, "notify::color",                    \
+                                  G_CALLBACK (gtk_widget_queue_draw),        \
+                                  drawing_area);                             \
+      }                                                                      \
+    } while (0)
+  
+  BIND_COLOR_BTN ("color_translated",   &plugin.color_translated);
+  BIND_COLOR_BTN ("color_fuzzy",        &plugin.color_fuzzy);
+  BIND_COLOR_BTN ("color_untranslated", &plugin.color_untranslated);
+  
+  #undef BIND_COLOR_BTN
+  
+  dialog = gtk_builder_get_object (builder, "dialog");
+  gtk_window_set_transient_for (GTK_WINDOW (dialog),
+                                GTK_WINDOW (geany->main_widgets->window));
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (GTK_WIDGET (dialog));
+  g_object_unref(builder);
 }
 
 static void
@@ -1624,63 +1613,6 @@ on_update_headers_upon_save_toggled (GtkCheckMenuItem  *item,
   plugin.update_headers = gtk_check_menu_item_get_active (item);
 }
 
-static gchar *
-get_config_filename (void)
-{
-  return g_build_filename (geany_data->app->configdir, "plugins",
-                           "pohelper", "pohelper.conf", NULL);
-}
-
-/* loads @filename in @kf and return %FALSE if failed, emitting a warning
- * unless the file was simply missing */
-static gboolean
-load_keyfile (GKeyFile     *kf,
-              const gchar  *filename,
-              GKeyFileFlags flags)
-{
-  GError *error = NULL;
-  
-  if (! g_key_file_load_from_file (kf, filename, flags, &error)) {
-    if (error->domain != G_FILE_ERROR || error->code != G_FILE_ERROR_NOENT) {
-      g_warning (_("Failed to load configuration file: %s"), error->message);
-    }
-    g_error_free (error);
-    
-    return FALSE;
-  }
-  
-  return TRUE;
-}
-
-/* writes @kf in @filename, possibly creating directories to be able to write
- * in @filename */
-static gboolean
-write_keyfile (GKeyFile    *kf,
-               const gchar *filename)
-{
-  gchar *dirname = g_path_get_dirname (filename);
-  GError *error = NULL;
-  gint err;
-  gchar *data;
-  gsize length;
-  gboolean success = FALSE;
-  
-  data = g_key_file_to_data (kf, &length, NULL);
-  if ((err = utils_mkdir (dirname, TRUE)) != 0) {
-    g_critical (_("Failed to create configuration directory \"%s\": %s"),
-                dirname, g_strerror (err));
-  } else if (! g_file_set_contents (filename, data, (gssize) length, &error)) {
-    g_critical (_("Failed to save configuration file: %s"), error->message);
-    g_error_free (error);
-  } else {
-    success = TRUE;
-  }
-  g_free (data);
-  g_free (dirname);
-  
-  return success;
-}
-
 /*
  * get_setting_color:
  * @kf: a #GKeyFile from which load the color
@@ -1693,105 +1625,81 @@ write_keyfile (GKeyFile    *kf,
  * 
  * Returns: %TRUE if the color was loaded, %FALSE otherwise.
  */
-static gboolean
-get_setting_color (GKeyFile    *kf,
-                   const gchar *group,
-                   const gchar *key,
-                   GdkColor    *color)
+static gboolean get_setting_color(GKeyFile *config, const gchar *group,
+                                  const gchar *key, GdkColor *color)
 {
-  gboolean  success = FALSE;
-  gchar    *value   = g_key_file_get_value (kf, group, key, NULL);
+  gboolean success = FALSE;
+  gchar *value = g_key_file_get_value(config, group, key, NULL);
   
   if (value) {
-    success = gdk_color_parse (value, color);
-    g_free (value);
+    success = gdk_color_parse(value, color);
+    g_free(value);
   }
-  
   return success;
 }
 
-static void
-set_setting_color (GKeyFile        *kf,
-                   const gchar     *group,
-                   const gchar     *key,
-                   const GdkColor  *color)
+static void set_setting_color(GKeyFile *config, const gchar *group,
+                              const gchar *key, const GdkColor *color)
 {
-  gchar *value = gdk_color_to_string (color);
+  gchar *value = gdk_color_to_string(color);
   
-  g_key_file_set_value (kf, group, key, value);
-  g_free (value);
+  g_key_file_set_value(config, group, key, value);
+  g_free(value);
 }
 
-static void
-load_config (void)
+static void load_config(void)
 {
-  gchar *filename = get_config_filename ();
-  GKeyFile *kf = g_key_file_new ();
-  
-  if (load_keyfile (kf, filename, G_KEY_FILE_NONE)) {
-    plugin.update_headers = utils_get_setting_boolean (kf, "general",
-                                                       "update-headers",
-                                                       plugin.update_headers);
-    get_setting_color (kf, "colors", "translated", &plugin.color_translated);
-    get_setting_color (kf, "colors", "fuzzy", &plugin.color_fuzzy);
-    get_setting_color (kf, "colors", "untranslated", &plugin.color_untranslated);
-  }
-  g_key_file_free (kf);
-  g_free (filename);
+	gboolean result = FALSE;
+	GKeyFile *config = load_plugin_config(PLUGIN, &result);
+	
+	if (result)
+	{
+		plugin.update_headers = utils_get_setting_boolean(config, "general",
+														  "update-headers",
+														  plugin.update_headers);
+		get_setting_color(config, "colors", "translated", &plugin.color_translated);
+		get_setting_color(config, "colors", "fuzzy", &plugin.color_fuzzy);
+		get_setting_color(config, "colors", "untranslated", &plugin.color_untranslated);
+	}
+	g_key_file_free(config);
 }
 
-static void
-save_config (void)
+static void save_config(void)
 {
-  gchar *filename = get_config_filename ();
-  GKeyFile *kf = g_key_file_new ();
-  
-  load_keyfile (kf, filename, G_KEY_FILE_KEEP_COMMENTS);
-  g_key_file_set_boolean (kf, "general", "update-headers",
-                          plugin.update_headers);
-  set_setting_color (kf, "colors", "translated", &plugin.color_translated);
-  set_setting_color (kf, "colors", "fuzzy", &plugin.color_fuzzy);
-  set_setting_color (kf, "colors", "untranslated", &plugin.color_untranslated);
-  write_keyfile (kf, filename);
-  
-  g_key_file_free (kf);
-  g_free (filename);
+	gchar *filepath = get_config_filepath(PLUGIN, NULL);
+	GKeyFile *config = load_config_from_file(filepath, NULL);
+	
+	g_key_file_set_boolean(config, "general", "update-headers", plugin.update_headers);
+	
+	set_setting_color(config, "colors", "translated", &plugin.color_translated);
+	set_setting_color(config, "colors", "fuzzy", &plugin.color_fuzzy);
+	set_setting_color(config, "colors", "untranslated", &plugin.color_untranslated);
+	
+	write_config_to_file(config, filepath, SYSLOG);
+	g_key_file_free(config);
+	g_free(filepath);
 }
 
-void
-plugin_init (GeanyData *data)
+void plugin_init(GeanyData *data)
 {
-  GtkBuilder *builder;
-  GError *error = NULL;
-  gchar *ui_filename;
-  guint i;
+  load_config();
   
-  load_config ();
+  gchar *filepath = get_data_filepath(PLUGIN, "menus.ui");
+  GtkBuilder *builder = get_ui_builder_from_file(filepath);
+  g_free(filepath);
   
-  ui_filename = get_data_dir_path ("menus.ui");
-  builder = gtk_builder_new ();
-  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
-  if (! gtk_builder_add_from_file (builder, ui_filename, &error)) {
-    g_critical (_("Failed to load UI definition, please check your "
-                  "installation. The error was: %s"), error->message);
-    g_error_free (error);
-    g_object_unref (builder);
-    builder = NULL;
+  if (!builder) {
     plugin.menu_item = NULL;
   } else {
-    GObject *obj;
-    
-    plugin.menu_item = GTK_WIDGET (gtk_builder_get_object (builder, "root_item"));
-    gtk_menu_shell_append (GTK_MENU_SHELL (geany->main_widgets->tools_menu),
+    plugin.menu_item = GTK_WIDGET(gtk_builder_get_object(builder, "root_item"));
+    gtk_menu_shell_append (GTK_MENU_SHELL(geany->main_widgets->tools_menu),
                            plugin.menu_item);
     
-    obj = gtk_builder_get_object (builder, "update_headers_upon_save");
-    gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (obj),
-                                    plugin.update_headers);
-    g_signal_connect (obj, "toggled",
-                      G_CALLBACK (on_update_headers_upon_save_toggled), NULL);
+    GObject *obj = gtk_builder_get_object(builder, "update_headers_upon_save");
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(obj), plugin.update_headers);
+    g_signal_connect(obj, "toggled",
+                     G_CALLBACK(on_update_headers_upon_save_toggled), NULL);
   }
-  g_free (ui_filename);
   
   /* signal handlers */
   plugin_signal_connect (geany_plugin, NULL, "document-activate", TRUE,
@@ -1804,44 +1712,39 @@ plugin_init (GeanyData *data)
                          G_CALLBACK (on_document_save), NULL);
   
   /* add keybindings */
-  plugin.key_group = plugin_set_key_group (geany_plugin, "pohelper",
-                                           GPH_KB_COUNT, NULL);
+  plugin.key_group = plugin_set_key_group(geany_plugin, PLUGIN, GPH_KB_COUNT, NULL);
   
-  for (i = 0; i < G_N_ELEMENTS (G_actions); i++) {
+  for (guint i = 0; i < G_N_ELEMENTS(G_actions); i++) {
     GtkWidget *widget = NULL;
     
     if (builder && G_actions[i].widget) {
-      GObject *obj = gtk_builder_get_object (builder, G_actions[i].widget);
+      GObject *obj = gtk_builder_get_object(builder, G_actions[i].widget);
       
-      if (! obj || ! GTK_IS_MENU_ITEM (obj)) {
+      if (!obj || ! GTK_IS_MENU_ITEM(obj)) {
         g_critical (_("Cannot find widget \"%s\" in the UI definition, "
                       "please check your installation."), G_actions[i].widget);
       } else {
-        widget = GTK_WIDGET (obj);
-        g_signal_connect (widget, "activate",
-                          G_CALLBACK (on_widget_kb_activate),
-                          (gpointer) &G_actions[i]);
+        widget = GTK_WIDGET(obj);
+        g_signal_connect(widget, "activate", G_CALLBACK(on_widget_kb_activate),
+                         (gpointer) &G_actions[i]);
       }
     }
     
-    keybindings_set_item (plugin.key_group, G_actions[i].id,
-                          G_actions[i].callback, 0, 0, G_actions[i].name,
-                          _(G_actions[i].label), widget);
+    keybindings_set_item(plugin.key_group, G_actions[i].id,
+                         G_actions[i].callback, 0, 0, G_actions[i].name,
+                         _(G_actions[i].label), widget);
   }
   /* initial items sensitivity update */
-  update_menu_items_sensitivity (document_get_current ());
+  update_menu_items_sensitivity(document_get_current());
   
-  if (builder) {
-    g_object_unref (builder);
-  }
+  if (builder) g_object_unref(builder);
 }
 
-void
-plugin_cleanup (void)
+void plugin_cleanup(void)
 {
   if (plugin.menu_item) {
-    gtk_widget_destroy (plugin.menu_item);
+    gtk_widget_destroy(plugin.menu_item);
   }
   
-  save_config ();
+  save_config();
 }

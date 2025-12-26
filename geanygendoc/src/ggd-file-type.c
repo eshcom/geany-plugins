@@ -18,14 +18,10 @@
  *  
  */
 
-
-#include "ggd-file-type.h"
-
-#include <stdio.h>
-#include <glib.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "ggd-doc-type.h"
+#include "ggd-file-type.h"
 
 
 /**

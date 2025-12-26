@@ -24,7 +24,6 @@
 #define OVERVIEWPREFSPANEL_H_ 1
 
 #include "overviewprefs.h"
-#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

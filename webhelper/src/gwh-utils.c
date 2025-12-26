@@ -24,7 +24,6 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
 
-
 GdkPixbuf *
 gwh_pixbuf_new_from_uri (const gchar *uri,
                          GError     **error)

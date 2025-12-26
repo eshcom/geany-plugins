@@ -20,12 +20,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include "xmlsnippets.h"
 #include <ctype.h>
-#include <string.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
+#include "xmlsnippets.h"
 
 
 typedef struct Info
@@ -125,7 +126,7 @@ static gchar * merge_attributes(const gchar *sel, gint size, const Info * info)
 
 
 gboolean get_completion(GeanyEditor *editor, const gchar *sel, const gint size,
-	CompletionInfo * c, InputInfo * i)
+						CompletionInfo *c, InputInfo *i)
 {
 	Info info;
 	const gchar *str_found, *tagname, *input_iter, *completion, *iter;

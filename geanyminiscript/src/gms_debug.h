@@ -55,63 +55,63 @@ extern "C" {
 #include <string.h>
 #include <errno.h>
 
-#define GMS_CALL(f) \
-                                                                    \
-  if (((int)(f)) == -1)                                             \
-  {                                                                 \
-    int err = errno;                                                \
-    char *strerr = strerror(err);                                   \
-                                                                    \
-    fprintf(stderr,                                                 \
+#define GMS_CALL(f)                                                     \
+                                                                        \
+  if (((int)(f)) == -1)                                                 \
+  {                                                                     \
+    int err = errno;                                                    \
+    char *strerr = strerror(err);                                       \
+                                                                        \
+    fprintf(stderr,                                                     \
             "GMS_CALL(%s): Error at line %u, file %s: %s (errno=%d)\n", \
-            #f, __LINE__, __FILE__,                                 \
-            strerr == NULL ? "Bad error number" : strerr,           \
-            err);                                                   \
-    abort();                                                        \
+            #f, __LINE__, __FILE__,                                     \
+            strerr == NULL ? "Bad error number" : strerr,               \
+            err);                                                       \
+    abort();                                                            \
   }
 
-#define GMS_PNULL(pp) \
-                                                                    \
-  if ( (pp) == NULL)                                                \
-  {                                                                 \
-    fprintf(stderr,                                                 \
+#define GMS_PNULL(pp)                                                   \
+                                                                        \
+  if ( (pp) == NULL)                                                    \
+  {                                                                     \
+    fprintf(stderr,                                                     \
             "GMS_PNULL(%s): null pointer => %s at line %u, file %s: \n",\
-            #pp, __FUNCTION__, __LINE__, __FILE__ );                \
-    abort();                                                        \
+            #pp, __FUNCTION__, __LINE__, __FILE__ );                    \
+    abort();                                                            \
   }
 
-#define GMS_FOPEN(pp,...)                                            \
-  pp=fopen(__VA_ARGS__) ;                                           \
-  if ( (pp) == NULL)                                                \
-  {                                                                 \
-    int err = errno;                                                \
-    char *strerr = strerror(err);                                   \
-                                                                    \
-    fprintf(stderr,                                                 \
-            "%s=fopen%s: \n\tError at line %u, file %s: %s (errno=%d)\n",\
-            #pp, #__VA_ARGS__, __LINE__, __FILE__ ,                         \
-            strerr == NULL ? "Bad error number" : strerr,           \
-            err);                                                   \
-    abort();                                                        \
+#define GMS_FOPEN(pp,...)                                                 \
+  pp=fopen(__VA_ARGS__) ;                                                 \
+  if ( (pp) == NULL)                                                      \
+  {                                                                       \
+    int err = errno;                                                      \
+    char *strerr = strerror(err);                                         \
+                                                                          \
+    fprintf(stderr,                                                       \
+            "%s=fopen%s: \n\tError at line %u, file %s: %s (errno=%d)\n", \
+            #pp, #__VA_ARGS__, __LINE__, __FILE__ ,                       \
+            strerr == NULL ? "Bad error number" : strerr,                 \
+            err);                                                         \
+    abort();                                                              \
   }
 
 #define GMS_ASSERT(cc)                                    \
-                                                         \
-  if (!(cc))                                             \
-  {                                                      \
-    fprintf(stderr,                                      \
+                                                          \
+  if (!(cc))                                              \
+  {                                                       \
+    fprintf(stderr,                                       \
             "GMS_ASSERT(%s): %s at line %u, file %s\n",   \
-            #cc,  __FUNCTION__, __LINE__, __FILE__);     \
-    abort();                                             \
+            #cc,  __FUNCTION__, __LINE__, __FILE__);      \
+    abort();                                              \
   }
 
 #define GMS_WARNING(cc)                                   \
-                                                         \
-  if ((cc))                                              \
-  {                                                      \
-    fprintf(stderr,                                      \
+                                                          \
+  if ((cc))                                               \
+  {                                                       \
+    fprintf(stderr,                                       \
             "GMS_WARNING(%s): %s at line %u, file %s\n",  \
-            #cc, __FUNCTION__, __LINE__, __FILE__);      \
+            #cc, __FUNCTION__, __LINE__, __FILE__);       \
   }
 
 #define GMS_FINFO(fd,...) fprintf(fd, "INFO:"__VA_ARGS__)

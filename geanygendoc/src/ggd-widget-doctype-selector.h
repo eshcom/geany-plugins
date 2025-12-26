@@ -21,8 +21,6 @@
 #ifndef H_GGD_WIDGET_DOCTYPE_SELECTOR
 #define H_GGD_WIDGET_DOCTYPE_SELECTOR
 
-#include <gtk/gtk.h>
-
 #include "ggd-macros.h"
 
 G_BEGIN_DECLS

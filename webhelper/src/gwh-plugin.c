@@ -17,29 +17,27 @@
  *  
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"       // for the gettext domain
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
 
-#include <geanyplugin.h>
-#include <geany.h>
-#include <document.h>
-
+#include "gwh-plugin.h"
 #include "gwh-utils.h"
 #include "gwh-browser.h"
 #include "gwh-settings.h"
-#include "gwh-plugin.h"
 #include "gwh-keybindings.h"
 #include "gwh-enum-types.h"
 
+#include "../../utils/src/common.h"
 
-GeanyPlugin      *geany_plugin;
-GeanyData        *geany_data;
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;    // the code uses the macro "geany" (see geany->)
 
 
 PLUGIN_VERSION_CHECK(224)
@@ -116,7 +114,7 @@ on_idle_widget_show (gpointer data)
   /* present back the Geany's window because it is very unlikely the user
    * expects the focus on our newly created window at this point, since we
    * either just loaded the plugin or activated a element from Geany's UI */
-  gtk_window_present (GTK_WINDOW (geany_data->main_widgets->window));
+  gtk_window_present(GTK_WINDOW(geany->main_widgets->window));
   
   return FALSE;
 }
@@ -147,12 +145,12 @@ create_separate_window (void)
                     G_CALLBACK (on_separate_window_destroy), NULL);
   gtk_container_add (GTK_CONTAINER (window), G_browser);
   if (is_transient) {
-    gtk_window_set_transient_for (GTK_WINDOW (window),
-                                  GTK_WINDOW (geany_data->main_widgets->window));
+    gtk_window_set_transient_for(GTK_WINDOW(window),
+                                 GTK_WINDOW(geany->main_widgets->window));
   } else {
     GList *icons;
     
-    icons = gtk_window_get_icon_list (GTK_WINDOW (geany_data->main_widgets->window));
+    icons = gtk_window_get_icon_list(GTK_WINDOW(geany->main_widgets->window));
     gtk_window_set_icon_list (GTK_WINDOW (window), icons);
     g_list_free (icons);
   }
@@ -177,14 +175,14 @@ attach_browser (void)
   } else {
     G_container.type = CONTAINER_NOTEBOOK;
     if (position == GWH_BROWSER_POSITION_SIDEBAR) {
-      G_container.widget = geany_data->main_widgets->sidebar_notebook;
+      G_container.widget = geany->main_widgets->sidebar_notebook;
     } else {
-      G_container.widget = geany_data->main_widgets->message_window_notebook;
+      G_container.widget = geany->main_widgets->message_window_notebook;
     }
-    gtk_notebook_append_page (GTK_NOTEBOOK (G_container.widget),
-                              G_browser, gtk_label_new (_("Web preview")));
-    gwh_browser_set_inspector_transient_for (GWH_BROWSER (G_browser),
-                                             GTK_WINDOW (geany_data->main_widgets->window));
+    gtk_notebook_append_page(GTK_NOTEBOOK(G_container.widget),
+                             G_browser, gtk_label_new(_("Web preview")));
+    gwh_browser_set_inspector_transient_for(GWH_BROWSER(G_browser),
+                                            GTK_WINDOW(geany->main_widgets->window));
   }
 }
 
@@ -296,19 +294,8 @@ on_kb_toggle_bookmark (guint key_id)
 }
 
 
-static gchar *
-get_config_filename (void)
+static void load_config(void)
 {
-  return g_build_filename (geany_data->app->configdir, "plugins",
-                           GWH_PLUGIN_TARNAME, GWH_PLUGIN_TARNAME".conf", NULL);
-}
-
-static void
-load_config (void)
-{
-  gchar  *path;
-  GError *err = NULL;
-  
   G_settings = gwh_settings_get_default ();
   
   gwh_settings_install_property (G_settings, g_param_spec_boolean (
@@ -381,42 +368,37 @@ load_config (void)
     GWH_WINDOW_TYPE_NORMAL,
     G_PARAM_READWRITE));
   
-  path = get_config_filename ();
-  if (! gwh_settings_load_from_file (G_settings, path, &err)) {
-    g_warning ("Failed to load configuration: %s", err->message);
-    g_error_free (err);
-  }
-  g_free (path);
-}
-
-static void
-save_config (void)
-{
-  gchar  *path;
-  gchar  *dirname;
+  gchar *path = get_config_filepath(PLUGIN, NULL);
   GError *err = NULL;
   
-  path = get_config_filename ();
-  dirname = g_path_get_dirname (path);
-  utils_mkdir (dirname, TRUE);
-  g_free (dirname);
-  if (! gwh_settings_save_to_file (G_settings, path, &err)) {
-    g_warning ("Failed to save configuration: %s", err->message);
-    g_error_free (err);
+  if (!gwh_settings_load_from_file(G_settings, path, &err)) {
+    g_warning(_("Failed to load configuration: %s"), err ? err->message : NULL);
+    g_error_free(err);
   }
-  g_free (path);
-  g_object_unref (G_settings);
+  g_free(path);
+}
+
+static void save_config(void)
+{
+  gchar *filepath = get_config_filepath(PLUGIN, NULL);
+  
+  GError *err = NULL;
+  if (!gwh_settings_save_to_file(G_settings, filepath, &err)) {
+    g_warning(_("Failed to save configuration: %s"), err ? err->message : NULL);
+    g_error_free(err);
+  }
+  g_free(filepath);
+  g_object_unref(G_settings);
   G_settings = NULL;
 }
 
-void
-plugin_init (GeanyData *data)
+void plugin_init(GeanyData *data)
 {
   /* even though it's not really a good idea to keep all the library we load
    * into memory, this is needed for webkit. first, without this we creash after
    * module unloading, and webkitgtk inserts static data into the GLib
    * (g_quark_from_static_string() for example) so it's not safe to remove it */
-  plugin_module_make_resident (geany_plugin);
+  plugin_module_make_resident(geany_plugin);
   
   /* webkit uses threads but don't initialize the thread system */
   if (! g_thread_supported ()) {
@@ -508,7 +490,7 @@ on_configure_dialog_response (GtkDialog        *dialog,
   }
   
   if (response_id != GTK_RESPONSE_APPLY) {
-    g_free (cdialog);
+    g_free(cdialog);
   }
 }
 

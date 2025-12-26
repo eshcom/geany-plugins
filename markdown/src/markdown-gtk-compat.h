@@ -25,19 +25,19 @@
 #define MARKDOWN_GTK_COMPAT_H_
 
 #if !GTK_CHECK_VERSION(3, 4, 0)
-# define MarkdownGtkTable GtkTable
-# define MARKDOWN_GTK_TABLE GTK_TABLE
-# define markdown_gtk_table_set_row_spacing(table, spacing) \
-    gtk_table_set_row_spacings(table, spacing)
-# define markdown_gtk_table_set_col_spacing(table, spacing) \
-    gtk_table_set_col_spacings(table, spacing)
+  #define MarkdownGtkTable GtkTable
+  #define MARKDOWN_GTK_TABLE GTK_TABLE
+  #define markdown_gtk_table_set_row_spacing(table, spacing) \
+      gtk_table_set_row_spacings(table, spacing)
+  #define markdown_gtk_table_set_col_spacing(table, spacing) \
+      gtk_table_set_col_spacings(table, spacing)
 #else
-# define MarkdownGtkTable GtkGrid
-# define MARKDOWN_GTK_TABLE GTK_GRID
-# define markdown_gtk_table_set_row_spacing(table, spacing) \
-    gtk_grid_set_row_spacing(table, spacing)
-# define markdown_gtk_table_set_col_spacing(table, spacing) \
-    gtk_grid_set_column_spacing(table, spacing)
+  #define MarkdownGtkTable GtkGrid
+  #define MARKDOWN_GTK_TABLE GTK_GRID
+  #define markdown_gtk_table_set_row_spacing(table, spacing) \
+      gtk_grid_set_row_spacing(table, spacing)
+  #define markdown_gtk_table_set_col_spacing(table, spacing) \
+      gtk_grid_set_column_spacing(table, spacing)
 #endif
 
 typedef struct {

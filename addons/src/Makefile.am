@@ -31,8 +31,8 @@ addons_la_SOURCES = \
 	ao_xmltagging.c \
 	ao_xmltagging.h
 
-addons_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Addons\"
-addons_la_LIBADD = $(COMMONLIBS) \
-				   $(top_builddir)/utils/src/libgeanypluginutils.la
+addons_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Addons\" \
+					 -Wno-deprecated-declarations
+addons_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
 
 include $(top_srcdir)/build/cppcheck.mk

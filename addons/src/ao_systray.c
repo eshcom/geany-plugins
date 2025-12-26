@@ -18,17 +18,13 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_systray.h"
 
 
-typedef struct _AoSystrayPrivate			AoSystrayPrivate;
-
-#define AO_SYSTRAY_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_SYSTRAY_TYPE, AoSystrayPrivate))
+typedef struct _AoSystrayPrivate AoSystrayPrivate;
 
 struct _AoSystray
 {
@@ -63,13 +59,13 @@ enum
 	WIDGET_PREFERENCES
 };
 
-G_DEFINE_TYPE(AoSystray, ao_systray, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoSystray, ao_systray, G_TYPE_OBJECT)
 
 
 static void ao_systray_finalize(GObject *object)
 {
 #if GTK_CHECK_VERSION(2, 10, 0)
-	AoSystrayPrivate *priv = AO_SYSTRAY_GET_PRIVATE(object);
+	AoSystrayPrivate *priv = ao_systray_get_instance_private((AoSystray *)object);
 
 	g_object_unref(priv->icon);
 	g_object_unref(priv->popup_menu);
@@ -82,7 +78,7 @@ static void ao_systray_finalize(GObject *object)
 static void ao_systray_set_property(GObject *object, guint prop_id,
 									const GValue *value, GParamSpec *pspec)
 {
-	AoSystrayPrivate *priv = AO_SYSTRAY_GET_PRIVATE(object);
+	AoSystrayPrivate *priv = ao_systray_get_instance_private((AoSystray *)object);
 
 	switch (prop_id)
 	{
@@ -107,8 +103,6 @@ static void ao_systray_class_init(AoSystrayClass *klass)
 
 	g_object_class->finalize = ao_systray_finalize;
 	g_object_class->set_property = ao_systray_set_property;
-
-	g_type_class_add_private(klass, sizeof(AoSystrayPrivate));
 
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_SYSTRAY,
@@ -173,7 +167,7 @@ static void icon_popup_quit_clicked_cb(GtkMenuItem *item, gpointer data)
 static void icon_popup_menu_cb(GtkStatusIcon *status_icon, guint button, guint activate_time,
 							   gpointer data)
 {
-	AoSystrayPrivate *priv = AO_SYSTRAY_GET_PRIVATE(data);
+	AoSystrayPrivate *priv = ao_systray_get_instance_private(data);
 
 	if (button == 3)
 		gtk_menu_popup(GTK_MENU(priv->popup_menu), NULL, NULL, NULL, NULL, button, activate_time);
@@ -184,7 +178,7 @@ static void icon_popup_menu_cb(GtkStatusIcon *status_icon, guint button, guint a
 static void ao_systray_init(AoSystray *self)
 {
 #if GTK_CHECK_VERSION(2, 10, 0)
-	AoSystrayPrivate *priv = AO_SYSTRAY_GET_PRIVATE(self);
+	AoSystrayPrivate *priv = ao_systray_get_instance_private(self);
 	GtkWidget *item;
 	const gchar *icon_name;
 

@@ -30,9 +30,11 @@ workbench_la_SOURCES = \
 	tm_control.h \
 	tm_control.c
 
-workbench_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Workbench\"
+workbench_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Workbench\" \
+						-Wno-deprecated-declarations
 workbench_la_CFLAGS = $(AM_CFLAGS) $(WORKBENCH_CFLAGS) -I$(top_srcdir)/utils/src
 workbench_la_LIBADD = $(COMMONLIBS) $(WORKBENCH_LIBS) \
 					  $(top_builddir)/utils/src/libgeanypluginutils.la
+
 include $(top_srcdir)/build/cppcheck.mk
 

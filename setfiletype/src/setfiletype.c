@@ -22,13 +22,13 @@
 	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>	// includes geany.h
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
-#include "../../utils/src/ui_plugins.h"
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
 
+extern GeanyData *geany_data;
 
-GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
 
 typedef struct {
 	/* settings */
@@ -72,20 +72,16 @@ enum
 static void configure_response_cb(GtkDialog *dialog, gint response,
 								  gpointer user_data)
 {
-	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
-		return;
-	GKeyFile *config	 = g_key_file_new();
-	gchar    *config_dir = g_path_get_dirname(sft_info->config_file);
+	if (!ok_apply(response)) return;
 	
-	g_key_file_load_from_file(config, sft_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(sft_info->config_file, NULL);
 	
 #define SAVE_CONF_TEXT(name) G_STMT_START {									\
 	sft_info->name = gtk_editable_get_chars(								\
 						GTK_EDITABLE(g_object_get_data(G_OBJECT(dialog),	\
 													   "entry_" #name)),	\
 						0, -1);												\
-	g_key_file_set_string(config, "setfiletype", #name, sft_info->name);	\
+	g_key_file_set_string(config, CONFIG_SECTION, #name, sft_info->name);	\
 } G_STMT_END
 	
 	SAVE_CONF_TEXT(filetype_1);
@@ -102,20 +98,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	SAVE_CONF_TEXT(filetype_12);
 #undef SAVE_CONF_TEXT
 	
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-		utils_mkdir(config_dir, TRUE) != 0)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-			_("Plugin configuration directory could not be created."));
-	}
-	else
-	{	/* write config to file */
-		gchar *data;
-		data = g_key_file_to_data(config, NULL, NULL);
-		utils_write_file(sft_info->config_file, data);
-		g_free(data);
-	}
-	g_free(config_dir);
+	write_config_to_file(config, sft_info->config_file, MSGBOX);
 	g_key_file_free(config);
 }
 
@@ -123,8 +106,8 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 static void kb_activate(guint key_id)
 {
 	GeanyDocument *doc = document_get_current();
-	if (!doc)
-		return;
+	if (!doc) return;
+	
 	switch (key_id)
 	{
 #define CASE_KEY_ID(name) G_STMT_START {						\
@@ -153,28 +136,14 @@ static void kb_activate(guint key_id)
 static gboolean plugin_setfiletype_init(GeanyPlugin *plugin,
 										G_GNUC_UNUSED gpointer pdata)
 {
-	geany_plugin = plugin;
-	geany_data = plugin->geany_data;
-	
-	GKeyFile *config = g_key_file_new();
-	GeanyKeyGroup *key_group;
-	
-	key_group = plugin_set_key_group(geany_plugin, "setfiletype",
-									 KB_COUNT, NULL);
-	
 	sft_info = g_new0(SetfiletypeInfo, 1);
+	sft_info->config_file = get_config_filepath(PLUGIN, NULL);
 	
-	sft_info->config_file = g_strconcat(geany->app->configdir,
-										G_DIR_SEPARATOR_S, "plugins",
-										G_DIR_SEPARATOR_S, "setfiletype",
-										G_DIR_SEPARATOR_S, "setfiletype.conf",
-										NULL);
-	
-	g_key_file_load_from_file(config, sft_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(sft_info->config_file, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(plugin, PLUGIN, KB_COUNT, NULL);
 	
 #define GET_CONF_TEXT(name, hotkey_text) G_STMT_START {					\
-	sft_info->name = utils_get_setting_string(config, "setfiletype",	\
+	sft_info->name = utils_get_setting_string(config, CONFIG_SECTION,	\
 											  #name, NULL);				\
 	keybindings_set_item(key_group, KB_##name, kb_activate,				\
 						 0, 0, #name, hotkey_text, NULL);				\
@@ -202,9 +171,7 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 											   GtkDialog *dialog,
 											   G_GNUC_UNUSED gpointer pdata)
 {
-	GtkWidget *vbox, *entry;
-	
-	vbox = gtk_vbox_new(FALSE, 0);
+	GtkWidget *entry, *vbox = gtk_vbox_new(FALSE, 0);
 	
 #define WIDGET_CONF_TEXT(name, label_text) G_STMT_START {				\
 	entry = add_inputbox(vbox, label_text, sft_info->name, 400,			\
@@ -226,8 +193,7 @@ static GtkWidget *plugin_setfiletype_configure(G_GNUC_UNUSED GeanyPlugin *plugin
 	WIDGET_CONF_TEXT(filetype_12, _("File Type 12"));
 #undef WIDGET_CONF_TEXT
 	
-	g_signal_connect(dialog, "response",
-					 G_CALLBACK(configure_response_cb), NULL);
+	g_signal_connect(dialog, "response", G_CALLBACK(configure_response_cb), NULL);
 	
 	gtk_widget_show_all(vbox);
 	return vbox;
@@ -263,8 +229,7 @@ void geany_load_module(GeanyPlugin *plugin)
 	
 	/* Set metadata */
 	plugin->info->name = _("Set FileType");
-	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) "
-								  "by hotkey");
+	plugin->info->description = _("Set file type (XML, JSON, Erlang, ...) by hotkey");
 	plugin->info->version = "0.1";
 	plugin->info->author = "Egor Shinkarev <esheburg@gmail.com>";
 	

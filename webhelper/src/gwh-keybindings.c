@@ -17,25 +17,15 @@
  *  
  */
 
-#include "gwh-keybindings.h"
-
-#include <glib.h>
-#include <gtk/gtk.h>
-
-#include <geanyplugin.h>
-#include <geany.h>
-
 #include "gwh-plugin.h"
-
+#include "gwh-keybindings.h"
 
 static GeanyKeyGroup *G_key_group;
 
 
-void
-gwh_keybindings_init (void)
+void gwh_keybindings_init(void)
 {
-  G_key_group = plugin_set_key_group (geany_plugin, "webhelper", GWH_KB_COUNT,
-                                      NULL);
+  G_key_group = plugin_set_key_group(geany_plugin, PLUGIN, GWH_KB_COUNT, NULL);
 }
 
 void

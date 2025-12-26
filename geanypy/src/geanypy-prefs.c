@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -24,7 +28,7 @@ static int
 Prefs_init(Prefs *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->prefs = geany_data->prefs;
+	self->prefs = geany->prefs;
 	return 0;
 }
 
@@ -94,7 +98,7 @@ static int
 ToolPrefs_init(ToolPrefs *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->tool_prefs = geany_data->tool_prefs;
+	self->tool_prefs = geany->tool_prefs;
 	return 0;
 }
 

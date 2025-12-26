@@ -1,2 +1,2 @@
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 #include "keybindings.h"

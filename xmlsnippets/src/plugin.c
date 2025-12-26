@@ -22,20 +22,20 @@
 #ifndef TEST
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include "plugin.h"
-#include "xmlsnippets.h"
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 #include <SciLexer.h>
+
+#include "xmlsnippets.h"
+
+GeanyData *geany_data;
 
 
 static gboolean editor_notify_cb(GObject *object, GeanyEditor *editor,
-	SCNotification *nt, gpointer data);
+								 SCNotification *nt, gpointer data);
 
-
-GeanyData *geany_data;
-GeanyPlugin *geany_plugin;
 
 PLUGIN_VERSION_CHECK(224)
 PLUGIN_SET_TRANSLATABLE_INFO(

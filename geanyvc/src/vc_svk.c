@@ -19,12 +19,9 @@
  *      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
+
 #include "geanyvc.h"
-
-extern GeanyData *geany_data;
-
 
 static const gchar *SVK_CMD_DIFF_FILE[] = { "svk", "diff", ABS_FILENAME, NULL };
 static const gchar *SVK_CMD_DIFF_DIR[] = { "svk", "diff", ABS_DIRNAME, NULL };

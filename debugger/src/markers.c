@@ -23,13 +23,9 @@
  * 		Contains functions for manipulating margin and background markers.
  */
 
-#include <string.h>
-
-#include <geanyplugin.h>
-extern GeanyData		*geany_data;
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "markers.h"
-#include "breakpoints.h"
 
 #include "xpm/breakpoint.xpm"
 #include "xpm/breakpoint_disabled.xpm"
@@ -37,6 +33,8 @@ extern GeanyData		*geany_data;
 
 #include "xpm/frame.xpm"
 #include "xpm/frame_current.xpm"
+
+extern GeanyData *geany_data;
 
 /* markers identifiers */
 #define M_FIRST			12

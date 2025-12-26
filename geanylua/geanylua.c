@@ -29,15 +29,20 @@
  * information, or visit  http://www.lua.org/license.html .
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "glspi_ver.h"
+#include "../../utils/src/common.h"
+
+PLUGIN_EXPORT
+GeanyPlugin	*geany_plugin;
+PLUGIN_EXPORT
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 #define SUPPORT_LIB "libgeanylua." G_MODULE_SUFFIX
 
@@ -51,10 +56,6 @@ PLUGIN_VERSION_CHECK(MY_GEANY_API_VER)
 
 PLUGIN_EXPORT
 PLUGIN_SET_INFO(PLUGIN_NAME, PLUGIN_DESC, PLUGIN_VER, PLUGIN_AUTHOR)
-
-PLUGIN_EXPORT
-GeanyPlugin *geany_plugin;
-
 
 
 typedef void (*InitFunc) (GeanyData *data, GeanyPlugin *plugin);
@@ -119,8 +120,6 @@ static void fail_init(void) {
 	plugin_callbacks[0].after=FALSE;
 	plugin_callbacks[0].user_data=NULL;
 }
-
-static GeanyData *geany_data=NULL;
 
 
 static gchar *get_lib_dir(void)
@@ -188,19 +187,19 @@ static gboolean load_support_lib(const gchar *libname)
 PLUGIN_EXPORT
 void plugin_init(GeanyData *data)
 {
-	gchar *libname=NULL;
-
 	main_locale_init(LOCALEDIR, GETTEXT_PACKAGE);
-
-	geany_data=data;
+	
 	/* first try the user config path */
-	libname=g_build_path(G_DIR_SEPARATOR_S, data->app->configdir, "plugins", "geanylua", SUPPORT_LIB, NULL);
+	gchar *libname = get_config_filepath(PLUGIN, SUPPORT_LIB);
+	
 	if (!load_support_lib(libname)) {
 		/* try the system path */
-		gchar *libdir=get_lib_dir();
+		gchar *libdir = get_lib_dir();
 		g_free(libname);
-		libname=g_build_path(G_DIR_SEPARATOR_S, libdir, "geany-plugins", "geanylua", SUPPORT_LIB, NULL);
+		libname = g_build_path(G_DIR_SEPARATOR_S, libdir, "geany-plugins",
+							   PLUGIN, SUPPORT_LIB, NULL);
 		g_free(libdir);
+		
 		if (!load_support_lib(libname)) {
 			g_printerr(_("%s: Can't find support library %s!\n"), PLUGIN_NAME, libname);
 			g_free(libname);
@@ -210,7 +209,7 @@ void plugin_init(GeanyData *data)
 	g_free(libname);
 	copy_callbacks();
 
-	glspi_init(data, geany_plugin);
+	glspi_init(geany, geany_plugin);
 }
 
 

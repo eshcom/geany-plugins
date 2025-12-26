@@ -23,10 +23,7 @@
  * 		Contains variable structure constructors and destructors.
  */
 
-#include <stdlib.h>
-#include <memory.h>
-
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #include "breakpoint.h"
 #include "debug_module.h"

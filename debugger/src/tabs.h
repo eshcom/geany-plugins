@@ -23,9 +23,6 @@
 #ifndef TABS_H
 #define TABS_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
 typedef enum _tab_id
 {
 	TID_TARGET,
@@ -45,8 +42,8 @@ extern GtkWidget *tab_call_stack;
 extern GtkWidget *tab_terminal;
 extern GtkWidget *tab_messages;
 
-GtkWidget*		tabs_get_tab(tab_id id);
-tab_id			tabs_get_tab_id(GtkWidget* tab);
-const gchar*	tabs_get_label(tab_id id);
+GtkWidget *tabs_get_tab(tab_id id);
+tab_id tabs_get_tab_id(GtkWidget *tab);
+const gchar *tabs_get_label(tab_id id);
 
 #endif /* guard */

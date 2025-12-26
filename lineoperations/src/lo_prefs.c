@@ -23,9 +23,13 @@
 	#include "config.h"		// for the gettext domain
 #endif
 
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "lo_prefs.h"
 
-#include "../../utils/src/ui_plugins.h"
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
+
 
 static struct
 {
@@ -40,40 +44,20 @@ LineOpsInfo *lo_info = NULL;
 void lo_configure_response_cb(GtkDialog *dialog, gint response,
 							  gpointer user_data)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		GKeyFile *config = g_key_file_new();
-		gchar *config_dir = g_path_get_dirname(lo_info->config_file);
-		gchar *data;
-		
-		/* Grabbing options that has been set */
-		lo_info->use_collation_compare = gtk_toggle_button_get_active(
-							GTK_TOGGLE_BUTTON(config_widgets.collation_cb));
-		
-		/* Write preference to file */
-		g_key_file_load_from_file(config, lo_info->config_file,
-								  G_KEY_FILE_NONE, NULL);
-		
-		g_key_file_set_boolean(config, "general", "use_collation_compare",
-							   lo_info->use_collation_compare);
-		
-		if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR)
-			&& utils_mkdir(config_dir, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-		else
-		{
-			/* write config to file */
-			data = g_key_file_to_data(config, NULL, NULL);
-			utils_write_file(lo_info->config_file, data);
-			g_free(data);
-		}
-		
-		g_free(config_dir);
-		g_key_file_free(config);
-	}
+	if (!ok_apply(response)) return;
+	
+	/* Grabbing options that has been set */
+	lo_info->use_collation_compare = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+													config_widgets.collation_cb));
+	
+	/* Write preference to file */
+	GKeyFile *config = load_config_from_file(lo_info->config_file, NULL);
+	
+	g_key_file_set_boolean(config, CONFIG_SECTION, "use_collation_compare",
+						   lo_info->use_collation_compare);
+	
+	write_config_to_file(config, lo_info->config_file, MSGBOX);
+	g_key_file_free(config);
 }
 
 
@@ -99,21 +83,15 @@ GtkWidget *lo_configure(G_GNUC_UNUSED GeanyPlugin *plugin, GtkDialog *dialog,
 /* Initialize preferences */
 void lo_init_prefs(GeanyPlugin *plugin)
 {
-	GeanyData *geany_data = plugin->geany_data;
-	GKeyFile *config = g_key_file_new();
-	
 	/* load preferences from file into lo_info */
 	lo_info = g_new0(LineOpsInfo, 1);
-	lo_info->config_file = g_strconcat(geany->app->configdir,
-									   G_DIR_SEPARATOR_S, "plugins",
-									   G_DIR_SEPARATOR_S, "lineoperations",
-									   G_DIR_SEPARATOR_S, "general.conf", NULL);
+	lo_info->config_file = get_config_filepath(PLUGIN, NULL);
 	
-	g_key_file_load_from_file(config, lo_info->config_file, G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(lo_info->config_file, NULL);
 	
-	lo_info->use_collation_compare = utils_get_setting_boolean(config,
-										"general", "use_collation_compare", FALSE);
-	
+	lo_info->use_collation_compare = utils_get_setting_boolean(config, CONFIG_SECTION,
+															   "use_collation_compare",
+															   FALSE);
 	printf("VALUE: %d\n", lo_info->use_collation_compare);
 	
 	g_key_file_free(config);

@@ -23,14 +23,10 @@
 #ifndef GOTO_FILE_H
 #define GOTO_FILE_H
 
-#include "codenavigation.h"
-
 /* Initialization */
-void
-goto_file_init(void);
+void goto_file_init(void);
 
 /* Cleanup */
-void
-goto_file_cleanup(void);
+void goto_file_cleanup(void);
 
 #endif /* GOTO_FILE_H */

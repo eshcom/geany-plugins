@@ -18,18 +18,13 @@
  *  
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd-tag-utils.h"
-
-#include <geanyplugin.h>
-#include <glib.h>
-
+#include "ggd-plugin.h"   // to access Geany data/funcs
 #include "ggd-utils.h"
-#include "ggd-plugin.h" /* to access Geany data/funcs */
+#include "ggd-tag-utils.h"
 
 
 /*

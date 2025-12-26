@@ -23,29 +23,24 @@
  * 		Implementation of struct _dbg_module for GDB
  */
 
-#include <string.h>
-#include <stdlib.h>
+#ifdef HAVE_CONFIG_H
+	#include "config.h"		// for the gettext domain
+#endif
+
 #include <ctype.h>
 #include <wctype.h>
-#include <unistd.h>
-
-#ifdef HAVE_CONFIG_H
-	#include "config.h"
-#endif
-#include <geanyplugin.h>
-extern GeanyData		*geany_data;
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "breakpoint.h"
 #include "debug_module.h"
 #include "gdb_mi.h"
 
+
 /* module features */
 #define MODULE_FEATURES MF_ASYNC_BREAKS
 
 /* GDB spawn flags */
-#define GDB_SPAWN_FLAGS \
-	G_SPAWN_SEARCH_PATH | \
-	G_SPAWN_DO_NOT_REAP_CHILD
+#define GDB_SPAWN_FLAGS G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD
 
 /* GDB prompt */
 #define GDB_PROMPT "(gdb) \n"

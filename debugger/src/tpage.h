@@ -22,28 +22,25 @@
 #ifndef TPAGE_H
 #define TPAGE_H
 
-#include <glib.h>
-#include <gtk/gtk.h>
+void tpage_init(void);
 
-void			tpage_init(void);
+gchar	*tpage_get_target(void);
+void	tpage_set_target(const gchar *newvalue);
 
-gchar*		tpage_get_target(void);
-void			tpage_set_target(const gchar *newvalue);
+gchar	*tpage_get_debugger(void);
+void	tpage_set_debugger(const gchar *newvalue);
 
-gchar*		tpage_get_debugger(void);
-void			tpage_set_debugger(const gchar *newvalue);
+int		tpage_get_debug_module_index(void);
 
-int				tpage_get_debug_module_index(void);
+gchar	*tpage_get_commandline(void);
+void	tpage_set_commandline(const gchar *newvalue);
 
-gchar*		tpage_get_commandline(void);
-void			tpage_set_commandline(const gchar *newvalue);
+GList	*tpage_get_environment(void);
+void	tpage_add_environment(const gchar *name, const gchar *value);
 
-GList*			tpage_get_environment(void);
-void			tpage_add_environment(const gchar *name, const gchar *value);
+void	tpage_set_readonly(gboolean readonly);
+void	tpage_clear(void);
 
-void			tpage_set_readonly(gboolean readonly);
-void			tpage_clear(void);
-
-void			tpage_pack_widgets(gboolean tabbed);
+void	tpage_pack_widgets(gboolean tabbed);
 
 #endif /* guard */

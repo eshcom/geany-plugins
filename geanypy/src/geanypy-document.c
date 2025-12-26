@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -506,9 +510,9 @@ Document_get_documents_list(PyObject *module)
 
 	list = PyList_New(0);
 
-	for (i = 0; i < geany_data->documents_array->len; i++)
+	for (i = 0; i < geany->documents_array->len; i++)
 	{
-		doc = g_ptr_array_index(geany_data->documents_array, i);
+		doc = g_ptr_array_index(geany->documents_array, i);
 		if (DOC_VALID(doc))
 		{
 			PyList_Append(list,

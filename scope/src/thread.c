@@ -18,24 +18,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #define _WIN32_WINNT 0x0501  /* for DebugBreakProcess(), must be before any #include-s */
 
 #include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include "common.h"
 
 #ifdef G_OS_UNIX
-#include <signal.h>
+	#include <signal.h>
 #else
-#include <limits.h>
-#include <windows.h>
+	#include <limits.h>
+	#include <windows.h>
 #endif
+
 
 enum
 {

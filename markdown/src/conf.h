@@ -24,9 +24,6 @@
 #ifndef MARKDOWN_CONF_H
 #define MARKDOWN_CONF_H 1
 
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
 G_BEGIN_DECLS
 
 #define MARKDOWN_TYPE_CONFIG             (markdown_config_get_type ())
@@ -59,7 +56,6 @@ struct _MarkdownConfigClass
 
 GType markdown_config_get_type(void);
 MarkdownConfig *markdown_config_new(const gchar *filename);
-gboolean markdown_config_save(MarkdownConfig *conf);
 GtkWidget *markdown_config_gui(MarkdownConfig *conf, GtkDialog *dialog);
 
 const gchar *markdown_config_get_template_text(MarkdownConfig *conf);

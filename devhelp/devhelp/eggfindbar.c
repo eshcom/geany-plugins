@@ -16,15 +16,17 @@ write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"       // for the gettext domain
+#endif
 
 #include <string.h>
-
+#include <gtkcompat.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
 #include <glib/gi18n-lib.h>
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
 
 #include "eggfindbar.h"
+
 
 struct _EggFindBarPrivate
 {

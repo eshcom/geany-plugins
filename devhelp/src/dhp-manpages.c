@@ -1,13 +1,15 @@
+/* 
+ * 
+ */
+
+#ifdef HAVE_CONFIG_H
+	#include "config.h" // for the gettext domain
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <glib.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <geanyplugin.h>
 
 #include "dhp.h"
 

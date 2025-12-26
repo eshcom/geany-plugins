@@ -24,8 +24,7 @@
  * 		row is the first vhildren (uppermost frame) and whether a renderer is under the cursor
  */
 
-#include <string.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "cellrendererframeicon.h"
 

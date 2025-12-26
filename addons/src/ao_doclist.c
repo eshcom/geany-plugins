@@ -20,23 +20,17 @@
  * $Id$
  */
 
-
-#include <gtk/gtk.h>
-#include <glib-object.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "addons.h"
 #include "ao_doclist.h"
 
 
-typedef struct _AoDocListPrivate			AoDocListPrivate;
-
-#define AO_DOC_LIST_GET_PRIVATE(obj)		(G_TYPE_INSTANCE_GET_PRIVATE((obj),\
-			AO_DOC_LIST_TYPE, AoDocListPrivate))
+typedef struct _AoDocListPrivate AoDocListPrivate;
 
 struct _AoDocList
 {
@@ -69,23 +63,21 @@ enum
 	ACTION_CLOSE_ALL
 };
 
-static void ao_doc_list_finalize  			(GObject *object);
+static void ao_doc_list_finalize(GObject *object);
 static void ao_doclist_set_property(GObject *object, guint prop_id,
 									const GValue *value, GParamSpec *pspec);
 
-G_DEFINE_TYPE(AoDocList, ao_doc_list, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE(AoDocList, ao_doc_list, G_TYPE_OBJECT)
 
 
 static void ao_doc_list_class_init(AoDocListClass *klass)
 {
 	GObjectClass *g_object_class;
-
+	
 	g_object_class = G_OBJECT_CLASS(klass);
 	g_object_class->finalize = ao_doc_list_finalize;
 	g_object_class->set_property = ao_doclist_set_property;
-
-	g_type_class_add_private(klass, sizeof(AoDocListPrivate));
-
+	
 	g_object_class_install_property(g_object_class,
 									PROP_ENABLE_DOCLIST,
 									g_param_spec_boolean(
@@ -94,7 +86,7 @@ static void ao_doc_list_class_init(AoDocListClass *klass)
 									"Whether to show a toolbar item to open a document list",
 									TRUE,
 									G_PARAM_WRITABLE));
-
+	
 	g_object_class_install_property(g_object_class,
 									PROP_SORT_MODE,
 									g_param_spec_int(
@@ -110,8 +102,8 @@ static void ao_doc_list_class_init(AoDocListClass *klass)
 
 static void ao_doc_list_finalize(GObject *object)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(object);
-
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private((AoDocList *)object);
+	
 	if (priv->toolbar_doclist_button != NULL)
 		gtk_widget_destroy(GTK_WIDGET(priv->toolbar_doclist_button));
 	if (priv->overflow_menu_item != NULL)
@@ -124,7 +116,7 @@ static void ao_doc_list_finalize(GObject *object)
 /* This function is taken from Midori's katze-utils.c, thanks to Christian. */
 static void ao_popup_position_menu(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer data)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(data);
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private(data);
 
 	gint wx, wy;
 	GtkRequisition widget_req;
@@ -219,7 +211,7 @@ static void ao_toolbar_item_doclist_clicked_cb(GtkWidget *button, gpointer data)
 	GtkWidget *menu_item;
 	GeanyDocument *current_doc = document_get_current();
 	GCompareFunc compare_func;
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(data);
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private(data);
 
 	if (menu != NULL)
 		gtk_widget_destroy(menu);
@@ -265,7 +257,7 @@ static void ao_toolbar_item_doclist_clicked_cb(GtkWidget *button, gpointer data)
 
 static gboolean ao_create_proxy_menu_cb(GtkToolItem *widget, gpointer data)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(data);
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private(data);
 
 	/* Create the menu item if needed */
 	if (priv->overflow_menu_item == NULL)
@@ -291,7 +283,7 @@ static gboolean ao_create_proxy_menu_cb(GtkToolItem *widget, gpointer data)
 
 static void ao_toolbar_update(AoDocList *self)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(self);
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private(self);
 
 	/* toolbar item is not requested, so remove the item if it exists */
 	if (! priv->enable_doclist)
@@ -328,8 +320,8 @@ static void ao_toolbar_update(AoDocList *self)
 static void ao_doclist_set_property(GObject *object, guint prop_id,
 									const GValue *value, GParamSpec *pspec)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(object);
-
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private((AoDocList *)object);
+	
 	switch (prop_id)
 	{
 		case PROP_ENABLE_DOCLIST:
@@ -348,8 +340,7 @@ static void ao_doclist_set_property(GObject *object, guint prop_id,
 
 static void ao_doc_list_init(AoDocList *self)
 {
-	AoDocListPrivate *priv = AO_DOC_LIST_GET_PRIVATE(self);
-
+	AoDocListPrivate *priv = ao_doc_list_get_instance_private(self);
 	priv->toolbar_doclist_button = NULL;
 	priv->in_overflow_menu = FALSE;
 	priv->overflow_menu_item = NULL;
@@ -358,7 +349,6 @@ static void ao_doc_list_init(AoDocList *self)
 
 AoDocList *ao_doc_list_new(gboolean enable, DocListSortMode sort_mode)
 {
-	return g_object_new(AO_DOC_LIST_TYPE, "enable-doclist", enable, "sort-mode", sort_mode, NULL);
+	return g_object_new(AO_DOC_LIST_TYPE, "enable-doclist", enable,
+						"sort-mode", sort_mode, NULL);
 }
-
-

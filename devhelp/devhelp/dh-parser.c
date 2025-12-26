@@ -20,8 +20,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
-#include <string.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #include <errno.h>
 #include <zlib.h>
 #include <glib/gi18n-lib.h>
@@ -32,6 +34,7 @@
 
 #define NAMESPACE      "http://www.devhelp.net/book"
 #define BYTES_PER_READ 4096
+
 
 typedef struct {
 	GMarkupParser       *m_parser;

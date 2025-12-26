@@ -16,19 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include <string.h>
-#include <glib.h>
-
 #include <glib/gstdio.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h>		// includes geany.h, gtkcompat.h, etc.
 
 #include "prjorg-utils.h"
 
-extern GeanyData *geany_data;
+extern GeanyData *geany_data;	// the code uses the macro "geany" (see geany->)
 
 
 /* utf8 */
@@ -79,7 +73,7 @@ gboolean patterns_match(GSList *patterns, const gchar *str)
 	foreach_slist (elem, patterns)
 	{
 		GPatternSpec *pattern = elem->data;
-		if (g_pattern_match_string(pattern, str))
+		if (g_pattern_spec_match_string(pattern, str))
 			return TRUE;
 	}
 	return FALSE;
@@ -205,7 +199,7 @@ gchar *get_selection(void)
 /* utf8 */
 gchar *get_project_base_path(void)
 {
-	GeanyProject *project = geany_data->app->project;
+	GeanyProject *project = geany->app->project;
 
 	if (project && !EMPTY(project->base_path))
 	{

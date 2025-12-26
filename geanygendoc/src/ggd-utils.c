@@ -18,26 +18,18 @@
  *  
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h" /* for the gettext domain */
+  #include "config.h"     // for the gettext domain
 #endif
 
-#include "ggd-utils.h"
-#include "ggd-plugin.h" /* to access Geany data/funcs */
-
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
-#include <stdio.h> /* for BUFSIZ */
-#include <glib.h>
 #include <glib/gstdio.h>
-#include <gio/gio.h> /* for G_FILE_ERROR and friends */
-#include <geanyplugin.h>
 
-#include "../../utils/src/ui_plugins.h"
+#include "ggd-plugin.h"   // to access Geany data/funcs
+#include "ggd-utils.h"
+
+#include "../../utils/src/common.h"
 
 
 /*
@@ -155,54 +147,45 @@ ggd_copy_file (const gchar *input,
  * Returns: The path for the requested configuration file in the GLib file names
  *          encoding, or %NULL if path cannot be found.
  */
-gchar *
-ggd_get_config_file (const gchar *name,
-                     const gchar *section,
-                     GgdPerms     perms_req,
-                     GError     **error)
+gchar *ggd_get_config_file(const gchar *name, const gchar *section,
+                           GgdPerms perms_req, GError **error)
 {
-  gchar  *path = NULL;
-  gchar  *user_dir;
-  gchar  *user_path;
-  gchar  *system_dir;
-  gchar  *system_path;
-  
-  g_return_val_if_fail (name != NULL, NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+  g_return_val_if_fail(name != NULL, NULL);
+  g_return_val_if_fail(error == NULL || *error == NULL, NULL);
   
   /* here we guess the locale encoding is ASCII-compatible, anyway it's the case
    * on Windows since we use UTF-8 and on UNIX it would cause too much troubles
    * everywhere if it is not anyway */
-  user_dir = g_build_filename (geany->app->configdir, "plugins",
-                               GGD_PLUGIN_CNAME, section, NULL);
-  system_dir = get_data_dir_path (section);
-  user_path = g_build_filename (user_dir, name, NULL);
-  system_path = g_build_filename (system_dir, name, NULL);
+  gchar *user_dir = get_config_filepath(PLUGIN, section);
+  gchar *system_dir = get_data_filepath(PLUGIN, section);
+  gchar *user_path = g_build_filename(user_dir, name, NULL);
+  gchar *system_path = g_build_filename(system_dir, name, NULL);
+  
+  gchar *path = NULL;
+  
   if (perms_req & GGD_PERM_R) {
-    if (g_file_test (user_path, G_FILE_TEST_EXISTS)) {
-      if (! g_file_test (user_path, G_FILE_TEST_IS_REGULAR)) {
-        g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                     _("File \"%s\" exists but is not a regular file"),
-                     user_path);
+    if (g_file_test(user_path, G_FILE_TEST_EXISTS)) {
+      if (!g_file_test(user_path, G_FILE_TEST_IS_REGULAR)) {
+        g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                    _("File \"%s\" exists but is not a regular file"), user_path);
       } else {
         path = user_path;
       }
     }
-    if (! path) {
-      if (g_file_test (system_path, G_FILE_TEST_EXISTS)) {
-        if (! g_file_test (system_path, G_FILE_TEST_IS_REGULAR)) {
-          g_clear_error (error);
-          g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                       _("File \"%s\" exists but is not a regular file"),
-                       system_path);
+    if (!path) {
+      if (g_file_test(system_path, G_FILE_TEST_EXISTS)) {
+        if (!g_file_test(system_path, G_FILE_TEST_IS_REGULAR)) {
+          g_clear_error(error);
+          g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_FAILED,
+                      _("File \"%s\" exists but is not a regular file"), system_path);
         } else {
           path = system_path;
         }
       }
     }
-    if (! path && error && ! *error) {
-      g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_NOENT,
-                   _("%s: no such file or directory"), user_path);
+    if (!path && error && !*error) {
+      g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_NOENT,
+                  _("%s: no such file or directory"), user_path);
     }
   }
   if (perms_req & GGD_PERM_W) {
@@ -210,11 +193,11 @@ ggd_get_config_file (const gchar *name,
       /* nothing to do, write should succeed on user's path */
     } else {
       path = NULL;
-      if (g_mkdir_with_parents (user_dir, 0750) < 0) {
+      if (g_mkdir_with_parents(user_dir, 0750) < 0) {
         gint errnum = errno;
         
-        g_clear_error (error);
-        set_file_error_from_errno (error, errnum, user_dir);
+        g_clear_error(error);
+        set_file_error_from_errno(error, errnum, user_dir);
       } else if (perms_req & GGD_PERM_NOCREAT) {
         /* just give the user path if user don't want the copy to be done */
         path = user_path;
@@ -222,38 +205,37 @@ ggd_get_config_file (const gchar *name,
         GError *gerr = NULL;
         
         /* try to copy the system file to the user's configuration directory */
-        if (ggd_copy_file (system_path, user_path, TRUE, 0640, &gerr) ||
+        if (ggd_copy_file(system_path, user_path, TRUE, 0640, &gerr) ||
             /* the file already exists (unlikely if GGD_PERMS_R is set) */
             gerr->code == G_FILE_ERROR_EXIST) {
           path = user_path;
-          if (gerr) g_clear_error (&gerr);
-          g_clear_error (error);
+          if (gerr) g_clear_error(&gerr);
+          g_clear_error(error);
         } else if (gerr->code == G_FILE_ERROR_NOENT) {
           /* the system file doesn't exist. No problem, just try to create the
            * file (if it does not already exist) */
-          gint fd;
+          g_clear_error(&gerr);
+          gint fd = g_open(user_path, O_CREAT | O_WRONLY, 0640);
           
-          g_clear_error (&gerr);
-          fd = g_open (user_path, O_CREAT | O_WRONLY, 0640);
           if (fd < 0) {
-            set_file_error_from_errno (&gerr, errno, user_path);
+            set_file_error_from_errno(&gerr, errno, user_path);
           } else {
             close (fd);
             path = user_path;
-            g_clear_error (error);
+            g_clear_error(error);
           }
         }
         if (gerr) {
-          g_clear_error (error);
-          g_propagate_error (error, gerr);
+          g_clear_error(error);
+          g_propagate_error(error, gerr);
         }
       }
     }
   }
-  if (path != user_path) g_free (user_path);
-  if (path != system_path) g_free (system_path);
-  g_free (user_dir);
-  g_free (system_dir);
+  if (path != user_path) g_free(user_path);
+  if (path != system_path) g_free(system_path);
+  g_free(user_dir);
+  g_free(system_dir);
   
   return path;
 }

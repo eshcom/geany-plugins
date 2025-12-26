@@ -18,15 +18,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <gdk/gdkkeysyms.h>
-
-#include <geanyplugin.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -291,7 +291,7 @@ static void on_document_activate(G_GNUC_UNUSED GObject *obj, GeanyDocument *doc,
 
 static void update_home_key(void)
 {
-	if (geany_data->editor_prefs->smart_home_key)
+	if (geany->editor_prefs->smart_home_key)
 	{
 		select_keys->stream = SCI_VCHOMEEXTEND;
 		select_keys->rectangle = SCI_VCHOMERECTEXTEND;
@@ -327,13 +327,13 @@ static void doit_and_select(guint group_id, guint key_id)
 	{
 		int before = sci_get_current_position(sci), after;
 
-		if (key_id != GEANY_KEYS_GOTO_LINE || !geany_data->toolbar_prefs->visible)
+		if (key_id != GEANY_KEYS_GOTO_LINE || !geany->toolbar_prefs->visible)
 			keybindings_send_command(group_id, key_id);
 		else if (go_to_line1_item)
 			g_signal_emit_by_name(go_to_line1_item, "activate");
 		else
 		{
-			if (geany_data->prefs->beep_on_errors)
+			if (geany->prefs->beep_on_errors)
 #if GTK_CHECK_VERSION(2, 2, 0)
 				gdk_display_beep(gdk_display_get_default());
 #else
@@ -493,10 +493,10 @@ void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
 	GtkContainer *menu;
 	GtkWidget *item;
-	GeanyKeyGroup *plugin_key_group;
-
-	plugin_key_group = plugin_set_key_group(geany_plugin, "extra_select", COUNT_KB, NULL);
-
+	
+	GeanyKeyGroup *plugin_key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+														   COUNT_KB, NULL);
+	
 	item = gtk_menu_item_new_with_mnemonic(_("E_xtra Selection"));
 	main_menu_item = item;
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), item);
@@ -553,7 +553,7 @@ void plugin_init(G_GNUC_UNUSED GeanyData *data)
 
 	gtk_widget_show_all(main_menu_item);
 
-	go_to_line1_item = g_object_get_data((gpointer) geany->main_widgets->window,
+	go_to_line1_item = g_object_get_data((gpointer)geany->main_widgets->window,
 		"go_to_line1");
 
 	update_home_key();

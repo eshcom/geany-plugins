@@ -22,13 +22,11 @@
 #ifndef CALLTIP_H
 #define CALLTIP_H
 
-#include <glib.h>
-
 #include "debug_module.h"
 
 #define MAX_CALLTIP_LENGTH 140
 #define MAX_CALLTIP_HEIGHT 20
 
-GString* get_calltip_line(variable *var, gboolean firstline);
+GString *get_calltip_line(variable *var, gboolean firstline);
 
 #endif /* guard */

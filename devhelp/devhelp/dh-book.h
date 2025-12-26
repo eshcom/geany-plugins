@@ -24,8 +24,6 @@
 #ifndef _DH_BOOK_H_
 #define _DH_BOOK_H_
 
-#include <gtk/gtk.h>
-
 G_BEGIN_DECLS
 
 typedef struct _DhBook      DhBook;

@@ -19,8 +19,6 @@
 #ifndef __WB_PROJECT_H__
 #define __WB_PROJECT_H__
 
-#include <glib.h>
-
 typedef struct S_WB_PROJECT WB_PROJECT;
 typedef struct S_WB_PROJECT_DIR WB_PROJECT_DIR;
 
@@ -29,7 +27,7 @@ typedef enum
 	WB_PROJECT_SCAN_MODE_INVALID,
 	WB_PROJECT_SCAN_MODE_WORKBENCH,
 	WB_PROJECT_SCAN_MODE_GIT,
-}WB_PROJECT_SCAN_MODE;
+} WB_PROJECT_SCAN_MODE;
 
 WB_PROJECT *wb_project_new(const gchar *filename);
 void wb_project_free(WB_PROJECT *prj);
@@ -73,7 +71,7 @@ gchar *wb_project_get_bookmark_at_index (WB_PROJECT *prj, guint index);
 guint wb_project_get_bookmarks_count(WB_PROJECT *prj);
 
 gboolean wb_project_save(WB_PROJECT *prj, GError **error);
-gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename, GError **error);
+gboolean wb_project_load(WB_PROJECT *prj, const gchar *filename);
 
 gchar *wb_project_get_info (WB_PROJECT *prj);
 

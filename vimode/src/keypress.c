@@ -16,10 +16,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <gdk/gdk.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
+
 #include "keypress.h"
 #include "utils.h"
 
-#include <gdk/gdkkeysyms.h>
 
 KeyPress *kp_from_event_key(GdkEventKey *ev)
 {

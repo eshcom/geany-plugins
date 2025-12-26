@@ -21,20 +21,24 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+  #include "config.h"     // for the gettext domain
 #endif
+
+#include <errno.h>
 
 #include "overviewplugin.h"
 #include "overviewscintilla.h"
 #include "overviewprefs.h"
 #include "overviewprefspanel.h"
 #include "overviewui.h"
-#include <errno.h>
 
-GeanyPlugin    *geany_plugin;
-GeanyData      *geany_data;
+#include "../../utils/src/common.h"
 
-PLUGIN_VERSION_CHECK (224)
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;  // the code uses the macro "geany" (see geany->)
+
+
+PLUGIN_VERSION_CHECK(224)
 
 PLUGIN_SET_TRANSLATABLE_INFO (
   LOCALEDIR,
@@ -44,9 +48,9 @@ PLUGIN_SET_TRANSLATABLE_INFO (
   "0.01",
   "Matthew Brush <matt@geany.org>")
 
-static OverviewPrefs   *overview_prefs     = NULL;
+static OverviewPrefs *overview_prefs = NULL;
 
-static void write_config (void);
+static void write_config(void);
 
 static void
 on_visible_pref_notify (OverviewPrefs *prefs,
@@ -101,133 +105,84 @@ on_kb_activate (guint keybinding_id)
   return TRUE;
 }
 
-static gchar *
-get_config_file (void)
+static gchar *get_config_file(void)
 {
-  gchar              *dir;
-  gchar              *fn;
-  static const gchar *def_config = OVERVIEW_PREFS_DEFAULT_CONFIG;
-
-  dir = g_build_filename (geany_data->app->configdir, "plugins", "overview", NULL);
-  fn = g_build_filename (dir, "prefs.conf", NULL);
-
-  if (! g_file_test (fn, G_FILE_TEST_IS_DIR))
-    {
-      if (g_mkdir_with_parents (dir, 0755) != 0)
-        {
-          g_critical ("failed to create config dir '%s': %s", dir, g_strerror (errno));
-          g_free (dir);
-          g_free (fn);
-          return NULL;
-        }
-    }
-
-  g_free (dir);
-
-  if (! g_file_test (fn, G_FILE_TEST_EXISTS))
-    {
-      GError *error = NULL;
-      if (!g_file_set_contents (fn, def_config, -1, &error))
-        {
-          g_critical ("failed to save default config to file '%s': %s",
-                      fn, error->message);
-          g_error_free (error);
-          g_free (fn);
-          return NULL;
-        }
-    }
-
-  return fn;
+  gchar *filepath = get_config_filepath(PLUGIN, NULL);
+  
+  if (!g_file_test(filepath, G_FILE_TEST_EXISTS) &&
+      !write_data_to_file(OVERVIEW_PREFS_DEFAULT_CONFIG, filepath, SYSLOG))
+  {
+    g_free(filepath);
+    return NULL;
+  }
+  return filepath;
 }
 
-static void
-write_config (void)
+static void write_config(void)
 {
-  gchar  *conf_file;
+  gchar *filepath = get_config_file();
+  
+  g_return_if_fail(OVERVIEW_IS_PREFS(overview_prefs));
+  g_return_if_fail(filepath != NULL);
+  
+  GKeyFile *config = overview_prefs_to_config(overview_prefs);
+  write_config_to_file(config, filepath, SYSLOG);
+  g_key_file_free(config);
+  g_free(filepath);
+}
+
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
+{
+  plugin_module_make_resident(geany_plugin);
+
+  overview_prefs = overview_prefs_new();
+  gchar *filepath = get_config_file();
+
   GError *error = NULL;
-  conf_file = get_config_file ();
-  if (! overview_prefs_save (overview_prefs, conf_file, &error))
-    {
-      g_critical ("failed to save preferences to file '%s': %s", conf_file, error->message);
-      g_error_free (error);
-    }
-  g_free (conf_file);
+  if (!overview_prefs_load(overview_prefs, filepath, &error))
+  {
+    g_critical("failed to load preferences file '%s': %s", filepath, error->message);
+    g_error_free(error);
+  }
+  g_free(filepath);
+
+  overview_ui_init(overview_prefs);
+
+  GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN, NUM_KB,
+                                                  on_kb_activate);
+  keybindings_set_item(key_group, KB_TOGGLE_VISIBLE, NULL, 0, 0, "toggle-visibility",
+                       _("Toggle Visibility"), overview_ui_get_menu_item());
+
+  keybindings_set_item(key_group, KB_TOGGLE_POSITION, NULL, 0, 0, "toggle-position",
+                       _("Toggle Left/Right Position"), NULL);
+
+  keybindings_set_item(key_group, KB_TOGGLE_INVERTED, NULL, 0, 0, "toggle-inverted",
+                       _("Toggle Overlay Inversion"), NULL);
+
+  g_signal_connect(overview_prefs, "notify::visible",
+                   G_CALLBACK(on_visible_pref_notify), NULL);
 }
 
-void
-plugin_init (G_GNUC_UNUSED GeanyData *data)
+void plugin_cleanup(void)
 {
-  gchar          *conf_file;
-  GError         *error = NULL;
-  GeanyKeyGroup  *key_group;
+  write_config();
+  overview_ui_deinit();
 
-  plugin_module_make_resident (geany_plugin);
-
-  overview_prefs = overview_prefs_new ();
-  conf_file = get_config_file ();
-  if (! overview_prefs_load (overview_prefs, conf_file, &error))
-    {
-      g_critical ("failed to load preferences file '%s': %s", conf_file, error->message);
-      g_error_free (error);
-    }
-  g_free (conf_file);
-
-  overview_ui_init (overview_prefs);
-
-  key_group = plugin_set_key_group (geany_plugin,
-                                    "overview",
-                                    NUM_KB,
-                                    on_kb_activate);
-
-  keybindings_set_item (key_group,
-                        KB_TOGGLE_VISIBLE,
-                        NULL, 0, 0,
-                        "toggle-visibility",
-                        _("Toggle Visibility"),
-                        overview_ui_get_menu_item ());
-
-  keybindings_set_item (key_group,
-                        KB_TOGGLE_POSITION,
-                        NULL, 0, 0,
-                        "toggle-position",
-                        _("Toggle Left/Right Position"),
-                        NULL);
-
-  keybindings_set_item (key_group,
-                        KB_TOGGLE_INVERTED,
-                        NULL, 0, 0,
-                        "toggle-inverted",
-                        _("Toggle Overlay Inversion"),
-                        NULL);
-
-  g_signal_connect (overview_prefs, "notify::visible", G_CALLBACK (on_visible_pref_notify), NULL);
-}
-
-void
-plugin_cleanup (void)
-{
-  write_config ();
-  overview_ui_deinit ();
-
-  if (OVERVIEW_IS_PREFS (overview_prefs))
-    g_object_unref (overview_prefs);
+  if (OVERVIEW_IS_PREFS(overview_prefs))
+    g_object_unref(overview_prefs);
   overview_prefs = NULL;
 }
 
-static void
-on_prefs_stored (OverviewPrefsPanel *panel,
-                 OverviewPrefs      *prefs,
-                 gpointer            user_data)
+static void on_prefs_stored(OverviewPrefsPanel *panel, OverviewPrefs *prefs,
+                            gpointer user_data)
 {
-  write_config ();
-  overview_ui_queue_update ();
+  write_config();
+  overview_ui_queue_update();
 }
 
-GtkWidget *
-plugin_configure (GtkDialog *dialog)
+GtkWidget *plugin_configure(GtkDialog *dialog)
 {
-  GtkWidget *panel;
-  panel = overview_prefs_panel_new (overview_prefs, dialog);
-  g_signal_connect (panel, "prefs-stored", G_CALLBACK (on_prefs_stored), NULL);
+  GtkWidget *panel = overview_prefs_panel_new(overview_prefs, dialog);
+  g_signal_connect(panel, "prefs-stored", G_CALLBACK(on_prefs_stored), NULL);
   return panel;
 }

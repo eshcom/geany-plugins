@@ -53,7 +53,8 @@ scope_la_SOURCES = \
 
 scope_la_LIBADD = $(COMMONLIBS) $(VTE_LIBS) $(PTY_LIBS) \
 				  $(top_builddir)/utils/src/libgeanypluginutils.la
-scope_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Scope\"
+scope_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Scope\" \
+					-Wno-deprecated-declarations
 scope_la_CFLAGS = $(AM_CFLAGS) $(VTE_CFLAGS) \
 				  -DPLUGINHTMLDOCDIR=\"$(plugindocdir)/html\" \
 				  -Wno-shadow -I$(top_srcdir)/utils/src
@@ -65,11 +66,10 @@ if UNITTESTS
 TESTS = unittests
 check_PROGRAMS = unittests
 
-unittests_SOURCES  = tests/unittests.c tests/utils_test.c \
-                     $(scope_la_SOURCES)
+unittests_SOURCES  = tests/unittests.c tests/utils_test.c $(scope_la_SOURCES)
+
 unittests_CPPFLAGS = -DTEST $(scope_la_CPPFLAGS)
-unittests_CFLAGS  = $(GEANY_CFLAGS) -DUNITTESTS $(scope_la_CFLAGS)
-unittests_LDADD    = @GEANY_LIBS@ $(INTLLIBS) @CHECK_LIBS@ \
-                     $(scope_la_LIBADD)
+unittests_CFLAGS   = $(GEANY_CFLAGS) -DUNITTESTS $(scope_la_CFLAGS)
+unittests_LDADD    = @GEANY_LIBS@ $(INTLLIBS) @CHECK_LIBS@ $(scope_la_LIBADD)
 
 endif

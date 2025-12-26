@@ -6,35 +6,29 @@
 #include "glspi.h"
 
 
-#define DIR_SEP  G_DIR_SEPARATOR_S
+#define ON_SAVED_SCRIPT			"saved.lua"
+#define ON_OPENED_SCRIPT		"opened.lua"
+#define ON_CREATED_SCRIPT		"created.lua"
+#define ON_ACTIVATED_SCRIPT		"activated.lua"
 
-#define USER_SCRIPT_FOLDER  DIR_SEP  "plugins"  DIR_SEP  "geanylua"
+#define ON_PROJ_OPENED_SCRIPT	"proj-opened.lua"
+#define ON_PROJ_SAVED_SCRIPT	"proj-saved.lua"
+#define ON_PROJ_CLOSED_SCRIPT	"proj-closed.lua"
 
-#define EVENTS_FOLDER  USER_SCRIPT_FOLDER DIR_SEP  "events"  DIR_SEP
+#define ON_INIT_SCRIPT			"init.lua"
+#define ON_CLEANUP_SCRIPT		"cleanup.lua"
+#define ON_CONFIGURE_SCRIPT		"configure.lua"
 
-#define ON_SAVED_SCRIPT      EVENTS_FOLDER  "saved.lua"
-#define ON_OPENED_SCRIPT     EVENTS_FOLDER  "opened.lua"
-#define ON_CREATED_SCRIPT    EVENTS_FOLDER  "created.lua"
-#define ON_ACTIVATED_SCRIPT  EVENTS_FOLDER  "activated.lua"
-
-#define ON_PROJ_OPENED_SCRIPT  EVENTS_FOLDER  "proj-opened.lua"
-#define ON_PROJ_SAVED_SCRIPT   EVENTS_FOLDER  "proj-saved.lua"
-#define ON_PROJ_CLOSED_SCRIPT  EVENTS_FOLDER  "proj-closed.lua"
-
-#define ON_INIT_SCRIPT       EVENTS_FOLDER  "init.lua"
-#define ON_CLEANUP_SCRIPT    EVENTS_FOLDER  "cleanup.lua"
-#define ON_CONFIGURE_SCRIPT  EVENTS_FOLDER  "configure.lua"
-
-#define HOTKEYS_CFG DIR_SEP "hotkeys.cfg"
+#define HOTKEYS_CFG				"hotkeys.cfg"
 #define MAX_HOT_KEYS 100
 
 PLUGIN_EXPORT
-const gchar* glspi_version = VERSION;
+const gchar *glspi_version = VERSION;
 PLUGIN_EXPORT
 const guint glspi_abi = GEANY_ABI_VERSION;
 
-GeanyData *glspi_geany_data=NULL;
-GeanyPlugin *glspi_geany_plugin=NULL;
+GeanyData *glspi_geany_data = NULL;
+GeanyPlugin *glspi_geany_plugin = NULL;
 
 static struct {
 	GtkWidget *menu_item;
@@ -107,7 +101,7 @@ kf=NULL;
 /* Initialize the interface to Geany's keybindings API */
 static void hotkey_init(void)
 {
-	gchar *hotkeys_cfg=g_strconcat(SD,HOTKEYS_CFG,NULL);
+	gchar *hotkeys_cfg = g_build_filename(SD, HOTKEYS_CFG, NULL);
 	hotkey_cleanup(); /* Make sure we are in initial state. */
 	if (g_file_test(hotkeys_cfg,G_FILE_TEST_IS_REGULAR)) {
 		GError *err=NULL;
@@ -139,7 +133,7 @@ static void hotkey_init(void)
 				}
 			}
 			g_strfreev(lines);
-			KG=plugin_set_key_group(glspi_geany_plugin, "lua_scripts", n, NULL);
+			KG = plugin_set_key_group(glspi_geany_plugin, PLUGIN, n, NULL);
 			for (i=0; i<n; i++) {
 				gchar *label=NULL;
 				gchar *name=NULL;
@@ -257,7 +251,7 @@ PluginCallback	glspi_geany_callbacks[] = {
 
 
 /* Callback when the menu item is clicked */
-static void menu_item_activate(GtkMenuItem * menuitem, gpointer gdata)
+static void menu_item_activate(GtkMenuItem *menuitem, gpointer gdata)
 {
 	glspi_run_script(gdata, 0,NULL, SD);
 }
@@ -323,7 +317,7 @@ static void init_menu(gpointer data, gpointer user_data)
 		gchar *dot = strrchr(data, '.');
 		if ( dot && (((gpointer)dot)>data) && (g_ascii_strcasecmp(dot, ".lua")==0) ) {
 			GtkWidget *item;
-			gchar*label=strrchr(data,DIR_SEP[0]);
+			gchar *label = strrchr(data, G_DIR_SEPARATOR);
 			gchar *tmp=NULL;
 			if (label) { label++; } else { label=data; }
 			tmp=g_malloc0(strlen(label));
@@ -340,7 +334,7 @@ static void init_menu(gpointer data, gpointer user_data)
 		}
 	} else {
 		if (g_file_test(data,G_FILE_TEST_IS_DIR)) {
-			gchar*label=strrchr(data,DIR_SEP[0]);
+			gchar *label = strrchr(data, G_DIR_SEPARATOR);
 			if (label) { label++; } else { label=data; }
 			if ((g_ascii_strcasecmp(label,"events")!=0)&&(g_ascii_strcasecmp(label,"support")!=0)) {
 				label=g_strdup(label);
@@ -376,11 +370,12 @@ static GtkWidget* new_menu(GtkWidget *parent, const gchar* script_dir, const gch
 static void build_menu(void)
 {
 	local_data.script_list = NULL;
-	local_data.acc_grp=NULL;
-	local_data.menu_item=new_menu(main_widgets->tools_menu,
-		local_data.script_dir, _("_Lua Scripts"));
+	local_data.acc_grp = NULL;
+	local_data.menu_item = new_menu(main_widgets->tools_menu,
+									local_data.script_dir, _("_Lua Scripts"));
 	if (local_data.acc_grp) {
-		gtk_window_add_accel_group(GTK_WINDOW(main_widgets->window), local_data.acc_grp);
+		gtk_window_add_accel_group(GTK_WINDOW(main_widgets->window),
+								   local_data.acc_grp);
 	}
 }
 
@@ -406,45 +401,33 @@ static gchar *get_data_dir(void)
 
 /* Called by Geany to initialize the plugin */
 PLUGIN_EXPORT
-void glspi_init (GeanyData *data, GeanyPlugin *plugin)
+void glspi_init(GeanyData *data, GeanyPlugin *plugin)
 {
 	glspi_geany_data = data;
 	glspi_geany_plugin = plugin;
 
-	local_data.script_dir =
-		g_strconcat(geany->app->configdir, USER_SCRIPT_FOLDER, NULL);
+	local_data.script_dir = get_config_filepath(PLUGIN, "", NULL);
 
 	if (!g_file_test(local_data.script_dir, G_FILE_TEST_IS_DIR)) {
 		gchar *datadir = get_data_dir();
-		g_free(local_data.script_dir);
-		local_data.script_dir =
-			g_build_path(G_DIR_SEPARATOR_S, datadir, "geany-plugins", "geanylua", NULL);
+		SETPTR(local_data.script_dir, g_build_filename(datadir, "geany-plugins",
+													   PLUGIN, NULL));
 		g_free(datadir);
 	}
 	if (geany->app->debug_mode) {
 		g_printerr(_("     ==>> %s: Building menu from '%s'\n"),
-			PLUGIN_NAME, local_data.script_dir);
+				   PLUGIN_NAME, local_data.script_dir);
 	}
-	local_data.on_saved_script =
-		g_strconcat(geany->app->configdir, ON_SAVED_SCRIPT, NULL);
-	local_data.on_opened_script =
-		g_strconcat(geany->app->configdir, ON_OPENED_SCRIPT, NULL);
-	local_data.on_created_script =
-		g_strconcat(geany->app->configdir, ON_CREATED_SCRIPT, NULL);
-	local_data.on_activated_script =
-		g_strconcat(geany->app->configdir, ON_ACTIVATED_SCRIPT, NULL);
-	local_data.on_init_script =
-		g_strconcat(geany->app->configdir, ON_INIT_SCRIPT, NULL);
-	local_data.on_cleanup_script =
-		g_strconcat(geany->app->configdir, ON_CLEANUP_SCRIPT, NULL);
-	local_data.on_configure_script =
-		g_strconcat(geany->app->configdir, ON_CONFIGURE_SCRIPT, NULL);
-	local_data.on_proj_opened_script =
-		g_strconcat(geany->app->configdir, ON_PROJ_OPENED_SCRIPT, NULL);
-	local_data.on_proj_saved_script =
-		g_strconcat(geany->app->configdir, ON_PROJ_SAVED_SCRIPT, NULL);
-	local_data.on_proj_closed_script =
-		g_strconcat(geany->app->configdir, ON_PROJ_CLOSED_SCRIPT, NULL);
+	local_data.on_saved_script = get_config_filepath(PLUGIN, ON_SAVED_SCRIPT, NULL);
+	local_data.on_opened_script = get_config_filepath(PLUGIN, ON_OPENED_SCRIPT, NULL);
+	local_data.on_created_script = get_config_filepath(PLUGIN, ON_CREATED_SCRIPT, NULL);
+	local_data.on_activated_script = get_config_filepath(PLUGIN, ON_ACTIVATED_SCRIPT, NULL);
+	local_data.on_init_script = get_config_filepath(PLUGIN, ON_INIT_SCRIPT, NULL);
+	local_data.on_cleanup_script = get_config_filepath(PLUGIN, ON_CLEANUP_SCRIPT, NULL);
+	local_data.on_configure_script = get_config_filepath(PLUGIN, ON_CONFIGURE_SCRIPT, NULL);
+	local_data.on_proj_opened_script = get_config_filepath(PLUGIN, ON_PROJ_OPENED_SCRIPT, NULL);
+	local_data.on_proj_saved_script = get_config_filepath(PLUGIN, ON_PROJ_SAVED_SCRIPT, NULL);
+	local_data.on_proj_closed_script = get_config_filepath(PLUGIN, ON_PROJ_CLOSED_SCRIPT, NULL);
 
 	glspi_set_sci_cmd_hash(TRUE);
 	glspi_set_key_cmd_hash(TRUE);

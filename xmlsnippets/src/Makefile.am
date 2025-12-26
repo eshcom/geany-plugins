@@ -11,8 +11,10 @@ xmlsnippets_la_SOURCES = \
 	plugin.c plugin.h \
 	$(common_sources)
 
-xmlsnippets_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"XMLSnippets\"
-xmlsnippets_la_LIBADD = $(COMMONLIBS)
+xmlsnippets_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"XMLSnippets\" \
+						  -Wno-deprecated-declarations
+xmlsnippets_la_LIBADD = $(COMMONLIBS) \
+						$(top_builddir)/utils/src/libgeanypluginutils.la
 
 xmlsnippets_check_SOURCES = \
 	tests.c \

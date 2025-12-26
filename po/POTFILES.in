@@ -170,7 +170,6 @@ geanymacro/src/geanymacro.c
 geanyminiscript/src/gms_gui.c
 geanyminiscript/src/gms_gui.h
 geanyminiscript/src/gms.c
-geanyminiscript/src/gms.h
 
 # GeanyNumberedBookmarks
 geanynumberedbookmarks/src/geanynumberedbookmarks.c
@@ -346,3 +345,16 @@ xmlsnippets/src/plugin.c
 xmlsnippets/src/xmlsnippets.c
 xmlsnippets/src/tests.c
 xmlsnippets/src/test-stubs.c
+
+# utils
+utils/src/common.c
+utils/src/common.h
+utils/src/filelist.c
+utils/src/filelist.h
+utils/src/gp_vtecompat.c
+utils/src/gp_vtecompat.h
+utils/src/gp_gtkcompat.h
+utils/src/spawn.c
+utils/src/spawn.h
+utils/src/ui.c
+utils/src/ui.h

@@ -61,7 +61,7 @@ static void geanypg_decrypt_verify(encrypt_data * ed)
     gpgme_data_release(plain);
 }
 
-void geanypg_decrypt_cb(GtkMenuItem * menuitem, gpointer user_data)
+void geanypg_decrypt_cb(GtkMenuItem *menuitem, gpointer user_data)
 {
     encrypt_data ed;
     gpgme_error_t err;

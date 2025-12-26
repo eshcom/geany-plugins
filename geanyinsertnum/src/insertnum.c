@@ -18,25 +18,23 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
 #include <ctype.h>
 #include <limits.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #ifndef GTK_COMPAT_H
-#define GtkComboBoxText GtkComboBox
-#define GTK_COMBO_BOX_TEXT GTK_COMBO_BOX
-#define gtk_combo_box_text_new_with_entry gtk_combo_box_entry_new_text
-#define gtk_combo_box_text_append_text gtk_combo_box_append_text
+	#define GtkComboBoxText GtkComboBox
+	#define GTK_COMBO_BOX_TEXT GTK_COMBO_BOX
+	#define gtk_combo_box_text_new_with_entry gtk_combo_box_entry_new_text
+	#define gtk_combo_box_text_append_text gtk_combo_box_append_text
 #endif
 
 GeanyPlugin	*geany_plugin;
-GeanyData	*geany_data;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -84,7 +82,7 @@ static gboolean pad_zeros = 0;
 
 static void plugin_beep(void)
 {
-	if (geany_data->prefs->beep_on_errors)
+	if (geany->prefs->beep_on_errors)
 		gdk_beep();
 }
 
@@ -468,25 +466,24 @@ static void on_tools_show(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpo
 
 void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
-	GeanyKeyGroup *plugin_key_group;
-
-	plugin_key_group = plugin_set_key_group(geany_plugin, "insert_numbers", COUNT_KB, NULL);
-
 	start_value = 1;
 	step_value = 1;
 	base_value = 10;
-
+	
 	main_menu_item = gtk_menu_item_new_with_mnemonic(_("Insert _Numbers..."));
 	gtk_widget_show(main_menu_item);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), main_menu_item);
 	g_signal_connect(main_menu_item, "activate", G_CALLBACK(on_insert_numbers_activate),
-		NULL);
-
-	keybindings_set_item(plugin_key_group, INSERT_NUMBERS_KB, on_insert_numbers_key,
+					 NULL);
+	
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													COUNT_KB, NULL);
+	
+	keybindings_set_item(key_group, INSERT_NUMBERS_KB, on_insert_numbers_key,
 		0, 0, "insert_numbers", _("Insert Numbers..."), main_menu_item);
-
-	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->tools_menu), "show",
-		FALSE, (GCallback) on_tools_show, NULL);
+	
+	plugin_signal_connect(geany_plugin, G_OBJECT(geany->main_widgets->tools_menu),
+						  "show", FALSE, (GCallback)on_tools_show, NULL);
 }
 
 void plugin_cleanup(void)

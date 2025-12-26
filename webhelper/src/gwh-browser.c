@@ -17,18 +17,18 @@
  *  
  */
 
-#include "gwh-browser.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
 
-#include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
-#include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
+#include "gwh-browser.h"
 #include "gwh-utils.h"
 #include "gwh-settings.h"
 #include "gwh-keybindings.h"

@@ -19,66 +19,39 @@
  *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-
-
 #ifndef LO_FNS_H
 #define LO_FNS_H
 
-#include <geanyplugin.h>
-#include "Scintilla.h"
-#include <stdlib.h>      /* qsort */
-#include <string.h>
-
-
-typedef gint (*lo_strcmpfns)(const gchar *str1, const gchar *str2);
+typedef gint(*lo_strcmpfns)(const gchar *str1, const gchar *str2);
 
 /* Get sort function based on user preferences */
-lo_strcmpfns
-getcmpfns(void);
-
+lo_strcmpfns getcmpfns(void);
 
 /* Remove Duplicate Lines, sorted */
-gint
-rmdupst(gchar **lines, gint num_lines, gchar *new_file);
-
+gint rmdupst(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Remove Duplicate Lines, ordered */
-gint
-rmdupln(gchar **lines, gint num_lines, gchar *new_file);
-
+gint rmdupln(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Remove Unique Lines */
-gint
-rmunqln(gchar **lines, gint num_lines, gchar *new_file);
-
+gint rmunqln(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Keep Unique Lines */
-gint
-kpunqln(gchar **lines, gint num_lines, gchar *new_file);
-
+gint kpunqln(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Remove Empty Lines */
-gint
-rmemtyln(ScintillaObject *sci, gint line_num, gint end_line_num);
-
+gint rmemtyln(ScintillaObject *sci, gint line_num, gint end_line_num);
 
 /* Remove Whitespace Lines */
-gint
-rmwhspln(ScintillaObject *sci, gint line_num, gint end_line_num);
-
+gint rmwhspln(ScintillaObject *sci, gint line_num, gint end_line_num);
 
 /* Sort Lines Ascending */
-gint
-sortlnsasc(gchar **lines, gint num_lines, gchar *new_file);
-
+gint sortlnsasc(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Sort Lines Descending */
-gint
-sortlndesc(gchar **lines, gint num_lines, gchar *new_file);
-
+gint sortlndesc(gchar **lines, gint num_lines, gchar *new_file);
 
 /* Remove Every Nth Line */
-gint
-rmnthln(ScintillaObject *sci, gint line_num, gint end_line_num);
+gint rmnthln(ScintillaObject *sci, gint line_num, gint end_line_num);
 
 #endif

@@ -23,17 +23,18 @@
 static char * geanypg_choose_sig(void)
 {
     int response;
-    char * file = NULL;
-    GtkWidget * dialog = gtk_file_chooser_dialog_new(_("Open a signature file"),
-                                                     GTK_WINDOW(geany->main_widgets->window),
-                                                     GTK_FILE_CHOOSER_ACTION_OPEN,
-                                                     GTK_STOCK_OPEN, GTK_RESPONSE_OK,
-                                                     GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-                                                     NULL);
+    char *file = NULL;
+    GtkWidget *dialog = gtk_file_chooser_dialog_new(_("Open a signature file"),
+                                                    GTK_WINDOW(geany->main_widgets->window),
+                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
+                                                    GTK_STOCK_OPEN, GTK_RESPONSE_OK,
+                                                    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                                    NULL);
     gtk_widget_show_all(dialog);
     response = gtk_dialog_run(GTK_DIALOG(dialog));
     if (response == GTK_RESPONSE_OK)
         file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+    
     gtk_widget_destroy(dialog);
     return file;
 }
@@ -58,7 +59,7 @@ static void geanypg_verify(encrypt_data * ed, char * signame)
     fclose(sigfile);
 }
 
-void geanypg_verify_cb(GtkMenuItem * menuitem, gpointer user_data)
+void geanypg_verify_cb(GtkMenuItem *menuitem, gpointer user_data)
 {
     char * sigfile = NULL;
     encrypt_data ed;

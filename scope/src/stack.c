@@ -17,8 +17,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-
 #include "common.h"
 
 enum
@@ -165,12 +163,11 @@ void on_stack_follow(GArray *nodes)
 gboolean stack_entry(void)
 {
 	GtkTreeIter iter;
-	gboolean entry = NULL;
-
+	gboolean entry = FALSE;
+	
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter))
-	{
 		scp_tree_store_get(store, &iter, STACK_ENTRY, &entry, -1);
-	}
+	
 	return entry;
 }
 

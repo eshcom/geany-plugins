@@ -20,7 +20,8 @@
 #ifndef __GEANYPRJ_H__
 #define __GEANYPRJ_H__
 
-#include <geanyplugin.h>
+#include <geanyplugin.h>		// includes geany.h, gtkcompat.h, etc.
+extern GeanyData *geany_data;	// the code uses the macro "geany" (see geany->)
 
 #ifdef __GNUC__
 #  ifdef DEBUG
@@ -52,23 +53,19 @@ enum
 struct GeanyPrj
 {
 	gchar *path;		/**< path to disk file */
-
 	gchar *name;
 	gchar *description;
 	gchar *base_path;
 	gchar *run_cmd;
-
+	
 	gboolean regenerate;
 	gint type;
-
+	
 	GHashTable *tags;	/**< project tags */
 };
 
-extern GeanyData *geany_data;
-
 extern const gchar *project_type_string[NEW_PROJECT_TYPE_SIZE];
 extern gboolean (*project_type_filter[NEW_PROJECT_TYPE_SIZE]) (const gchar *);
-
 
 /* project.c */
 struct GeanyPrj *geany_project_new(void);
@@ -88,12 +85,10 @@ void geany_project_set_base_path(struct GeanyPrj *prj, const gchar *base_path);
 void geany_project_set_run_cmd(struct GeanyPrj *prj, const gchar *run_cmd);
 void geany_project_set_tags_from_list(struct GeanyPrj *prj, GSList *files);
 
-
 /* sidebar.c */
 void create_sidebar(void);
 void destroy_sidebar(void);
 void sidebar_refresh(void);
-
 
 /* xproject.c */
 void xproject_init(void);
@@ -104,7 +99,6 @@ void xproject_update_tag(const gchar *filename);
 void xproject_cleanup(void);
 void xproject_close(gboolean cache);
 
-
 /* menu.h */
 void tools_menu_init(void);
 void tools_menu_uninit(void);
@@ -114,16 +108,14 @@ void on_delete_project(GtkMenuItem *menuitem, gpointer user_data);
 void on_add_file(GtkMenuItem *menuitem, gpointer user_data);
 void on_find_in_project(GtkMenuItem *menuitem, gpointer user_data);
 
-
 /* utils.c */
 gchar *find_file_path(const gchar *dir, const gchar *filename);
 gchar *normpath(const gchar *filename);
 gchar *get_full_path(const gchar *location, const gchar *path);
 gchar *get_relative_path(const gchar *location, const gchar *path);
 gint config_length(GKeyFile *config, const gchar *section, const gchar *name);
-void save_config(GKeyFile *config, const gchar *path);
-GSList *get_file_list(const gchar *path, guint *length, gboolean(*func)(const gchar *), GError **error);
-
+GSList *get_file_list(const gchar *path, guint *length,
+					  gboolean(*func)(const gchar *), GError **error);
 
 extern struct GeanyPrj *g_current_project;
 

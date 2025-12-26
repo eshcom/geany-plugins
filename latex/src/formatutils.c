@@ -20,10 +20,8 @@
  */
 
 #include "formatutils.h"
-#include "string.h"
 
-
-void glatex_insert_latex_format(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_latex_format(G_GNUC_UNUSED GtkMenuItem *menuitem,
 						 G_GNUC_UNUSED gpointer gdata)
 {
 	gint format = GPOINTER_TO_INT(gdata);
@@ -67,7 +65,7 @@ void glatex_insert_latex_format(G_GNUC_UNUSED GtkMenuItem * menuitem,
 }
 
 
-void glatex_insert_latex_fontsize(G_GNUC_UNUSED GtkMenuItem * menuitem,
+void glatex_insert_latex_fontsize(G_GNUC_UNUSED GtkMenuItem *menuitem,
 						 G_GNUC_UNUSED gpointer gdata)
 {
 	gint size = GPOINTER_TO_INT(gdata);

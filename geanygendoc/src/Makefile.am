@@ -32,7 +32,7 @@ noinst_HEADERS = \
 	ggd-widget-frame.h \
 	ggd-widget-doctype-selector.h
 
-geanygendoc_la_CPPFLAGS = -DG_LOG_DOMAIN=\"GeanyGenDoc\"
+geanygendoc_la_CPPFLAGS = -DG_LOG_DOMAIN=\"GeanyGenDoc\" -Wno-deprecated-declarations
 geanygendoc_la_CFLAGS = $(AM_CFLAGS) $(GEANYGENDOC_CFLAGS)
 geanygendoc_la_LIBADD = $(COMMONLIBS) $(GEANYGENDOC_LIBS) \
 						$(top_builddir)/utils/src/libgeanypluginutils.la

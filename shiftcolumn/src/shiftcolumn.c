@@ -18,23 +18,19 @@
  *  MA 02110-1301, USA.
  */
 
-
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+   #include "config.h"      // for the gettext domain
 #endif
-
-#include <geanyplugin.h>
 
 #ifdef HAVE_LOCALE_H
-# include <locale.h>
+   #include <locale.h>
 #endif
 
-#include <glib.h>
-#include <glib/gprintf.h>
-#include <gdk/gdkkeysyms.h>
+#include <geanyplugin.h>    // includes geany.h, gtkcompat.h, etc.
 
-GeanyPlugin     *geany_plugin;
-GeanyData       *geany_data;
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;    // the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 PLUGIN_SET_TRANSLATABLE_INFO(LOCALEDIR, GETTEXT_PACKAGE,
@@ -352,8 +348,6 @@ static void kb_shift_right(G_GNUC_UNUSED guint key_id){
    }
 
 void plugin_init(G_GNUC_UNUSED GeanyData *data){
-   GeanyKeyGroup *key_group;
-
    menu_item_shift_left = gtk_menu_item_new_with_mnemonic(_("Shift Left"));
    gtk_widget_show(menu_item_shift_left);
    gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
@@ -373,7 +367,8 @@ void plugin_init(G_GNUC_UNUSED GeanyData *data){
    ui_add_document_sensitive(menu_item_shift_left);
 
    /* setup keybindings */
-   key_group = plugin_set_key_group(geany_plugin, "shiftcolumn", KB_COUNT, NULL);
+   GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+                                                   KB_COUNT, NULL);
    keybindings_set_item(key_group, KB_SHIFT_LEFT, kb_shift_left,
       0, GDK_CONTROL_MASK, "shift_left", _("Shift Left"), menu_item_shift_left);
    keybindings_set_item(key_group, KB_SHIFT_RIGHT, kb_shift_right,

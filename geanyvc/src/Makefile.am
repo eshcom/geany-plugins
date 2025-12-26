@@ -15,14 +15,11 @@ geanyvc_la_SOURCES = \
 	vc_svn.c \
 	geanyvc.h
 
-geanyvc_la_CFLAGS = \
-	$(AM_CFLAGS) \
-	$(GTKSPELL_CFLAGS)
-
-geanyvc_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyVC\"
-geanyvc_la_LIBADD = \
-	$(GTKSPELL_LIBS) \
-	$(COMMONLIBS)
+geanyvc_la_CFLAGS = $(AM_CFLAGS) $(GTKSPELL_CFLAGS)
+geanyvc_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyVC\" \
+					  -Wno-deprecated-declarations
+geanyvc_la_LIBADD = $(GTKSPELL_LIBS) $(COMMONLIBS) \
+					$(top_builddir)/utils/src/libgeanypluginutils.la
 
 if UNITTESTS
 TESTS = unittests

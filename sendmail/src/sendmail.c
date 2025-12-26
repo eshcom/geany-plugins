@@ -23,19 +23,18 @@
 
 /* A little plugin to send a document as attachment using the preferred mail client */
 
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
-#include "mail-icon.xpm"
-#include <glib.h>
-#include <glib/gstdio.h>
-#include <errno.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
-GeanyPlugin		*geany_plugin;
-GeanyData		*geany_data;
+#include "mail-icon.xpm"
+#include "../../utils/src/common.h"
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -65,117 +64,79 @@ static GtkWidget *main_menu_item = NULL;
 
 
 /* Callback for sending file as attachment */
-static void
-send_as_attachment(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer gdata)
+static void send_as_attachment(G_GNUC_UNUSED GtkMenuItem *menuitem,
+							   G_GNUC_UNUSED gpointer gdata)
 {
-	GeanyDocument *doc;
-	gchar	*locale_filename = NULL;
-	gchar	*command = NULL;
-	GError	*error = NULL;
-	GString	*cmd_str = NULL;
-	gchar 		*data;
-
-	doc = document_get_current();
-
-	if (doc->file_name == NULL)
-	{
-		dialogs_show_save_as();
-	}
-	else
-	{
-		document_save_file(doc, FALSE);
-	}
-
-    if (doc->file_name != NULL)
-	{
-		if (mailer)
-		{
-			locale_filename = utils_get_locale_from_utf8(doc->file_name);
-			cmd_str = g_string_new(mailer);
-			if ((use_address_dialog == TRUE) && (g_strrstr(mailer, "%r") != NULL))
-			{
-				GKeyFile *config = NULL;
-				gchar *config_dir = NULL;
- 				gchar *input = dialogs_show_input(_("Recipient's Address"),
-										GTK_WINDOW(geany->main_widgets->window),
-										_("Enter the recipient's e-mail address:"),
-										address);
-
-				if (input)
-				{
-					config = g_key_file_new();
-					g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-					g_free(address);
- 					address = input;
-
- 					g_key_file_set_string(config, "tools", "address", address);
- 				}
- 				else
- 				{
-					g_string_free(cmd_str, TRUE);
-					g_free(locale_filename);
-					return;
-				}
-
-				config_dir = g_path_get_dirname(config_file);
-
-
-				if (! g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-				      utils_mkdir(config_dir, TRUE) != 0)
- 				{
- 					dialogs_show_msgbox(GTK_MESSAGE_ERROR,
- 						_("Plugin configuration directory could not be created."));
- 				}
- 				else
- 				{
- 					/* write config to file */
- 					data = g_key_file_to_data(config, NULL, NULL);
- 					utils_write_file(config_file, data);
-					g_free(data);
- 				}
-				g_key_file_free(config);
-				g_free(config_dir);
- 			}
-
-			if (! utils_string_replace_all(cmd_str, "%f", locale_filename))
-				ui_set_statusbar(FALSE,
-				_("Filename placeholder not found. The executed command might have failed."));
-
-			if (use_address_dialog == TRUE && address != NULL)
-			{
-				if (! utils_string_replace_all(cmd_str, "%r", address))
- 					ui_set_statusbar(FALSE,
-					_("Recipient address placeholder not found. The executed command might have failed."));
-			}
-			else
-			{
-				/* Removes %r if option was not activ but was included into command */
-				utils_string_replace_all(cmd_str, "%r", "");
-			}
-
-			utils_string_replace_all(cmd_str, "%b", g_path_get_basename(locale_filename));
-
-			command = g_string_free(cmd_str, FALSE);
-			g_spawn_command_line_async(command, &error);
-			if (error != NULL)
-			{
-				ui_set_statusbar(FALSE, _("Could not execute mailer. Please check your configuration."));
-				g_error_free(error);
-			}
-
-			g_free(locale_filename);
-			g_free(command);
-		}
-		else
-		{
-			ui_set_statusbar(FALSE, _("Please define a mail client first."));
-		}
-	}
-	else
+	GeanyDocument *doc = document_get_current();
+	doc->file_name ? document_save_file(doc, FALSE) : dialogs_show_save_as();
+	
+	if (!doc->file_name)
 	{
 		ui_set_statusbar(FALSE, _("File has to be saved before sending."));
+		return;
 	}
+	if (!mailer)
+	{
+		ui_set_statusbar(FALSE, _("Please define a mail client first."));
+		return;
+	}
+	
+	gchar *locale_filename = utils_get_locale_from_utf8(doc->file_name);
+	GString	*cmd_str = g_string_new(mailer);
+	
+	if (use_address_dialog && g_strrstr(mailer, "%r"))
+	{
+		gchar *input = dialogs_show_input(_("Recipient's Address"),
+										  GTK_WINDOW(geany->main_widgets->window),
+										  _("Enter the recipient's e-mail address:"),
+										  address);
+		if (!input)
+		{
+			g_string_free(cmd_str, TRUE);
+			g_free(locale_filename);
+			return;
+		}
+		
+		GKeyFile *config = load_config_from_file(config_file, NULL);
+		
+		SETPTR(address, input);
+		g_key_file_set_string(config, "tools", "address", address);
+		
+		write_config_to_file(config, config_file, MSGBOX);
+		g_key_file_free(config);
+	}
+	
+	if (!utils_string_replace_all(cmd_str, "%f", locale_filename))
+		ui_set_statusbar(FALSE, _("Filename placeholder not found. "
+								  "The executed command might have failed."));
+	
+	if (use_address_dialog && address)
+	{
+		if (!utils_string_replace_all(cmd_str, "%r", address))
+			ui_set_statusbar(FALSE, _("Recipient address placeholder not found. "
+									  "The executed command might have failed."));
+	}
+	else
+	{	/* Removes %r if option was not activ but was included into command */
+		utils_string_replace_all(cmd_str, "%r", "");
+	}
+	
+	gchar *basename = g_path_get_basename(locale_filename);
+	utils_string_replace_all(cmd_str, "%b", basename);
+	g_free(basename);
+	
+	GError *error = NULL;
+	gchar *command = g_string_free(cmd_str, FALSE);
+	g_spawn_command_line_async(command, &error);
+	
+	if (error)
+	{
+		ui_set_statusbar(FALSE, _("Could not execute mailer. "
+								  "Please check your configuration."));
+		g_error_free(error);
+	}
+	g_free(locale_filename);
+	g_free(command);
 }
 
 static void key_send_as_attachment(G_GNUC_UNUSED guint key_id)
@@ -223,17 +184,15 @@ static void show_icon(void)
 #if GTK_CHECK_VERSION(2, 12, 0)
 	gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM(mailbutton), _("Send by mail"));
 #endif
-	g_signal_connect (G_OBJECT(mailbutton), "clicked", G_CALLBACK(send_as_attachment), NULL);
-	gtk_widget_show_all (mailbutton);
+	g_signal_connect(G_OBJECT(mailbutton), "clicked", G_CALLBACK(send_as_attachment), NULL);
+	gtk_widget_show_all(mailbutton);
 	icon_in_toolbar = TRUE;
 }
 
 static void cleanup_icon(void)
 {
-	if (mailbutton != NULL)
-	{
-		gtk_container_remove(GTK_CONTAINER (geany->main_widgets->toolbar), mailbutton);
-	}
+	if (mailbutton)
+		gtk_container_remove(GTK_CONTAINER(geany->main_widgets->toolbar), mailbutton);
 	icon_in_toolbar = FALSE;
 }
 
@@ -247,61 +206,34 @@ static struct
 pref_widgets;
 
 
-static void
-on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response, G_GNUC_UNUSED  gpointer user_data)
+static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
+								  G_GNUC_UNUSED  gpointer user_data)
 {
-	if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-	{
-		GKeyFile 	*config = g_key_file_new();
-		gchar 		*config_dir = g_path_get_dirname(config_file);
-		gboolean	configure_toogle_status;
-
-		g_free(mailer);
-		mailer = g_strdup(gtk_entry_get_text(GTK_ENTRY(pref_widgets.entry)));
-
-		configure_toogle_status =
-			gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pref_widgets.checkbox_icon_to_toolbar));
-
-		if (icon_in_toolbar ^ configure_toogle_status)
-		/* Only do anything if a status change is needed */
-		{
-			if (icon_in_toolbar == TRUE)
-			{
-				/* We need to remove the toolbar icon */
-				cleanup_icon();
-			}
-			else
-			{
-				/* We need to show the toolbar icon */
-				show_icon();
-			}
-		}
-
-		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pref_widgets.checkbox_use_addressdialog)) == TRUE)
-			use_address_dialog = TRUE;
-		else
-			use_address_dialog = FALSE;
-
-		g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-		g_key_file_set_string(config, "tools", "mailer", mailer);
-		g_key_file_set_boolean(config, "tools", "address_usage", use_address_dialog);
-		g_key_file_set_boolean(config, "icon", "show_icon", icon_in_toolbar);
-
-		if (! g_file_test(config_dir, G_FILE_TEST_IS_DIR) && utils_mkdir(config_dir, TRUE) != 0)
-		{
-			dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-				_("Plugin configuration directory could not be created."));
-		}
-		else
-		{
-			/* write config to file */
-			gchar *data = g_key_file_to_data(config, NULL, NULL);
-			utils_write_file(config_file, data);
-			g_free(data);
-		}
-		g_key_file_free(config);
-		g_free(config_dir);
+	if (!ok_apply(response)) return;
+	
+	SETPTR(mailer, g_strdup(gtk_entry_get_text(GTK_ENTRY(pref_widgets.entry))));
+	
+	gboolean configure_toogle_status =
+							gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+									pref_widgets.checkbox_icon_to_toolbar));
+	
+	if (icon_in_toolbar ^ configure_toogle_status)
+	{	/* Only do anything if a status change is needed */
+		icon_in_toolbar ? cleanup_icon() // We need to remove the toolbar icon
+						: show_icon();   // We need to show the toolbar icon
 	}
+	
+	use_address_dialog = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+								pref_widgets.checkbox_use_addressdialog));
+	
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	g_key_file_set_string(config, "tools", "mailer", mailer);
+	g_key_file_set_boolean(config, "tools", "address_usage", use_address_dialog);
+	g_key_file_set_boolean(config, "icon", "show_icon", icon_in_toolbar);
+	
+	write_config_to_file(config, config_file, MSGBOX);
+	g_key_file_free(config);
 }
 
 GtkWidget *plugin_configure(GtkDialog *dialog)
@@ -358,98 +290,34 @@ GtkWidget *plugin_configure(GtkDialog *dialog)
 /* Called by Geany to initialize the plugin */
 void plugin_init(GeanyData G_GNUC_UNUSED *data)
 {
-	GKeyFile *config = g_key_file_new();
-	gchar *config_file_old = NULL;
-	gchar *config_dir = NULL;
-	gchar *config_dir_old = NULL;
-	gchar *kb_label = _("Send file by mail");
-	GtkWidget *menu_mail = NULL;
-	GeanyKeyGroup *key_group;
-
-	config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-		"sendmail", G_DIR_SEPARATOR_S, "mail.conf", NULL);
-
-	#ifndef G_OS_WIN32
-	/* We try only to move if we are on not Windows platform */
-	config_file_old = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-		"plugins", G_DIR_SEPARATOR_S,
-		"geanysendmail", G_DIR_SEPARATOR_S, "mail.conf", NULL);
-	config_dir = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-		"plugins", G_DIR_SEPARATOR_S, "sendmail", NULL);
-	config_dir_old = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-		"plugins", G_DIR_SEPARATOR_S, "geanysendmail", NULL);
-
-	if (g_file_test(config_file_old, G_FILE_TEST_EXISTS))
-	{
-		if (dialogs_show_question(
-			_("Renamed plugin detected!\n"
-			  "\n"
-			  "GeanySendMail has been renamed to sendmail -- you surely have "
-			  "already recognised it. \n"
-			  "Geany is able to migrate your old plugin configuration by "
-			  "moving the old configuration file to new location.\n"
-			  "Move now?")))
-		{
-			if (g_rename(config_dir_old, config_dir) == 0)
-			{
-				dialogs_show_msgbox(GTK_MESSAGE_INFO,
-					_("Your configuration directory has been "
-					  "successfully moved from \"%s\" to \"%s\"."),
-					config_dir_old, config_dir);
-			}
-			else
-			{
-				/* If there was an error on migrating we need
-				 * to load from original one.
-				 * When saving new configuration it will go to
-				 * new folder so migration should
-				 * be implicit. */
-				g_free(config_file);
-				config_file = g_strdup(config_file_old);
-				dialogs_show_msgbox(
-					GTK_MESSAGE_WARNING,
-					_("Your old configuration directory \"%s\" could "
-					  "not be moved to \"%s\" (%s). "
-					  "Please move manually the directory to the new location."),
-					config_dir_old,
-					config_dir,
-					g_strerror(errno));
-			}
-		}
-	}
-
-	g_free(config_dir_old);
-	g_free(config_dir);
-	g_free(config_file_old);
-	#endif
-
+	config_file = get_config_filepath(PLUGIN, NULL);
+	
 	/* Initialising options from config file */
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
 	mailer = g_key_file_get_string(config, "tools", "mailer", NULL);
 	address = g_key_file_get_string(config, "tools", "address", NULL);
 	use_address_dialog = g_key_file_get_boolean(config, "tools", "address_usage", NULL);
 	icon_in_toolbar = g_key_file_get_boolean(config, "icon", "show_icon", NULL);
-
+	
 	g_key_file_free(config);
-
+	
 	add_stock_item();
-	if (icon_in_toolbar == TRUE)
-	{
-		show_icon();
-	}
-
+	if (icon_in_toolbar) show_icon();
+	
 	/* Build up menu entry */
-	menu_mail = gtk_menu_item_new_with_mnemonic(_("_Mail document"));
+	GtkWidget *menu_mail = gtk_menu_item_new_with_mnemonic(_("_Mail document"));
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), menu_mail);
 	gtk_widget_set_tooltip_text(menu_mail,
 		_("Sends the opened file as unzipped attachment by any mailer from your $PATH"));
 	g_signal_connect(G_OBJECT(menu_mail), "activate", G_CALLBACK(send_as_attachment), NULL);
-
+	
 	/* setup keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "sendmail", COUNT_KB, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													COUNT_KB, NULL);
 	keybindings_set_item(key_group, SENDMAIL_KB, key_send_as_attachment,
-		0, 0, "send_file_as_attachment", kb_label, menu_mail);
-
+		0, 0, "send_file_as_attachment", _("Send file by mail"), menu_mail);
+	
 	gtk_widget_show_all(menu_mail);
 	ui_add_document_sensitive(menu_mail);
 	main_menu_item = menu_mail;

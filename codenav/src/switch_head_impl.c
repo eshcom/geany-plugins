@@ -22,10 +22,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
-#include <geanyplugin.h>
 
+#include "codenavigation.h"
 #include "switch_head_impl.h"
 #include "utils.h"
 
@@ -44,11 +44,9 @@ static GSList* languages = NULL;	/* handled languages */
 
 
 /**************************** Prototypes ******************************/
-void 
-languages_clean(void);
+void languages_clean(void);
 
-static void
-menu_item_activate(guint key_id);
+static void menu_item_activate(guint key_id);
 
 /********************** Functions for the feature *********************/
 
@@ -58,8 +56,7 @@ menu_item_activate(guint key_id);
  * @return void
  * 
  */
-void
-switch_head_impl_init(void)
+void switch_head_impl_init(void)
 {
 	GtkWidget* edit_menu;
 	log_func();
@@ -93,8 +90,7 @@ switch_head_impl_init(void)
  * @return void
  * 
  */
-void
-switch_head_impl_cleanup(void)
+void switch_head_impl_cleanup(void)
 {
 	log_func();
 
@@ -136,8 +132,7 @@ void languages_clean(void)
  * @return	void
  * 
  */
-void
-fill_languages_list(const gchar** impl_list, const gchar** head_list, gsize n)
+void fill_languages_list(const gchar** impl_list, const gchar** head_list, gsize n)
 {
 	gchar **splitted_list;
 	Language* lang = NULL;
@@ -402,7 +397,7 @@ menu_item_activate(guint key_id)
 
 			p_str = g_strdup_printf("%s.%s", basename_no_extension, (const gchar*)(p_extensions_to_test->data));
 
-			dialog = gtk_message_dialog_new(	GTK_WINDOW(geany_data->main_widgets->window),
+			dialog = gtk_message_dialog_new(	GTK_WINDOW(geany->main_widgets->window),
 														GTK_DIALOG_MODAL,
 														GTK_MESSAGE_QUESTION,
 														GTK_BUTTONS_OK_CANCEL,

@@ -19,8 +19,9 @@
 /*
  * Code for the "Workbench" menu.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "wb_globals.h"
@@ -29,7 +30,6 @@
 #include "sidebar.h"
 #include "search_projects.h"
 
-extern GeanyPlugin *geany_plugin;
 
 typedef struct
 {
@@ -40,7 +40,7 @@ typedef struct
 	GtkWidget *item_settings;
 	GtkWidget *item_search_projects;
 	GtkWidget *item_close;
-}WB_MENU_DATA;
+} WB_MENU_DATA;
 static WB_MENU_DATA menu_data;
 
 /** Set the context of the workbench menu.
@@ -111,15 +111,11 @@ static void item_new_workbench_activate_cb(G_GNUC_UNUSED GtkMenuItem *menuitem, 
 /* The function handles the menu item "Open workbench" */
 static void item_open_workbench_activate_cb(G_GNUC_UNUSED GtkMenuItem *menuitem, G_GNUC_UNUSED gpointer user_data)
 {
-	gchar *filename;
-	GError *error = NULL;
-
-	filename = dialogs_open_workbench();
-	if (filename == NULL)
-	{
-		return;
-	}
+	gchar *filename = dialogs_open_workbench();
+	if (!filename) return;
+	
 	wb_globals.opened_wb = workbench_new();
+	GError *error = NULL;
 	if (workbench_load(wb_globals.opened_wb, filename, &error))
 	{
 		menu_set_context(MENU_CONTEXT_WB_OPENED);

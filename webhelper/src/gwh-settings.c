@@ -17,22 +17,25 @@
  *  
  */
 
-#include "gwh-settings.h"
-
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
 
 #include <string.h>
 #include <stdarg.h>
+#include <gtkcompat.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 #include <glib-object.h>
-#include <gtk/gtk.h>
+
+#include "gwh-settings.h"
+#include "../../utils/src/common.h"
 
 
-#if ! GTK_CHECK_VERSION (3, 0, 0)
+#if !GTK_CHECK_VERSION(3, 0, 0)
 /* make gtk_adjustment_new() return a real GtkAdjustment, not a GtkObject */
 # define gtk_adjustment_new(v, l, u, si, pi, ps) \
-  (GtkAdjustment *) (gtk_adjustment_new ((v), (l), (u), (si), (pi), (ps)))
+  (GtkAdjustment *)(gtk_adjustment_new((v), (l), (u), (si), (pi), (ps)))
 #endif
 
 
@@ -152,47 +155,43 @@ gwh_settings_get_default (void)
   return g_object_new (GWH_TYPE_SETTINGS, NULL);
 }
 
-static gboolean
-is_pspec_installed (GObject          *obj,
-                    const GParamSpec *pspec)
+static gboolean is_pspec_installed(GObject *obj, const GParamSpec *pspec)
 {
   GParamSpec  **pspecs;
   guint         n_props;
   guint         i;
   gboolean      installed = FALSE;
   
-  pspecs = g_object_class_list_properties (G_OBJECT_GET_CLASS (obj), &n_props);
-  for (i = 0; ! installed && i < n_props; i++) {
+  pspecs = g_object_class_list_properties(G_OBJECT_GET_CLASS(obj), &n_props);
+  for (i = 0; !installed && i < n_props; i++) {
     installed = (pspec->value_type == pspecs[i]->value_type &&
                  strcmp (pspec->name, pspecs[i]->name) == 0);
   }
-  g_free (pspecs);
+  g_free(pspecs);
   
   return installed;
 }
 
-void
-gwh_settings_install_property (GwhSettings *self,
-                               GParamSpec  *pspec)
+void gwh_settings_install_property(GwhSettings *self, GParamSpec *pspec)
 {
   GValue *value;
   
-  g_return_if_fail (GWH_IS_SETTINGS (self));
-  g_return_if_fail (G_IS_PARAM_SPEC (pspec));
+  g_return_if_fail(GWH_IS_SETTINGS(self));
+  g_return_if_fail(G_IS_PARAM_SPEC(pspec));
   
   /* a bit hackish, but allows to install the same property twice because the
    * class will not be destroyed if the plugin gets reloaded. safe since the
    * object is a singleton that will never de destroyed, and the plugin is
    * resident, so the object is still valid after a reload. */
-  if (is_pspec_installed (G_OBJECT (self), pspec)) {
+  if (is_pspec_installed(G_OBJECT(self), pspec)) {
     return;
   }
   
-  value = g_value_init (g_malloc0 (sizeof *value), pspec->value_type);
-  switch (G_TYPE_FUNDAMENTAL (pspec->value_type)) {
+  value = g_value_init(g_malloc0(sizeof *value), pspec->value_type);
+  switch (G_TYPE_FUNDAMENTAL(pspec->value_type)) {
     #define HANDLE_BASIC_TYPE(NAME, Name, name)                                \
       case G_TYPE_##NAME:                                                      \
-        g_value_set_##name (value, ((GParamSpec##Name*)pspec)->default_value); \
+        g_value_set_##name(value, ((GParamSpec##Name*)pspec)->default_value); \
         break;
     
     HANDLE_BASIC_TYPE (BOOLEAN, Boolean, boolean)
@@ -221,15 +220,15 @@ gwh_settings_install_property (GwhSettings *self,
       break;
     
     default:
-      g_critical ("Unsupported property type \"%s\" for property \"%s\"",
-                  G_VALUE_TYPE_NAME (value), pspec->name);
-      g_value_unset (value);
-      g_free (value);
+      g_critical("Unsupported property type \"%s\" for property \"%s\"",
+                 G_VALUE_TYPE_NAME(value), pspec->name);
+      g_value_unset(value);
+      g_free(value);
       return;
   }
-  g_ptr_array_add (self->priv->prop_array, value);
-  g_object_class_install_property (G_OBJECT_GET_CLASS (self),
-                                   self->priv->prop_array->len, pspec);
+  g_ptr_array_add(self->priv->prop_array, value);
+  g_object_class_install_property(G_OBJECT_GET_CLASS(self),
+                                  self->priv->prop_array->len, pspec);
 }
 
 static void
@@ -260,7 +259,7 @@ key_file_set_value (GKeyFile     *kf,
   gchar    *key;
   
   get_key_and_group_from_property_name (name, &group, &key);
-  switch (G_TYPE_FUNDAMENTAL (G_VALUE_TYPE (value))) {
+  switch (G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(value))) {
     case G_TYPE_BOOLEAN:
       g_key_file_set_boolean (kf, group, key, g_value_get_boolean (value));
       break;
@@ -270,7 +269,7 @@ key_file_set_value (GKeyFile     *kf,
       GEnumValue *enum_value;
       gint        val = g_value_get_enum (value);
       
-      enum_class = g_type_class_ref (G_VALUE_TYPE (value));
+      enum_class = g_type_class_ref (G_VALUE_TYPE(value));
       enum_value = g_enum_get_value (enum_class, val);
       if (! enum_value) {
         g_set_error (error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_INVALID_VALUE,
@@ -313,47 +312,31 @@ key_file_set_value (GKeyFile     *kf,
   return success;
 }
 
-gboolean
-gwh_settings_save_to_file (GwhSettings *self,
-                           const gchar *filename,
-                           GError     **error)
+gboolean gwh_settings_save_to_file(GwhSettings *self, const gchar *filepath,
+                                   GError **error)
 {
-  GParamSpec  **pspecs;
-  guint         n_props;
-  guint         i;
-  gboolean      success = TRUE;
-  GKeyFile     *key_file;
+  g_return_val_if_fail(GWH_IS_SETTINGS(self), FALSE);
+  g_return_val_if_fail(filepath != NULL, FALSE);
   
-  g_return_val_if_fail (GWH_IS_SETTINGS (self), FALSE);
-  g_return_val_if_fail (filename != NULL, FALSE);
+  GKeyFile *config = load_config_from_file(filepath, NULL);
   
-  key_file = g_key_file_new ();
-  g_key_file_load_from_file (key_file, filename, G_KEY_FILE_KEEP_COMMENTS |
-                             G_KEY_FILE_KEEP_TRANSLATIONS, NULL);
-  pspecs = g_object_class_list_properties (G_OBJECT_GET_CLASS (self), &n_props);
-  for (i = 0; success && i < n_props; i++) {
-    GValue  value = {0};
+  guint n_props;
+  GParamSpec **pspecs = g_object_class_list_properties(G_OBJECT_GET_CLASS(self),
+                                                       &n_props);
+  gboolean success = TRUE;
+  
+  for (guint i = 0; success && i < n_props; i++) {
+    GValue value = {0};
     
-    g_value_init (&value, pspecs[i]->value_type);
-    g_object_get_property (G_OBJECT (self), pspecs[i]->name, &value);
-    success = key_file_set_value (key_file, pspecs[i]->name, &value, error);
-    g_value_unset (&value);
+    g_value_init(&value, pspecs[i]->value_type);
+    g_object_get_property(G_OBJECT(self), pspecs[i]->name, &value);
+    success = key_file_set_value(config, pspecs[i]->name, &value, error);
+    g_value_unset(&value);
   }
-  g_free (pspecs);
-  if (success) {
-    gchar  *data;
-    gsize   length;
-    
-    data = g_key_file_to_data (key_file, &length, error);
-    if (! data) {
-      success = FALSE;
-    } else {
-      success = g_file_set_contents (filename, data, length, error);
-      g_free (data);
-    }
-  }
-  g_key_file_free (key_file);
+  g_free(pspecs);
   
+  if (success) success = write_config_to_file(key_file, filename, SYSLOG);
+  g_key_file_free(config);
   return success;
 }
 
@@ -368,7 +351,7 @@ key_file_get_value (GKeyFile     *kf,
   gchar  *key;
   
   get_key_and_group_from_property_name (name, &group, &key);
-  switch (G_TYPE_FUNDAMENTAL (G_VALUE_TYPE (value))) {
+  switch (G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(value))) {
     case G_TYPE_BOOLEAN: {
       gboolean val;
       
@@ -384,7 +367,7 @@ key_file_get_value (GKeyFile     *kf,
       GEnumClass *enum_class;
       GEnumValue *enum_value;
       
-      enum_class = g_type_class_ref (G_VALUE_TYPE (value));
+      enum_class = g_type_class_ref (G_VALUE_TYPE(value));
       str = g_key_file_get_string (kf, group, key, &err);
       if (! err) {
         enum_value = g_enum_get_value_by_nick (enum_class, str);
@@ -448,44 +431,35 @@ key_file_get_value (GKeyFile     *kf,
   return err == NULL;
 }
 
-gboolean
-gwh_settings_load_from_file (GwhSettings *self,
-                             const gchar *filename,
-                             GError     **error)
+gboolean gwh_settings_load_from_file(GwhSettings *self, const gchar *filename,
+                                     GError **error)
 {
-  gboolean  success = TRUE;
-  GKeyFile *key_file;
+  g_return_val_if_fail(GWH_IS_SETTINGS(self), FALSE);
+  g_return_val_if_fail(filename != NULL, FALSE);
   
-  g_return_val_if_fail (GWH_IS_SETTINGS (self), FALSE);
-  g_return_val_if_fail (filename != NULL, FALSE);
+  gboolean success = FALSE;
+  GKeyFile *key_file = load_config_from_file(filename, &success);
   
-  key_file = g_key_file_new ();
-  success = g_key_file_load_from_file (key_file, filename, 0, error);
   if (success) {
-    GParamSpec  **pspecs;
-    guint         n_props;
-    guint         i;
-    
-    pspecs = g_object_class_list_properties (G_OBJECT_GET_CLASS (self), &n_props);
-    for (i = 0; i < n_props; i++) {
-      GValue  value = {0};
+    guint n_props;
+    GParamSpec **pspecs = g_object_class_list_properties(G_OBJECT_GET_CLASS(self),
+                                                         &n_props);
+    for (guint i = 0; i < n_props; i++) {
+      GValue value = {0};
       
-      g_value_init (&value, pspecs[i]->value_type);
+      g_value_init(&value, pspecs[i]->value_type);
       /* ignore the error since it's likely this one is simply missing and other
        * will be loaded without any problem */
-      if (key_file_get_value (key_file, pspecs[i]->name, &value, NULL)) {
-        g_object_set_property (G_OBJECT (self), pspecs[i]->name, &value);
+      if (key_file_get_value(key_file, pspecs[i]->name, &value, NULL)) {
+        g_object_set_property(G_OBJECT(self), pspecs[i]->name, &value);
       }
-      g_value_unset (&value);
+      g_value_unset(&value);
     }
-    g_free (pspecs);
+    g_free(pspecs);
   }
-  g_key_file_free (key_file);
-  
+  g_key_file_free(key_file);
   return success;
 }
-
-
 
 
 /* display/edit widgets stuff */
@@ -583,7 +557,7 @@ gwh_settings_widget_enum_new (GwhSettings  *self,
   gint              active = 0;
   
   store = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
-  enum_class = g_type_class_ref (G_VALUE_TYPE (value));
+  enum_class = g_type_class_ref (G_VALUE_TYPE(value));
   for (i = 0; i < enum_class->n_values; i++) {
     GtkTreeIter iter;
     
@@ -754,14 +728,14 @@ gwh_settings_widget_new_full (GwhSettings            *self,
   GValue      value       = {0};
   gboolean    needs_label = FALSE;
   
-  g_return_val_if_fail (GWH_IS_SETTINGS (self), NULL);
+  g_return_val_if_fail (GWH_IS_SETTINGS(self), NULL);
   
-  pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (self), prop_name);
+  pspec = g_object_class_find_property(G_OBJECT_GET_CLASS(self), prop_name);
   g_return_val_if_fail (pspec != NULL, NULL);
   
   g_value_init (&value, pspec->value_type);
-  g_object_get_property (G_OBJECT (self), prop_name, &value);
-  switch (G_TYPE_FUNDAMENTAL (G_VALUE_TYPE (&value))) {
+  g_object_get_property (G_OBJECT(self), prop_name, &value);
+  switch (G_TYPE_FUNDAMENTAL(G_VALUE_TYPE(&value))) {
     #define HANDLE_TYPE(T, t, signal)                                          \
       case G_TYPE_##T:                                                         \
         widget = gwh_settings_widget_##t##_new (self, &value, pspec,           \
@@ -776,7 +750,7 @@ gwh_settings_widget_new_full (GwhSettings            *self,
                                  G_CALLBACK (gwh_settings_widget_##t##_notify_callback),\
                                  data, (GClosureNotify)g_free, 0);             \
           if (notify_flags & GWH_SETTINGS_NOTIFY_ON_CONNEXION) {               \
-            gwh_settings_widget_##t##_notify (G_OBJECT (widget), data);        \
+            gwh_settings_widget_##t##_notify (G_OBJECT(widget), data);        \
           }                                                                    \
         }                                                                      \
         break;
@@ -793,7 +767,7 @@ gwh_settings_widget_new_full (GwhSettings            *self,
                   G_VALUE_TYPE_NAME (&value));
   }
   if (widget) {
-    g_object_set_data_full (G_OBJECT (widget), KEY_PSPEC,
+    g_object_set_data_full (G_OBJECT(widget), KEY_PSPEC,
                             g_param_spec_ref (pspec),
                             (GDestroyNotify)g_param_spec_unref);
     if (needs_label) {
@@ -805,11 +779,11 @@ gwh_settings_widget_new_full (GwhSettings            *self,
       gtk_box_pack_start (GTK_BOX (box), gtk_label_new (label), FALSE, TRUE, 0);
       g_free (label);
       gtk_box_pack_start (GTK_BOX (box), widget, TRUE, TRUE, 0);
-      g_object_set_data_full (G_OBJECT (box), KEY_WIDGET,
+      g_object_set_data_full (G_OBJECT(box), KEY_WIDGET,
                               g_object_ref (widget), g_object_unref);
       widget = box;
     } else {
-      g_object_set_data_full (G_OBJECT (widget), KEY_WIDGET,
+      g_object_set_data_full (G_OBJECT(widget), KEY_WIDGET,
                               g_object_ref (widget), g_object_unref);
     }
     gtk_widget_set_tooltip_text (widget, g_param_spec_get_blurb (pspec));
@@ -834,13 +808,13 @@ gwh_settings_widget_sync_internal (GwhSettings *self,
   
   g_return_val_if_fail (G_IS_OBJECT (widget), FALSE);
   
-  widget = g_object_get_data (G_OBJECT (widget), KEY_WIDGET);
+  widget = g_object_get_data (G_OBJECT(widget), KEY_WIDGET);
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
-  pspec = g_object_get_data (G_OBJECT (widget), KEY_PSPEC);
+  pspec = g_object_get_data (G_OBJECT(widget), KEY_PSPEC);
   g_return_val_if_fail (G_IS_PARAM_SPEC (pspec), FALSE);
   g_value_init (&value, pspec->value_type);
-  g_object_get_property (G_OBJECT (self), pspec->name, &value);
-  switch (G_TYPE_FUNDAMENTAL (pspec->value_type)) {
+  g_object_get_property (G_OBJECT(self), pspec->name, &value);
+  switch (G_TYPE_FUNDAMENTAL(pspec->value_type)) {
     #define HANDLE_TYPE(T, t)                                                  \
       case G_TYPE_##T:                                                         \
         gwh_settings_widget_##t##_sync (self, pspec, &value, widget);          \
@@ -870,31 +844,27 @@ gwh_settings_widget_sync_internal (GwhSettings *self,
  * Same as gwh_settings_widget_sync() but emits notifications only after all
  * widgets got synchronized.
  */
-void
-gwh_settings_widget_sync_v (GwhSettings *self,
-                            ...)
+void gwh_settings_widget_sync_v(GwhSettings *self, ...)
 {
   GtkWidget  *widget;
   va_list     ap;
   
-  g_return_if_fail (GWH_IS_SETTINGS (self));
+  g_return_if_fail(GWH_IS_SETTINGS(self));
   
-  g_object_freeze_notify (G_OBJECT (self));
-  va_start (ap, self);
-  while ((widget = va_arg (ap, GtkWidget*))) {
-    if (! gwh_settings_widget_sync_internal (self, widget)) {
+  g_object_freeze_notify(G_OBJECT(self));
+  va_start(ap, self);
+  while ((widget = va_arg(ap, GtkWidget *))) {
+    if (!gwh_settings_widget_sync_internal(self, widget)) {
       break;
     }
   }
-  va_end (ap);
-  g_object_thaw_notify (G_OBJECT (self));
+  va_end(ap);
+  g_object_thaw_notify(G_OBJECT(self));
 }
 
-void
-gwh_settings_widget_sync (GwhSettings *self,
-                          GtkWidget   *widget)
+void gwh_settings_widget_sync(GwhSettings *self, GtkWidget *widget)
 {
-  g_return_if_fail (GWH_IS_SETTINGS (self));
+  g_return_if_fail(GWH_IS_SETTINGS(self));
   
-  gwh_settings_widget_sync_internal (self, widget);
+  gwh_settings_widget_sync_internal(self, widget);
 }

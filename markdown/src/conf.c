@@ -21,12 +21,18 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"     // for the gettext domain
+#endif
+
 #include <string.h>
-#include <gtk/gtk.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
+
 #include "conf.h"
 #include "markdown-gtk-compat.h"
+
+#include "../../utils/src/common.h"
+
 
 #define FONT_NAME_MAX  256
 #define COLOR_CODE_MAX 8
@@ -107,44 +113,25 @@ G_DEFINE_TYPE(MarkdownConfig, markdown_config, G_TYPE_OBJECT)
 
 static gboolean on_idle_timeout(MarkdownConfig *conf)
 {
-  markdown_config_save(conf);
+  write_config_to_file(conf->priv->kf, conf->priv->filename, SYSLOG);
   conf->priv->handle = 0;
   return FALSE;
 }
 
-static void
-init_conf_file(MarkdownConfig *conf)
+static void init_conf_file(MarkdownConfig *conf)
 {
-  GError *error = NULL;
-  gchar *def_tmpl, *dirn;
+  if (!g_file_test(conf->priv->filename, G_FILE_TEST_EXISTS))
+    write_data_to_file(DEFAULT_CONF, conf->priv->filename, SYSLOG);
 
-  dirn = g_path_get_dirname(conf->priv->filename);
-  if (!g_file_test(dirn, G_FILE_TEST_IS_DIR)) {
-    g_mkdir_with_parents(dirn, 0755);
-  }
+  gchar *tmpl_filepath = get_config_filepath(PLUGIN, "template.html");
 
-  if (!g_file_test(conf->priv->filename, G_FILE_TEST_EXISTS)) {
-    if (!g_file_set_contents(conf->priv->filename, DEFAULT_CONF, -1, &error)) {
-      g_warning("Unable to write default configuration file: %s", error->message);
-      g_error_free(error); error = NULL;
-    }
-  }
+  if (!g_file_test(tmpl_filepath, G_FILE_TEST_EXISTS))
+    write_data_to_file(MARKDOWN_HTML_TEMPLATE, tmpl_filepath, SYSLOG);
 
-  def_tmpl = g_build_filename(dirn, "template.html", NULL);
-
-  if (!g_file_test(def_tmpl, G_FILE_TEST_EXISTS)) {
-    if (!g_file_set_contents(def_tmpl, MARKDOWN_HTML_TEMPLATE, -1, &error)) {
-      g_warning("Unable to write default template file: %s", error->message);
-      g_error_free(error); error = NULL;
-    }
-  }
-
-  g_free(dirn);
-  g_free(def_tmpl);
+  g_free(tmpl_filepath);
 }
 
-static void
-markdown_config_load_template_text(MarkdownConfig *conf)
+static void markdown_config_load_template_text(MarkdownConfig *conf)
 {
   GError *error = NULL;
   gchar *tmpl_file = NULL;
@@ -163,15 +150,14 @@ markdown_config_load_template_text(MarkdownConfig *conf)
   }
 }
 
-static void
-markdown_config_set_property(GObject *obj, guint prop_id, const GValue *value, GParamSpec *pspec)
+static void markdown_config_set_property(GObject *obj, guint prop_id,
+                                         const GValue *value, GParamSpec *pspec)
 {
   gboolean save_later = FALSE;
   MarkdownConfig *conf = MARKDOWN_CONFIG(obj);
 
   /* FIXME: Prevent writing to keyfile until it's ready */
-  if (!conf->priv->initialized)
-    return;
+  if (!conf->priv->initialized) return;
 
   switch (prop_id) {
     case PROP_TEMPLATE_FILE:
@@ -225,14 +211,12 @@ markdown_config_set_property(GObject *obj, guint prop_id, const GValue *value, G
   }
 }
 
-static gchar *
-markdown_config_get_string_key(MarkdownConfig *conf, const gchar *group,
-  const gchar *key, const gchar *default_value)
+static gchar *markdown_config_get_string_key(MarkdownConfig *conf, const gchar *group,
+                                             const gchar *key, const gchar *default_value)
 {
-  gchar *out_str;
   GError *error = NULL;
-
-  out_str = g_key_file_get_string(conf->priv->kf, group, key, &error);
+  gchar *out_str = g_key_file_get_string(conf->priv->kf, group, key, &error);
+  
   if (error) {
     g_debug("Config read failed: %s", error->message);
     g_error_free(error); error = NULL;
@@ -242,43 +226,38 @@ markdown_config_get_string_key(MarkdownConfig *conf, const gchar *group,
   return out_str;
 }
 
-static guint
-markdown_config_get_uint_key(MarkdownConfig *conf, const gchar *group,
-  const gchar *key, guint default_value)
+static guint markdown_config_get_uint_key(MarkdownConfig *conf, const gchar *group,
+                                          const gchar *key, guint default_value)
 {
-  guint out_uint;
   GError *error = NULL;
-
-  out_uint = (guint) g_key_file_get_integer(conf->priv->kf, group, key, &error);
+  guint out_uint = (guint)g_key_file_get_integer(conf->priv->kf, group, key, &error);
+  
   if (error) {
     g_debug("Config read failed: %s", error->message);
-    g_error_free(error); error = NULL;
+    g_error_free(error);
+    error = NULL;
     out_uint = default_value;
   }
 
   return out_uint;
 }
 
-static void
-markdown_config_get_property(GObject *obj, guint prop_id, GValue *value, GParamSpec *pspec)
+static void markdown_config_get_property(GObject *obj, guint prop_id,
+                                         GValue *value, GParamSpec *pspec)
 {
   MarkdownConfig *conf = MARKDOWN_CONFIG(obj);
 
   switch (prop_id) {
     case PROP_TEMPLATE_FILE:
     {
-      gchar *tmpl_file;
-      tmpl_file = markdown_config_get_string_key(conf, "general", "template", "");
+      gchar *tmpl_filepath = markdown_config_get_string_key(conf, "general",
+                                                            "template", "");
       /* If empty, use default template.html file. */
-      if (!tmpl_file || !tmpl_file[0]) {
-        gchar *dn;
-        g_free(tmpl_file);
-        dn = g_path_get_dirname(conf->priv->filename);
-        tmpl_file = g_build_filename(dn, "template.html", NULL);
-        g_free(dn);
+      if (EMPTY(tmpl_filepath)) {
+        SETPTR(tmpl_filepath, get_config_filepath(PLUGIN, "template.html"));
       }
-      g_value_set_string(value, tmpl_file);
-      g_free(tmpl_file);
+      g_value_set_string(value, tmpl_filepath);
+      g_free(tmpl_filepath);
       break;
     }
     case PROP_FONT_NAME:
@@ -291,46 +270,45 @@ markdown_config_get_property(GObject *obj, guint prop_id, GValue *value, GParamS
     }
     case PROP_CODE_FONT_NAME:
     {
-      gchar *font_name;
-      font_name = markdown_config_get_string_key(conf, "view", "code_font_name", "Monospace");
+      gchar *font_name = markdown_config_get_string_key(conf, "view", "code_font_name",
+                                                        "Monospace");
       g_value_set_string(value, font_name);
       g_free(font_name);
       break;
     }
     case PROP_FONT_POINT_SIZE:
     {
-      guint font_size;
-      font_size = markdown_config_get_uint_key(conf, "view", "font_point_size", 12);
+      guint font_size = markdown_config_get_uint_key(conf, "view",
+                                                     "font_point_size", 12);
       g_value_set_uint(value, font_size);
       break;
     }
     case PROP_CODE_FONT_POINT_SIZE:
     {
-      guint font_size;
-      font_size = markdown_config_get_uint_key(conf, "view", "code_font_point_size", 12);
+      guint font_size = markdown_config_get_uint_key(conf, "view",
+                                                     "code_font_point_size", 12);
       g_value_set_uint(value, font_size);
       break;
     }
     case PROP_BG_COLOR:
     {
-      gchar *bg_color;
-      bg_color = markdown_config_get_string_key(conf, "view", "bg_color", "#ffffff");
+      gchar *bg_color = markdown_config_get_string_key(conf, "view", "bg_color",
+                                                       "#ffffff");
       g_value_set_string(value, bg_color);
       g_free(bg_color);
       break;
     }
     case PROP_FG_COLOR:
     {
-      gchar *fg_color;
-      fg_color = markdown_config_get_string_key(conf, "view", "fg_color", "#000000");
+      gchar *fg_color = markdown_config_get_string_key(conf, "view", "fg_color",
+                                                       "#000000");
       g_value_set_string(value, fg_color);
       g_free(fg_color);
       break;
     }
     case PROP_VIEW_POS:
     {
-      guint view_pos;
-      view_pos = markdown_config_get_uint_key(conf, "view", "position", 0);
+      guint view_pos = markdown_config_get_uint_key(conf, "view", "position", 0);
       g_value_set_uint(value, view_pos);
       break;
     }
@@ -340,9 +318,8 @@ markdown_config_get_property(GObject *obj, guint prop_id, GValue *value, GParamS
   }
 }
 
-static void
-markdown_install_class_properties(GObjectClass *gclass, guint n_pspecs,
-  GParamSpec **pspecs)
+static void markdown_install_class_properties(GObjectClass *gclass, guint n_pspecs,
+                                              GParamSpec **pspecs)
 {
 #if GLIB_CHECK_VERSION(2, 26, 0)
   g_object_class_install_properties(gclass, n_pspecs, pspecs);
@@ -353,12 +330,9 @@ markdown_install_class_properties(GObjectClass *gclass, guint n_pspecs,
 #endif
 }
 
-static void
-markdown_config_class_init(MarkdownConfigClass *klass)
+static void markdown_config_class_init(MarkdownConfigClass *klass)
 {
-  GObjectClass *g_object_class;
-
-  g_object_class = G_OBJECT_CLASS(klass);
+  GObjectClass *g_object_class = G_OBJECT_CLASS(klass);
   g_object_class->finalize = markdown_config_finalize;
   g_object_class->set_property = markdown_config_set_property;
   g_object_class->get_property = markdown_config_get_property;
@@ -388,88 +362,48 @@ markdown_config_class_init(MarkdownConfigClass *klass)
 }
 
 
-static void
-markdown_config_finalize(GObject *object)
+static void markdown_config_finalize(GObject *object)
 {
-  MarkdownConfig *self;
-
   g_return_if_fail(MARKDOWN_IS_CONFIG(object));
 
-  self = MARKDOWN_CONFIG(object);
+  MarkdownConfig *self = MARKDOWN_CONFIG(object);
 
   if (self->priv->handle != 0) {
     g_source_remove(self->priv->handle);
-    markdown_config_save(self);
+    write_config_to_file(self->priv->kf, self->priv->filename, SYSLOG);
   }
 
   g_free(self->priv->filename);
   g_key_file_free(self->priv->kf);
 
-  G_OBJECT_CLASS(markdown_config_parent_class)->finalize (object);
+  G_OBJECT_CLASS(markdown_config_parent_class)->finalize(object);
 }
 
 
-static void
-markdown_config_init(MarkdownConfig *self)
+static void markdown_config_init(MarkdownConfig *self)
 {
-  self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, MARKDOWN_TYPE_CONFIG, MarkdownConfigPrivate);
+  self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, MARKDOWN_TYPE_CONFIG,
+                                           MarkdownConfigPrivate);
 }
 
 
-MarkdownConfig *
-markdown_config_new(const gchar *filename)
+MarkdownConfig *markdown_config_new(const gchar *filename)
 {
   MarkdownConfig *conf = g_object_new(MARKDOWN_TYPE_CONFIG, NULL);
-  GError *error = NULL;
-
   g_return_val_if_fail(filename, conf);
-
+  
   conf->priv->filename = g_strdup(filename);
   init_conf_file(conf);
-  conf->priv->kf = g_key_file_new();
-  if (!g_key_file_load_from_file(conf->priv->kf, conf->priv->filename,
-    G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, &error))
-  {
-    g_warning("Error loading configuration file: %s", error->message);
-    g_error_free(error); error = NULL;
-  }
-
+  
+  gboolean result = FALSE;
+  conf->priv->kf = load_config_from_file(conf->priv->filename, &result);
+  if (!result) g_warning("Error loading configuration file");
+  
   conf->priv->initialized = TRUE;
-
   return conf;
 }
 
-gboolean
-markdown_config_save(MarkdownConfig *conf)
-{
-  gchar *contents;
-  gsize len;
-  gboolean success = FALSE;
-  GError *error = NULL;
-
-  contents = g_key_file_to_data(conf->priv->kf, &len, &error);
-
-  /*g_debug("Saving: %s\n%s", conf->priv->filename, contents);*/
-
-  if (error) {
-    g_warning("Error getting config data as string: %s", error->message);
-    g_error_free(error); error = NULL;
-    return success;
-  }
-
-  success = g_file_set_contents(conf->priv->filename, contents, len, &error);
-  g_free(contents);
-
-  if (!success) {
-    g_warning("Error writing config data to disk: %s", error->message);
-    g_error_free(error); error = NULL;
-  }
-
-  return success;
-}
-
-static gchar *
-color_button_get_color(GtkColorButton *color_button)
+static gchar *color_button_get_color(GtkColorButton *color_button)
 {
   MarkdownColor color;
 
@@ -495,48 +429,51 @@ get_font_info(const gchar *font_desc, gchar **font_name, guint *font_size)
   return success;
 }
 
-static void
-on_dialog_response(MarkdownConfig *conf, gint response_id, GtkDialog *dialog)
+static void on_dialog_response(MarkdownConfig *conf, gint response_id,
+                               GtkDialog *dialog)
 {
-  if (response_id == GTK_RESPONSE_APPLY || response_id == GTK_RESPONSE_OK) {
-    GtkWidget *wid = conf->priv->widgets.pos_sb_radio;
-    gboolean pos_sidebar = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wid));
-    gchar *bg_color, *fg_color;
-    gchar *tmpl_file = NULL, *fnt = NULL, *code_fnt = NULL;
-    guint fnt_size = 0, code_fnt_size = 0;
-    const gchar *font_desc;
-    MarkdownConfigViewPos view_pos;
+  if (!ok_apply(response_id)) return;
+    
+  GtkWidget *wid = conf->priv->widgets.pos_sb_radio;
+  gboolean pos_sidebar = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wid));
+  gchar *bg_color, *fg_color;
+  gchar *tmpl_file = NULL, *fnt = NULL, *code_fnt = NULL;
+  guint fnt_size = 0, code_fnt_size = 0;
+  const gchar *font_desc;
+  MarkdownConfigViewPos view_pos;
 
-    view_pos = pos_sidebar ? MARKDOWN_CONFIG_VIEW_POS_SIDEBAR : MARKDOWN_CONFIG_VIEW_POS_MSGWIN;
+  view_pos = pos_sidebar ? MARKDOWN_CONFIG_VIEW_POS_SIDEBAR : MARKDOWN_CONFIG_VIEW_POS_MSGWIN;
 
-    bg_color = color_button_get_color(GTK_COLOR_BUTTON(conf->priv->widgets.bg_color_button));
-    fg_color = color_button_get_color(GTK_COLOR_BUTTON(conf->priv->widgets.fg_color_button));
+  bg_color = color_button_get_color(GTK_COLOR_BUTTON(conf->priv->widgets.bg_color_button));
+  fg_color = color_button_get_color(GTK_COLOR_BUTTON(conf->priv->widgets.fg_color_button));
 
-    font_desc = gtk_font_button_get_font_name(GTK_FONT_BUTTON(conf->priv->widgets.font_button));
-    get_font_info(font_desc, &fnt, &fnt_size);
+  font_desc = gtk_font_button_get_font_name(GTK_FONT_BUTTON(
+                      conf->priv->widgets.font_button));
+  get_font_info(font_desc, &fnt, &fnt_size);
 
-    font_desc = gtk_font_button_get_font_name(GTK_FONT_BUTTON(conf->priv->widgets.code_font_button));
-    get_font_info(font_desc, &code_fnt, &code_fnt_size);
+  font_desc = gtk_font_button_get_font_name(GTK_FONT_BUTTON(
+                      conf->priv->widgets.code_font_button));
+  get_font_info(font_desc, &code_fnt, &code_fnt_size);
 
-    tmpl_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(conf->priv->widgets.tmpl_file_button));
+  tmpl_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(
+                      conf->priv->widgets.tmpl_file_button));
 
-    g_object_set(conf,
-                 "font-name", fnt,
-                 "font-point-size", fnt_size,
-                 "code-font-name", code_fnt,
-                 "code-font-point-size", code_fnt_size,
-                 "view-pos", view_pos,
-                 "bg-color", bg_color,
-                 "fg-color", fg_color,
-                 "template-file", tmpl_file,
-                 NULL);
+  g_object_set(conf,
+               "font-name", fnt,
+               "font-point-size", fnt_size,
+               "code-font-name", code_fnt,
+               "code-font-point-size", code_fnt_size,
+               "view-pos", view_pos,
+               "bg-color", bg_color,
+               "fg-color", fg_color,
+               "template-file", tmpl_file,
+               NULL);
 
-    g_free(fnt);
-    g_free(code_fnt);
-    g_free(bg_color);
-    g_free(fg_color);
-    g_free(tmpl_file);
-  }
+  g_free(fnt);
+  g_free(code_fnt);
+  g_free(bg_color);
+  g_free(fg_color);
+  g_free(tmpl_file);
 }
 
 GtkWidget *markdown_config_gui(MarkdownConfig *conf, GtkDialog *dialog)

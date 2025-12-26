@@ -19,9 +19,6 @@
 #ifndef GP_UTILS_SPAWN_H
 #define GP_UTILS_SPAWN_H
 
-#include <geanyplugin.h>
-
-
 G_BEGIN_DECLS
 
 typedef struct {

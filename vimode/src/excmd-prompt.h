@@ -21,8 +21,6 @@
 
 #include "context.h"
 
-#include <gtk/gtk.h>
-
 void ex_prompt_init(GtkWidget *parent_window, CmdContext *ctx);
 void ex_prompt_cleanup(void);
 void ex_prompt_show(const gchar *val);

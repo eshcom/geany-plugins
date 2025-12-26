@@ -11,12 +11,10 @@ spellcheck_la_SOURCES = \
 	speller.c \
 	scplugin.c
 
-spellcheck_la_CPPFLAGS = $(AM_CPPFLAGS) \
-						 -DG_LOG_DOMAIN=\"SpellCheck\"
+spellcheck_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"SpellCheck\" \
+						 -Wno-deprecated-declarations
 
-spellcheck_la_CFLAGS = \
-	$(AM_CFLAGS) \
-	$(ENCHANT_CFLAGS)
+spellcheck_la_CFLAGS = $(AM_CFLAGS) $(ENCHANT_CFLAGS)
 
 if HAVE_ENCHANT_1_5
 spellcheck_la_CFLAGS += -DHAVE_ENCHANT_1_5
@@ -26,9 +24,8 @@ if HAVE_ENCHANT_2_0
 spellcheck_la_CFLAGS += -DHAVE_ENCHANT_2_0
 endif
 
-spellcheck_la_LIBADD = \
-	$(COMMONLIBS) \
-	$(ENCHANT_LIBS)
+spellcheck_la_LIBADD = $(COMMONLIBS) $(ENCHANT_LIBS) \
+					   $(top_builddir)/utils/src/libgeanypluginutils.la
 
 AM_CPPCHECKFLAGS = -DSCE_PAS_DEFAULT=0
 include $(top_srcdir)/build/cppcheck.mk

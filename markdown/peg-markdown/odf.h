@@ -7,5 +7,6 @@
 
 void print_odf_header(GString *out);
 void print_odf_footer(GString *out);
+
 #endif
 

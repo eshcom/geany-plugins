@@ -19,22 +19,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <string.h>
 #ifdef HAVE_LOCALE_H
-# include <locale.h>
+	#include <locale.h>
 #endif
 
-#include <geanyplugin.h>
-#include <glib.h>
-#include <glib/gstdio.h>
 #include <errno.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
+#include "../../utils/src/common.h"
 
-GeanyPlugin		*geany_plugin;
-GeanyData		*geany_data;
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 PLUGIN_SET_TRANSLATABLE_INFO(
@@ -142,83 +141,16 @@ static void kblipsum_insert(G_GNUC_UNUSED guint key_id)
 
 
 /* Called by Geany to initialize the plugin */
-void
-plugin_init(G_GNUC_UNUSED GeanyData *data)
+void plugin_init(G_GNUC_UNUSED GeanyData *data)
 {
-	GtkWidget *menu_lipsum = NULL;
-	GKeyFile *config = g_key_file_new();
-	gchar *config_file = NULL;
-	gchar *config_file_old = NULL;
-	gchar *config_dir = NULL;
-	gchar *config_dir_old = NULL;
-	GeanyKeyGroup *key_group;
-
-
-	config_file = g_strconcat(geany->app->configdir,
-		G_DIR_SEPARATOR_S, "plugins", G_DIR_SEPARATOR_S,
-		"geanylipsum", G_DIR_SEPARATOR_S, "lipsum.conf", NULL);
-
-	#ifndef G_OS_WIN32
-	/* We try only to move if we are on not Windows platform */
-	config_dir_old = g_build_filename(geany->app->configdir,
-		"plugins", "geanylipsum", NULL);
-	config_file_old = g_build_filename(config_dir_old,
-		"lipsum.conf", NULL);
-	config_dir = g_build_filename(geany->app->configdir,
-		"plugins", "lipsum", NULL);
-	if (g_file_test(config_file_old, G_FILE_TEST_EXISTS))
-	{
-		if (dialogs_show_question(
-			_("Renamed plugin detected!\n"
-			  "\n"
-			  "As you may have already noticed, GeanyLipsum has been "
-			  "renamed to just Lipsum. \n"
-			  "Geany is able to migrate your old plugin configuration by "
-			  "moving the old configuration file to new location.\n"
-			  "Warning: This will not include your keybindings.\n"
-			  "Move now?")))
-		{
-			if (g_rename(config_dir_old, config_dir) == 0)
-			{
-				dialogs_show_msgbox(GTK_MESSAGE_INFO,
-					_("Your configuration directory has been "
-					  "successfully moved from \"%s\" to \"%s\"."),
-					config_dir_old, config_dir);
-			}
-			else
-			{
-				/* If there was an error on migrating we need
-				 * to load from original one.
-				 * When saving new configuration it will go to
-				 * new folder so migration should
-				 * be implicit. */
-				g_free(config_file);
-				config_file = g_strdup(config_file_old);
-				dialogs_show_msgbox(
-					GTK_MESSAGE_WARNING,
-					_("Your old configuration directory \"%s\" could "
-					  "not be moved to \"%s\" (%s). "
-					  "Please manually move the directory to the new location."),
-					config_dir_old,
-					config_dir,
-					g_strerror(errno));
-			}
-		}
-	}
-
-	g_free(config_dir_old);
-	g_free(config_dir);
-	g_free(config_file_old);
-	#endif
-
-	/* Initialising options from config file  if there is any*/
-	g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-	lipsum = utils_get_setting_string(config, "snippets", "lipsumtext", default_loremipsum);
-
+	/* Initialising options from config file if there is any */
+	GKeyFile *config = load_plugin_config(PLUGIN, NULL);
+	lipsum = utils_get_setting_string(config, "snippets", "lipsumtext",
+									  default_loremipsum);
 	g_key_file_free(config);
-	g_free(config_file);
-
+	
 	/* Building menu entry */
+	GtkWidget *menu_lipsum = NULL;
 #if GTK_CHECK_VERSION(3, 10, 0)
 	menu_lipsum = gtk_menu_item_new_with_mnemonic(_("_Lipsum..."));
 #else
@@ -226,17 +158,17 @@ plugin_init(G_GNUC_UNUSED GeanyData *data)
 #endif
 	gtk_widget_set_tooltip_text(menu_lipsum, _("Include Pseudotext to your code"));
 	gtk_widget_show(menu_lipsum);
-	g_signal_connect((gpointer) menu_lipsum, "activate",
-			 G_CALLBACK(lipsum_activated), NULL);
+	g_signal_connect((gpointer)menu_lipsum, "activate",
+					 G_CALLBACK(lipsum_activated), NULL);
 	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu), menu_lipsum);
-
-
+	
 	ui_add_document_sensitive(menu_lipsum);
-
+	
 	main_menu_item = menu_lipsum;
-
+	
 	/* init keybindings */
-	key_group = plugin_set_key_group(geany_plugin, "lipsum", COUNT_KB, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													COUNT_KB, NULL);
 	keybindings_set_item(key_group, LIPSUM_KB_INSERT, kblipsum_insert,
 		0, 0, "insert_lipsum", _("Insert Lipsum text"), menu_lipsum);
 }

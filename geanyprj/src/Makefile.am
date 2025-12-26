@@ -12,8 +12,9 @@ geanyprj_la_SOURCES = geanyprj.c \
 	xproject.c
 
 geanyprj_la_CFLAGS = $(AM_CFLAGS)
-geanyprj_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyPrj\"
-geanyprj_la_LIBADD = $(COMMONLIBS)
+geanyprj_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyPrj\" \
+					   -Wno-deprecated-declarations
+geanyprj_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
 
 if UNITTESTS
 TESTS = unittests

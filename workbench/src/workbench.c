@@ -19,18 +19,22 @@
 /*
  * Code for the WORKBENCH structure.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <glib.h>
 #include <glib/gstdio.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "workbench.h"
 #include "sidebar.h"
 #include "wb_project.h"
 #include "wb_monitor.h"
 #include "utils.h"
+
+#include "../../utils/src/common.h"
+
 
 typedef struct
 {
@@ -39,7 +43,7 @@ typedef struct
 	gchar                *rel_filename;
 	gboolean             use_abs;
 	WB_PROJECT           *project;
-}WB_PROJECT_ENTRY;
+} WB_PROJECT_ENTRY;
 
 struct S_WORKBENCH
 {
@@ -337,19 +341,17 @@ void workbench_set_filename(WORKBENCH *wb, const gchar *filename)
 	if (wb != NULL)
 	{
 		guint offset;
-		gchar *ext;
-
+		
 		wb->filename = g_strdup(filename);
-		wb->name = g_path_get_basename (filename);
-		ext = g_strrstr(wb->name, ".geanywb");
-		if(ext != NULL)
+		wb->name = g_path_get_basename(filename);
+		
+		gchar *ext = g_strrstr(wb->name, ".geanywb");
+		if (ext)
 		{
 			offset = strlen(wb->name);
 			offset -= strlen(".geanywb");
 			if (ext == wb->name + offset)
-			{
-				/* Strip of file extension by overwriting
-				   '.' with string terminator. */
+			{	/* Strip of file extension by overwriting '.' with string terminator. */
 				wb->name[offset] = '\0';
 			}
 		}
@@ -529,17 +531,15 @@ gboolean workbench_add_project(WORKBENCH *wb, const gchar *filename)
 		{
 			entry->status = PROJECT_ENTRY_STATUS_NOT_FOUND;
 		}
-		g_ptr_array_add (wb->projects, entry);
-
+		g_ptr_array_add(wb->projects, entry);
+		
 		/* Load project to import base path. */
-		wb_project_load(project, filename, NULL);
-
+		wb_project_load(project, filename);
+		
 		/* Start immediate scan if enabled. */
-		if (wb->rescan_projects_on_open == TRUE)
-		{
+		if (wb->rescan_projects_on_open)
 			wb_project_rescan(project);
-		}
-
+		
 		wb->modified = TRUE;
 		return TRUE;
 	}
@@ -715,80 +715,58 @@ guint workbench_get_bookmarks_count(WORKBENCH *wb)
  **/
 gboolean workbench_save(WORKBENCH *wb, GError **error)
 {
-	gboolean success = FALSE;
-
-	if (wb != NULL)
+	if (!wb)
 	{
-		GKeyFile *kf;
-		guint	 index;
-		gchar    *contents;
-		gchar    group[20];
-		gsize    length, boomarks_size;
-		WB_PROJECT_ENTRY *entry;
-
-		kf = g_key_file_new ();
-
-		/* Save common, simple values */
-		g_key_file_set_string(kf, "General", "filetype", "workbench");
-		g_key_file_set_string(kf, "General", "version", "1.0");
-		g_key_file_set_boolean(kf, "General", "RescanProjectsOnOpen", wb->rescan_projects_on_open);
-		g_key_file_set_boolean(kf, "General", "EnableLiveUpdate", wb->enable_live_update);
-		g_key_file_set_boolean(kf, "General", "ExpandOnHover", wb->expand_on_hover);
-		g_key_file_set_boolean(kf, "General", "EnableTreeLines", wb->enable_tree_lines);
-
-		/* Save Workbench bookmarks as string list */
-		boomarks_size = workbench_get_bookmarks_count(wb);
-		if (boomarks_size > 0)
-		{
-			gchar **bookmarks_strings, *file, *rel_path;
-
-			bookmarks_strings = g_new0(gchar *, boomarks_size+1);
-			for (index = 0 ; index < boomarks_size ; index++ )
-			{
-				file = workbench_get_bookmark_at_index(wb, index);
-				rel_path = get_any_relative_path(wb->filename, file);
-
-				bookmarks_strings[index] = rel_path;
-			}
-			g_key_file_set_string_list
-				(kf, "General", "Bookmarks", (const gchar **)bookmarks_strings, boomarks_size);
-			for (index = 0 ; index < boomarks_size ; index++ )
-			{
-				g_free (bookmarks_strings[index]);
-			}
-			g_free(bookmarks_strings);
-		}
-
-		/* Save projects data */
-		for (index = 0 ; index < wb->projects->len ; index++)
-		{
-			entry = g_ptr_array_index(wb->projects, index);
-			g_snprintf(group, sizeof(group), "Project-%u", (index+1));
-			g_key_file_set_string(kf, group, "AbsFilename", entry->abs_filename);
-			g_key_file_set_string(kf, group, "RelFilename", entry->rel_filename);
-			g_key_file_set_boolean(kf, group, "UseAbsFilename", entry->use_abs);
-		}
-		contents = g_key_file_to_data (kf, &length, error);
-		if (contents != NULL && *error == NULL)
-		{
-			g_key_file_free(kf);
-
-			success = g_file_set_contents (wb->filename, contents, length, error);
-			if (success)
-			{
-				wb->modified = FALSE;
-			}
-			g_free (contents);
-		}
+		if (error)
+			g_set_error(error, 0, 0, "Internal error: param missing (file: %s, line %d)",
+						__FILE__, __LINE__);
+		return FALSE;
 	}
-	else if (error != NULL)
+	
+	GKeyFile *kf = g_key_file_new();
+	
+	/* Save common, simple values */
+	g_key_file_set_string(kf, "General", "filetype", "workbench");
+	g_key_file_set_string(kf, "General", "version", "1.0");
+	g_key_file_set_boolean(kf, "General", "RescanProjectsOnOpen", wb->rescan_projects_on_open);
+	g_key_file_set_boolean(kf, "General", "EnableLiveUpdate", wb->enable_live_update);
+	g_key_file_set_boolean(kf, "General", "ExpandOnHover", wb->expand_on_hover);
+	g_key_file_set_boolean(kf, "General", "EnableTreeLines", wb->enable_tree_lines);
+	
+	/* Save Workbench bookmarks as string list */
+	gsize boomarks_size = workbench_get_bookmarks_count(wb);
+	if (boomarks_size > 0)
 	{
-		g_set_error (error, 0, 0,
-					 "Internal error: param missing (file: %s, line %d)",
-					 __FILE__, __LINE__);
+		gchar **bookmarks_strings = g_new0(gchar *, boomarks_size + 1);
+		for (guint index = 0; index < boomarks_size; index++)
+		{
+			gchar *file = workbench_get_bookmark_at_index(wb, index);
+			gchar *rel_path = get_any_relative_path(wb->filename, file);
+			bookmarks_strings[index] = rel_path;
+		}
+		g_key_file_set_string_list(kf, "General", "Bookmarks",
+								   (const gchar **)bookmarks_strings, boomarks_size);
+		for (guint index = 0; index < boomarks_size ; index++)
+			g_free(bookmarks_strings[index]);
+		g_free(bookmarks_strings);
 	}
-
-	return success;
+	
+	gchar group[20];
+	
+	/* Save projects data */
+	for (guint index = 0; index < wb->projects->len; index++)
+	{
+		WB_PROJECT_ENTRY *entry = g_ptr_array_index(wb->projects, index);
+		g_snprintf(group, sizeof(group), "Project-%u", (index+1));
+		g_key_file_set_string(kf, group, "AbsFilename", entry->abs_filename);
+		g_key_file_set_string(kf, group, "RelFilename", entry->rel_filename);
+		g_key_file_set_boolean(kf, group, "UseAbsFilename", entry->use_abs);
+	}
+	
+	gboolean result = write_config_to_file(kf, wb->filename, SYSLOG);
+	if (result) wb->modified = FALSE;
+	g_key_file_free(kf);
+	return result;
 }
 
 
@@ -805,176 +783,130 @@ gboolean workbench_save(WORKBENCH *wb, GError **error)
  **/
 gboolean workbench_load(WORKBENCH *wb, const gchar *filename, GError **error)
 {
-	gboolean success = FALSE;
-
-	if (wb != NULL)
+	if (!wb)
 	{
-		GKeyFile *kf;
-		gboolean valid = TRUE;
-		guint    index;
-		gchar    *contents, **bookmarks_strings;
-		gchar    group[20];
-		gsize    length;
-		WB_PROJECT_ENTRY *entry;
-
-		if (!g_file_get_contents (filename, &contents, &length, error))
-		{
-			return FALSE;
-		}
-
-		kf = g_key_file_new ();
-
-		if (!g_key_file_load_from_data (kf, contents, length,
-					G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS,
-					error))
-		{
-			g_key_file_free (kf);
-			g_free (contents);
-			return FALSE;
-		}
-
-		if (g_key_file_has_key (kf, "General", "filetype", NULL)
-			&& g_key_file_has_key (kf, "General", "version", NULL))
-		{
-			gchar *check;
-			check = g_key_file_get_string (kf, "General", "filetype", error);
-			if (check == NULL || g_strcmp0(check, "workbench") != 0)
-			{
-				valid = FALSE;
-			}
-			g_free(check);
-		}
-		else
-		{
+		if (error)
+			g_set_error(error, 0, 0, "Internal error: param missing (file: %s, line %d)",
+						__FILE__, __LINE__);
+		return FALSE;
+	}
+	
+	gboolean result = FALSE;
+	GKeyFile *kf = load_config_from_file(filename, &result);
+	if (!result)
+	{
+		g_key_file_free(kf);
+		return FALSE;
+	}
+	
+	gboolean valid = TRUE;
+	
+	if (g_key_file_has_key(kf, "General", "filetype", NULL) &&
+		g_key_file_has_key(kf, "General", "version", NULL))
+	{
+		gchar *check = g_key_file_get_string(kf, "General", "filetype", error);
+		if (!check || g_strcmp0(check, "workbench") != 0)
 			valid = FALSE;
-		}
-
-		if (!valid)
+		g_free(check);
+	}
+	else
+		valid = FALSE;
+	
+	if (!valid)
+	{
+		g_set_error(error, 0, 0, _("File %s is not a valid workbench file!"),
+					filename);
+		return FALSE;
+	}
+	
+	workbench_set_filename(wb, filename);
+	wb->rescan_projects_on_open = g_key_file_get_boolean(kf, "General",
+														 "RescanProjectsOnOpen", error);
+	if (g_key_file_has_key (kf, "General", "EnableLiveUpdate", error))
+		wb->enable_live_update = g_key_file_get_boolean(kf, "General", "EnableLiveUpdate", error);
+	else
+	{	/* Not found. Might happen if the workbench was created with an older version of the plugin.
+		   Initialize with TRUE. */
+		wb->enable_live_update = TRUE;
+	}
+	if (g_key_file_has_key (kf, "General", "ExpandOnHover", error))
+		wb->expand_on_hover = g_key_file_get_boolean(kf, "General", "ExpandOnHover", error);
+	else
+	{	/* Not found. Might happen if the workbench was created with an older version of the plugin.
+		   Initialize with FALSE. */
+		wb->expand_on_hover = FALSE;
+	}
+	if (g_key_file_has_key (kf, "General", "EnableTreeLines", error))
+		wb->enable_tree_lines = g_key_file_get_boolean(kf, "General", "EnableTreeLines", error);
+	else
+	{	/* Not found. Might happen if the workbench was created with an older version of the plugin.
+		   Initialize with FALSE. */
+		wb->enable_tree_lines = FALSE;
+	}
+	
+	/* Load Workbench bookmarks from string list */
+	gchar **bookmarks_strings = g_key_file_get_string_list(kf, "General", "Bookmarks",
+														   NULL, error);
+	if (bookmarks_strings)
+	{
+		gchar **file = bookmarks_strings;
+		while (*file)
 		{
-			g_set_error (error, 0, 0,
-						 _("File %s is not a valid workbench file!"),
-						 filename);
-			return FALSE;
-		}
-		workbench_set_filename(wb, filename);
-		wb->rescan_projects_on_open = g_key_file_get_boolean(kf, "General", "RescanProjectsOnOpen", error);
-		if (g_key_file_has_key (kf, "General", "EnableLiveUpdate", error))
-		{
-			wb->enable_live_update = g_key_file_get_boolean(kf, "General", "EnableLiveUpdate", error);
-		}
-		else
-		{
-			/* Not found. Might happen if the workbench was created with an older version of the plugin.
-			   Initialize with TRUE. */
-			wb->enable_live_update = TRUE;
-		}
-		if (g_key_file_has_key (kf, "General", "ExpandOnHover", error))
-		{
-			wb->expand_on_hover = g_key_file_get_boolean(kf, "General", "ExpandOnHover", error);
-		}
-		else
-		{
-			/* Not found. Might happen if the workbench was created with an older version of the plugin.
-			   Initialize with FALSE. */
-			wb->expand_on_hover = FALSE;
-		}
-		if (g_key_file_has_key (kf, "General", "EnableTreeLines", error))
-		{
-			wb->enable_tree_lines = g_key_file_get_boolean(kf, "General", "EnableTreeLines", error);
-		}
-		else
-		{
-			/* Not found. Might happen if the workbench was created with an older version of the plugin.
-			   Initialize with FALSE. */
-			wb->enable_tree_lines = FALSE;
-		}
-
-		/* Load Workbench bookmarks from string list */
-		bookmarks_strings = g_key_file_get_string_list (kf, "General", "Bookmarks", NULL, error);
-		if (bookmarks_strings != NULL)
-		{
-			gchar **file, *abs_path;
-
-			file = bookmarks_strings;
-			while (*file != NULL)
+			gchar *abs_path = get_combined_path(wb->filename, *file);
+			if (abs_path)
 			{
-				abs_path = get_combined_path(wb->filename, *file);
-				if (abs_path != NULL)
-				{
-					workbench_add_bookmark_int(wb, abs_path);
-					g_free(abs_path);
-				}
-				file++;
+				workbench_add_bookmark_int(wb, abs_path);
+				g_free(abs_path);
 			}
-			g_strfreev(bookmarks_strings);
+			file++;
 		}
-
-		/* Load projects data */
-		for (index = 0 ; index < 1024 ; index++)
+		g_strfreev(bookmarks_strings);
+	}
+	
+	gchar group[20];
+	
+	/* Load projects data */
+	for (guint index = 0; index < 1024; index++)
+	{
+		g_snprintf(group, sizeof(group), "Project-%u", index + 1);
+		if (g_key_file_has_key(kf, group, "AbsFilename", NULL))
 		{
-			g_snprintf(group, sizeof(group), "Project-%u", (index+1));
-			if (g_key_file_has_key (kf, group, "AbsFilename", NULL))
+			WB_PROJECT_ENTRY *entry = wb_project_entry_new();
+			if (!entry) continue;
+			
+			entry->abs_filename = g_key_file_get_string(kf, group, "AbsFilename", error);
+			entry->rel_filename = g_key_file_get_string(kf, group, "RelFilename", error);
+			entry->use_abs = g_key_file_get_boolean(kf, group, "UseAbsFilename", error);
+			
+			gchar *prj_filename = entry->use_abs ? entry->abs_filename
+												 : get_combined_path(wb->filename,
+																	 entry->rel_filename);
+			if (prj_filename)
 			{
-				gchar *prj_filename;
-				entry = wb_project_entry_new();
-				if (entry == NULL)
+				GStatBuf buf;
+				entry->project = wb_project_new(prj_filename);
+				
+				if (g_stat(prj_filename, &buf) == 0)
 				{
-					continue;
-				}
-				entry->abs_filename = g_key_file_get_string(kf, group, "AbsFilename", error);
-				entry->rel_filename = g_key_file_get_string(kf, group, "RelFilename", error);
-				entry->use_abs = g_key_file_get_boolean(kf, group, "UseAbsFilename", error);
-				if (entry->use_abs == TRUE)
-				{
-					prj_filename = entry->abs_filename;
+					entry->status = PROJECT_ENTRY_STATUS_OK;
+					
+					/* TODO: collect and handle project load errors */
+					wb_project_load(entry->project, prj_filename);
 				}
 				else
-				{
-					prj_filename = get_combined_path
-										(wb->filename, entry->rel_filename);
-				}
-				if (prj_filename != NULL)
-				{
-					GStatBuf buf;
-
-					entry->project = wb_project_new(prj_filename);
-					if (g_stat (prj_filename, &buf) == 0)
-					{
-						entry->status = PROJECT_ENTRY_STATUS_OK;
-
-						/* ToDo: collect and handle project load errors */
-						wb_project_load(entry->project, prj_filename, error);
-					}
-					else
-					{
-						entry->status = PROJECT_ENTRY_STATUS_NOT_FOUND;
-					}
-					g_ptr_array_add (wb->projects, entry);
-
-					if (wb->rescan_projects_on_open == TRUE)
-					{
-						wb_project_rescan(entry->project);
-					}
-				}
-			}
-			else
-			{
-				break;
+					entry->status = PROJECT_ENTRY_STATUS_NOT_FOUND;
+				g_ptr_array_add(wb->projects, entry);
+				
+				if (wb->rescan_projects_on_open == TRUE)
+					wb_project_rescan(entry->project);
 			}
 		}
-
-		g_key_file_free(kf);
-		g_free (contents);
-		success = TRUE;
+		else
+			break;
 	}
-	else if (error != NULL)
-	{
-		g_set_error (error, 0, 0,
-						"Internal error: param missing (file: %s, line %d)",
-						__FILE__, __LINE__);
-	}
-
-	return success;
+	
+	g_key_file_free(kf);
+	return TRUE;
 }
 
 

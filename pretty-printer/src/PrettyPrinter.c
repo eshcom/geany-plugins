@@ -172,7 +172,7 @@ PrettyPrintingOptions *createDefaultPrettyPrintingOptions(void)
 {
 	PrettyPrintingOptions *defaultOptions =
 		(PrettyPrintingOptions *)g_try_malloc(sizeof(PrettyPrintingOptions));
-	if (defaultOptions == NULL)
+	if (!defaultOptions)
 	{
 		PP_ERROR("Unable to allocate memory for PrettyPrintingOptions");
 		return NULL;

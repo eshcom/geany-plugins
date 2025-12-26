@@ -17,22 +17,19 @@
  *  
  */
 
-#include "config.h"
-
-#include <string.h>
-
-#include <glib.h>
-#include <glib/gi18n-lib.h>
-#include <gio/gio.h>
-#include <gtk/gtk.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h"     // for the gettext domain
+#endif
 
 #include <git2.h>
+#include <geanyplugin.h>  // includes geany.h, gtkcompat.h, etc.
 
-#include <geanyplugin.h>
-#include <geany.h>
-#include <document.h>
+#include "../../utils/src/common.h"
+#include "../../utils/src/ui.h"
 
-#include "../../utils/src/ui_plugins.h"
+GeanyPlugin *geany_plugin;
+GeanyData   *geany_data;
+
 
 #ifdef LIBGIT2_VER_MINOR
 # define CHECK_LIBGIT2_VERSION(MAJOR, MINOR) \
@@ -62,10 +59,6 @@
 #if ! CHECK_LIBGIT2_VERSION(0, 99)
 # define git_diff_options_init git_diff_init_options
 #endif
-
-
-GeanyPlugin      *geany_plugin;
-GeanyData        *geany_data;
 
 
 PLUGIN_VERSION_CHECK(224)
@@ -1422,121 +1415,51 @@ write_setting_boolean (GKeyFile      *kf,
   g_key_file_set_boolean(kf, group, key, *pvalue);
 }
 
-/* loads @filename in @kf and return %FALSE if failed, emitting a warning
- * unless the file was simply missing */
-static gboolean
-read_keyfile (GKeyFile     *kf,
-              const gchar  *filename,
-              GKeyFileFlags flags)
+static void load_config(void)
 {
-  GError *error = NULL;
-  
-  if (! g_key_file_load_from_file (kf, filename, flags, &error)) {
-    if (error->domain != G_FILE_ERROR || error->code != G_FILE_ERROR_NOENT) {
-      g_warning (_("Failed to load configuration file: %s"), error->message);
-    }
-    g_error_free (error);
-    
-    return FALSE;
-  }
-  
-  return TRUE;
+	gboolean result = FALSE;
+	GKeyFile *config = load_plugin_config(PLUGIN, &result);
+	
+	if (result)
+	{
+		for (guint i = 0; i < G_N_ELEMENTS(G_settings_desc); i++)
+			G_settings_desc[i].read(config, G_settings_desc[i].group,
+									G_settings_desc[i].key, G_settings_desc[i].value);
+	}
+	g_key_file_free(config);
 }
 
-/* writes @kf in @filename, possibly creating directories to be able to write
- * in @filename */
-static gboolean
-write_keyfile (GKeyFile    *kf,
-               const gchar *filename)
+static void save_config(void)
 {
-  gchar    *dirname = g_path_get_dirname (filename);
-  GError   *error   = NULL;
-  gint      err;
-  gchar    *data;
-  gsize     length;
-  gboolean  success = FALSE;
-  
-  data = g_key_file_to_data (kf, &length, NULL);
-  if ((err = utils_mkdir (dirname, TRUE)) != 0) {
-    g_warning (_("Failed to create configuration directory \"%s\": %s"),
-               dirname, g_strerror (err));
-  } else if (! g_file_set_contents (filename, data, (gssize) length, &error)) {
-    g_warning (_("Failed to save configuration file: %s"), error->message);
-    g_error_free (error);
-  } else {
-    success = TRUE;
-  }
-  g_free (data);
-  g_free (dirname);
-  
-  return success;
-}
-
-static gchar *
-get_config_filename (void)
-{
-  return g_build_filename (geany_data->app->configdir, "plugins",
-                           PLUGIN, PLUGIN".conf", NULL);
-}
-
-static void
-load_config (void)
-{
-  gchar    *filename  = get_config_filename ();
-  GKeyFile *kf        = g_key_file_new ();
-  
-  if (read_keyfile (kf, filename, G_KEY_FILE_NONE)) {
-    guint i;
-    
-    for (i = 0; i < G_N_ELEMENTS (G_settings_desc); i++) {
-      G_settings_desc[i].read (kf, G_settings_desc[i].group,
-                               G_settings_desc[i].key,
-                               G_settings_desc[i].value);
-    }
-  }
-  g_key_file_free (kf);
-  g_free (filename);
-}
-
-static void
-save_config (void)
-{
-  gchar    *filename  = get_config_filename ();
-  GKeyFile *kf        = g_key_file_new ();
-  guint     i;
-  
-  read_keyfile (kf, filename, G_KEY_FILE_KEEP_COMMENTS);
-  for (i = 0; i < G_N_ELEMENTS (G_settings_desc); i++) {
-    G_settings_desc[i].write (kf, G_settings_desc[i].group,
-                              G_settings_desc[i].key,
-                              G_settings_desc[i].value);
-  }
-  write_keyfile (kf, filename);
-  
-  g_key_file_free (kf);
-  g_free (filename);
+	gchar *filepath = get_config_filepath(PLUGIN, NULL);
+	GKeyFile *config = load_config_from_file(filepath, NULL);
+	
+	for (guint i = 0; i < G_N_ELEMENTS(G_settings_desc); i++)
+		G_settings_desc[i].write(config, G_settings_desc[i].group,
+								 G_settings_desc[i].key, G_settings_desc[i].value);
+	
+	write_config_to_file(config, filepath, SYSLOG);
+	g_key_file_free(config);
+	g_free(filepath);
 }
 
 /* --- plugin initialization and cleanup --- */
 
-void
-plugin_init (GeanyData *data)
+void plugin_init(GeanyData *data)
 {
-  GeanyKeyGroup *kb_group;
-  
-  buf_zero (&G_blob_contents);
+  buf_zero(&G_blob_contents);
   G_blob_contents_tag = 0;
   G_source_id         = 0;
   G_thread            = NULL;
   G_queue             = NULL;
   
-  if (git_libgit2_init () < 0) {
-    const git_error *err = git_error_last ();
-    g_warning ("Failed to initialize libgit2: %s", err ? err->message : "?");
+  if (git_libgit2_init() < 0) {
+    const git_error *err = git_error_last();
+    g_warning("Failed to initialize libgit2: %s", err ? err->message : "?");
     return;
   }
   
-  load_config ();
+  load_config();
   
   G_undo_menu_item = gtk_menu_item_new_with_label (_("Undo Git hunk"));
   g_signal_connect (G_undo_menu_item, "activate",
@@ -1544,7 +1467,8 @@ plugin_init (GeanyData *data)
   gtk_container_add (GTK_CONTAINER (data->main_widgets->editor_menu),
                      G_undo_menu_item);
   
-  kb_group = plugin_set_key_group (geany_plugin, PLUGIN, KB_COUNT, NULL);
+  GeanyKeyGroup *kb_group = plugin_set_key_group(geany_plugin, PLUGIN,
+                                                 KB_COUNT, NULL);
   keybindings_set_item (kb_group, KB_GOTO_PREV_HUNK, on_kb_goto_next_hunk, 0, 0,
                         "goto-prev-hunk", _("Go to the previous hunk"), NULL);
   keybindings_set_item (kb_group, KB_GOTO_NEXT_HUNK, on_kb_goto_next_hunk, 0, 0,
@@ -1573,33 +1497,30 @@ plugin_init (GeanyData *data)
   }
 }
 
-void
-plugin_cleanup (void)
+void plugin_cleanup(void)
 {
-  guint i = 0;
-  
-  gtk_widget_destroy (G_undo_menu_item);
+  gtk_widget_destroy(G_undo_menu_item);
   
   if (G_source_id) {
-    g_source_remove (G_source_id);
+    g_source_remove(G_source_id);
     G_source_id = 0;
   }
   if (G_thread) {
-    g_async_queue_push (G_queue, QUIT_THREAD_JOB); /* notify the thread */
-    g_thread_join (G_thread);
+    g_async_queue_push(G_queue, QUIT_THREAD_JOB); /* notify the thread */
+    g_thread_join(G_thread);
     G_thread = NULL;
-    g_async_queue_unref (G_queue);
+    g_async_queue_unref(G_queue);
     G_queue = NULL;
   }
-  clear_cached_blob_contents ();
+  clear_cached_blob_contents();
   
-  foreach_document (i) {
-    release_resources (documents[i]->editor->sci);
+  guint i = 0;
+  foreach_document(i) {
+    release_resources(documents[i]->editor->sci);
   }
   
-  save_config ();
-  
-  git_libgit2_shutdown ();
+  save_config();
+  git_libgit2_shutdown();
 }
 
 /* --- configuration dialog --- */
@@ -1670,59 +1591,42 @@ on_plugin_configure_response (GtkDialog        *dialog,
   }
 }
 
-GtkWidget *
-plugin_configure (GtkDialog *dialog)
+GtkWidget *plugin_configure(GtkDialog *dialog)
 {
-  GError     *error   = NULL;
-  GtkWidget  *base    = NULL;
-  GtkBuilder *builder = gtk_builder_new ();
-  gchar      *path    = get_data_dir_path ("prefs.ui");
-  
-  gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
-  if (! gtk_builder_add_from_file (builder, path, &error)) {
-    g_critical (_("Failed to load UI definition, please check your "
-                  "installation. The error was: %s"), error->message);
-    g_error_free (error);
-  } else {
-    GdkColor          color;
-    ConfigureWidgets *cw = g_malloc (sizeof *cw);
-    struct {
-      const gchar  *name;
-      GtkWidget   **ptr;
-    } map[] = {
-      { "base",                 &cw->base },
-      { "monitoring-check",     &cw->monitoring_check },
-      { "added-color-button",   &cw->added_color_button },
-      { "changed-color-button", &cw->changed_color_button },
-      { "removed-color-button", &cw->removed_color_button },
-    };
-    guint i;
-    
-    for (i = 0; i < G_N_ELEMENTS (map); i++) {
-      *map[i].ptr = GTK_WIDGET (gtk_builder_get_object (builder, map[i].name));
-    }
-    
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (cw->monitoring_check),
-                                  G_monitoring_enabled);
-    color_from_int (&color, G_markers[MARKER_LINE_ADDED].color);
-    gtk_color_button_set_color (GTK_COLOR_BUTTON (cw->added_color_button),
-                                &color);
-    color_from_int (&color, G_markers[MARKER_LINE_CHANGED].color);
-    gtk_color_button_set_color (GTK_COLOR_BUTTON (cw->changed_color_button),
-                                &color);
-    color_from_int (&color, G_markers[MARKER_LINE_REMOVED].color);
-    gtk_color_button_set_color (GTK_COLOR_BUTTON (cw->removed_color_button),
-                                &color);
-    
-    base = g_object_ref_sink (cw->base);
-    
-    g_signal_connect_data (dialog, "response",
-                           G_CALLBACK (on_plugin_configure_response),
-                           cw, (GClosureNotify) configure_widgets_free, 0);
-  }
-  
-  g_free (path);
-  g_object_unref (builder);
-  
-  return base;
+	gchar *filepath = get_data_filepath(PLUGIN, "prefs.ui");
+	GtkBuilder *builder = get_ui_builder_from_file(filepath);
+	g_free(filepath);
+	if (!builder) return NULL;
+	
+	ConfigureWidgets *cw = g_malloc(sizeof *cw);
+	struct {
+		const gchar  *name;
+		GtkWidget   **ptr;
+	} map[] = {
+		{ "base",                 &cw->base },
+		{ "monitoring-check",     &cw->monitoring_check },
+		{ "added-color-button",   &cw->added_color_button },
+		{ "changed-color-button", &cw->changed_color_button },
+		{ "removed-color-button", &cw->removed_color_button },
+	};
+	
+	for (guint i = 0; i < G_N_ELEMENTS(map); i++)
+		*map[i].ptr = GTK_WIDGET(gtk_builder_get_object(builder, map[i].name));
+	
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cw->monitoring_check),
+								 G_monitoring_enabled);
+	GdkColor color;
+	color_from_int(&color, G_markers[MARKER_LINE_ADDED].color);
+	gtk_color_button_set_color(GTK_COLOR_BUTTON(cw->added_color_button), &color);
+	color_from_int(&color, G_markers[MARKER_LINE_CHANGED].color);
+	gtk_color_button_set_color(GTK_COLOR_BUTTON(cw->changed_color_button), &color);
+	color_from_int(&color, G_markers[MARKER_LINE_REMOVED].color);
+	gtk_color_button_set_color(GTK_COLOR_BUTTON(cw->removed_color_button), &color);
+	
+	GtkWidget *base = g_object_ref_sink(cw->base);
+	g_signal_connect_data(dialog, "response",
+						  G_CALLBACK(on_plugin_configure_response),
+						  cw, (GClosureNotify)configure_widgets_free, 0);
+	g_object_unref(builder);
+	return base;
 }

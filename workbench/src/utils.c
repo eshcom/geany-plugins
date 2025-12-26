@@ -19,15 +19,18 @@
 /*
  * Utility functions.
  */
+
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <glib.h>
-#include <glib/gstdio.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
 #include "wb_globals.h"
 #include "utils.h"
+
+extern GeanyData *geany_data;
+
 
 /** Get the relative path.
  *
@@ -277,9 +280,8 @@ void open_all_files_in_list(GPtrArray *list)
  **/
 void close_all_files_in_list(GPtrArray *list)
 {
-	GeanyData* geany_data = wb_globals.geany_plugin->geany_data;
-	guint index, doc=0;
-
+	guint index, doc = 0;
+	
 	for (index = 0 ; index < list->len ; index++)
 	{
 		foreach_document(doc)

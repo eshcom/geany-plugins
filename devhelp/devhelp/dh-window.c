@@ -25,15 +25,18 @@
  *  Copyright (C) 2002-2005 Paolo Maggi
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"       // for the gettext domain
+#endif
+
 #include <string.h>
+#include <gtkcompat.h>
+#include <gdk/gdkkeysyms.h> // for the key bindings
 #include <glib/gi18n-lib.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
 #include <webkit/webkit.h>
 
 #ifdef GDK_WINDOWING_QUARTZ
-#include <ige-mac-integration.h>
+  #include <ige-mac-integration.h>
 #endif
 
 #include "dh-book-tree.h"
@@ -47,6 +50,7 @@
 #include "dh-enum-types.h"
 #include "eggfindbar.h"
 #include "ige-conf.h"
+
 
 #define FULLSCREEN_ANIMATION_SPEED 4
 

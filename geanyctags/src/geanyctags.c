@@ -20,15 +20,16 @@
 	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>	// includes geany.h
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "readtags.h"
+
+#include "../../utils/src/common.h"
 #include "../../utils/src/spawn.h"
-#include "../../utils/src/ui_plugins.h"
+#include "../../utils/src/ui.h"
 
+GeanyData *geany_data;		// the code uses the macro "geany" (see geany->)
 
-static GeanyPlugin *geany_plugin = NULL;
-static GeanyData *geany_data = NULL;
 
 typedef struct {
 	/* settings */
@@ -70,7 +71,6 @@ enum
 };
 
 
-#define CONFIG_SECTION "geanyctags"
 #define DEFAULT_FIND_EXCLUDEDIRS "build"
 #define DEFAULT_CTAGS_OPTIONS "--totals --fields=fKsSt --extra=-fq " \
 							  "--c-kinds=+p --sort=foldcase --excmd=number"
@@ -246,7 +246,7 @@ static gboolean spawn_cmd(const gchar *locale_cmd, const gchar *locale_dir)
 				g_string_printf(msg, "%s", result->output2);
 			}
 			
-			ui_set_statusbar(TRUE, msg->str);
+			ui_set_statusbar(TRUE, "%s", msg->str);
 			g_string_free(msg, TRUE);
 		}
 		success = FALSE;
@@ -315,7 +315,7 @@ static GString *generate_find_cmd(GeanyProject *prj)
 
 static void on_generate_tags(GtkMenuItem *menuitem, gpointer user_data)
 {
-	GeanyProject *prj = geany_data->app->project;
+	GeanyProject *prj = geany->app->project;
 	if (!prj) return;
 	
 	GString *cmd;
@@ -408,14 +408,10 @@ static gchar *get_selection(void)
 	if (!doc) return NULL;
 	
 	GeanyEditor *editor = doc->editor;
-	gchar *ret = NULL;
 	
-	if (sci_has_selection(editor->sci))
-		ret = sci_get_selection_contents(editor->sci);
-	else
-		ret = editor_get_word_at_pos(editor, -1, GEANY_WORDCHARS);
-	
-	return ret;
+	return sci_has_selection(editor->sci)
+				? sci_get_selection_contents(editor->sci)
+				: editor_get_word_at_pos(editor, -1, GEANY_WORDCHARS);
 }
 
 /* TODO: Not possible to do it the way below because some of the API is private
@@ -456,34 +452,31 @@ typedef enum
 	MATCH_PATTERN
 } MatchType;
 
-static gboolean find_first(tagFile *tf, tagEntry *entry,
-						   const gchar *name,
+static gboolean find_first(tagFile *tf, tagEntry *entry, const gchar *name,
 						   MatchType match_type)
 {
 	gboolean ret;
 	
 	if (match_type == MATCH_PATTERN)
-		ret = tagsFirst(tf, entry) == TagSuccess;
+		ret = (tagsFirst(tf, entry) == TagSuccess);
 	else
 	{
 		int options = TAG_IGNORECASE;
-		
-		options |= match_type == MATCH_PREFIX ? TAG_PARTIALMATCH
-											  : TAG_FULLMATCH;
-		ret = tagsFind(tf, entry, name, options) == TagSuccess;
+		options |= (match_type == MATCH_PREFIX) ? TAG_PARTIALMATCH
+												: TAG_FULLMATCH;
+		ret = (tagsFind(tf, entry, name, options) == TagSuccess);
 	}
 	return ret;
 }
 
-static gboolean find_next(tagFile *tf, tagEntry *entry,
-						  MatchType match_type)
+static gboolean find_next(tagFile *tf, tagEntry *entry, MatchType match_type)
 {
 	gboolean ret;
 	
 	if (match_type == MATCH_PATTERN)
-		ret = tagsNext(tf, entry) == TagSuccess;
+		ret = (tagsNext(tf, entry) == TagSuccess);
 	else
-		ret = tagsFindNext(tf, entry) == TagSuccess;
+		ret = (tagsFindNext(tf, entry) == TagSuccess);
 	
 	return ret;
 }
@@ -495,17 +488,14 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 	
 	if (!EMPTY(entry->kind))
 	{
-		gboolean is_prototype;
-		
-		is_prototype = g_strcmp0(entry->kind, "prototype") == 0;
-		filter = (declaration && !is_prototype) ||
-				 (!declaration && is_prototype);
+		gboolean is_prototype = (g_strcmp0(entry->kind, "prototype") == 0);
+		filter = (declaration && !is_prototype) || (!declaration && is_prototype);
 		if (filter) return TRUE;
 	}
 	gchar *entry_name = case_sensitive ? g_strdup(entry->name)
 									   : g_utf8_strdown(entry->name, -1);
 	
-	filter = !g_pattern_match_string(name, entry_name);
+	filter = !g_pattern_spec_match_string(name, entry_name);
 	g_free(entry_name);
 	
 	return filter;
@@ -514,7 +504,7 @@ static gboolean filter_tag(tagEntry *entry, GPatternSpec *name,
 static void find_tags(const gchar *name, gboolean declaration,
 					  gboolean case_sensitive, MatchType match_type)
 {
-	GeanyProject *prj = geany_data->app->project;
+	GeanyProject *prj = geany->app->project;
 	if (!prj) return;
 	
 	gchar *base_path = project_get_base_path();
@@ -552,8 +542,8 @@ static void find_tags(const gchar *name, gboolean declaration,
 			{
 				if (!filter_tag(&entry, name_pat, declaration, case_sensitive))
 				{
-					if (!path)
-						path = g_build_filename(base_path, entry.file, NULL);
+					if (!path) path = g_build_filename(base_path, entry.file, NULL);
+					
 					show_entry(&entry);
 					last_line_number = entry.address.lineNumber;
 					num++;
@@ -562,7 +552,7 @@ static void find_tags(const gchar *name, gboolean declaration,
 			if (num == 1)
 			{
 				GeanyDocument *doc = document_open_file(path, FALSE, NULL, NULL);
-				if (doc != NULL)
+				if (doc)
 				{
 					navqueue_goto_line(document_get_current(), doc, last_line_number);
 					gtk_widget_grab_focus(GTK_WIDGET(doc->editor->sci));
@@ -654,15 +644,11 @@ static void create_dialog_find_file(void)
 	gtk_box_pack_start(GTK_BOX(ebox), s_ft_dialog.combo_match, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), ebox, TRUE, FALSE, 0);
 	
-	s_ft_dialog.case_sensitive =
-			gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.case_sensitive),
-								  FALSE);
+	s_ft_dialog.case_sensitive = gtk_check_button_new_with_mnemonic(_("C_ase sensitive"));
+	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.case_sensitive), FALSE);
 	
-	s_ft_dialog.declaration =
-			gtk_check_button_new_with_mnemonic(_("_Declaration"));
-	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.declaration),
-								  FALSE);
+	s_ft_dialog.declaration = gtk_check_button_new_with_mnemonic(_("_Declaration"));
+	gtk_button_set_focus_on_click(GTK_BUTTON(s_ft_dialog.declaration), FALSE);
 	
 	g_object_unref(G_OBJECT(size_group)); /* auto destroy the size group */
 	
@@ -722,25 +708,12 @@ static gboolean kb_callback(guint key_id)
 static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 									   G_GNUC_UNUSED gpointer pdata)
 {
-	geany_plugin = plugin;
 	geany_data = plugin->geany_data;
 	
-	GKeyFile *config = g_key_file_new();
-	GeanyKeyGroup *key_group;
-	
-	key_group = plugin_set_key_group(geany_plugin, "GeanyCtags",
-									 KB_COUNT, kb_callback);
-	
 	gtags_info = g_new0(GeanyctagsInfo, 1);
+	gtags_info->config_file = get_config_filepath(PLUGIN, NULL);
 	
-	gtags_info->config_file = g_strconcat(geany->app->configdir,
-										  G_DIR_SEPARATOR_S, "plugins",
-										  G_DIR_SEPARATOR_S, "geanyctags",
-										  G_DIR_SEPARATOR_S, "geanyctags.conf",
-										  NULL);
-	
-	g_key_file_load_from_file(config, gtags_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(gtags_info->config_file, NULL);
 	
 	gtags_info->find_options = utils_get_setting_string(config, CONFIG_SECTION,
 														"find_options", NULL);
@@ -757,7 +730,6 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 #undef GET_CONF_BOOL
 	
 	g_key_file_free(config);
-	
 	
 	s_context_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_context_sep_item);
@@ -779,49 +751,46 @@ static gboolean plugin_geanyctags_init(GeanyPlugin *plugin,
 						   s_context_fdef_item);
 	g_signal_connect((gpointer)s_context_fdef_item, "activate",
 					 G_CALLBACK(on_find_definition), NULL);
+	
+	GeanyKeyGroup *key_group = plugin_set_key_group(plugin, PLUGIN,
+													KB_COUNT, kb_callback);
+	
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
 						 "find_tag", _("Find tag"), s_context_fdef_item);
 	
 	s_sep_item = gtk_separator_menu_item_new();
 	gtk_widget_show(s_sep_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
-					  s_sep_item);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_sep_item);
 	
 	s_gt_item = gtk_menu_item_new_with_mnemonic(_("Generate tags"));
 	gtk_widget_show(s_gt_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
-					  s_gt_item);
-	g_signal_connect((gpointer)s_gt_item, "activate",
-					 G_CALLBACK(on_generate_tags), NULL);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_gt_item);
+	g_signal_connect((gpointer)s_gt_item, "activate", G_CALLBACK(on_generate_tags), NULL);
+	
 	keybindings_set_item(key_group, KB_GENERATE_TAGS, NULL, 0, 0,
 						 "generate_tags", _("Generate tags"), s_gt_item);
 	
 	s_ft_item = gtk_menu_item_new_with_mnemonic(_("Find tag..."));
 	gtk_widget_show(s_ft_item);
-	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu),
-					  s_ft_item);
-	g_signal_connect((gpointer)s_ft_item, "activate",
-					 G_CALLBACK(on_find_tag), NULL);
+	
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->project_menu), s_ft_item);
+	g_signal_connect((gpointer)s_ft_item, "activate", G_CALLBACK(on_find_tag), NULL);
+	
 	// esh: reassigned hotkeys: on_find_tag -> on_find_definition
 	//~ keybindings_set_item(key_group, KB_FIND_TAG, NULL, 0, 0,
 						 //~ "find_tag", _("Find tag"), s_ft_item);
 	
-	set_widgets_sensitive(geany_data->app->project != NULL);
+	set_widgets_sensitive(geany->app->project != NULL);
 	return TRUE;
 }
 
 static void configure_response_cb(GtkDialog *dialog, gint response,
 								  gpointer user_data)
 {
-	if (response != GTK_RESPONSE_OK && response != GTK_RESPONSE_APPLY)
-		return;
+	if (!ok_apply(response)) return;
 	
-	GKeyFile *config = g_key_file_new();
-	gchar *config_dir = g_path_get_dirname(gtags_info->config_file);
-	
-	g_key_file_load_from_file(config, gtags_info->config_file,
-							  G_KEY_FILE_NONE, NULL);
+	GKeyFile *config = load_config_from_file(gtags_info->config_file, NULL);
 	
 	GtkEntry *entry_ctags_options = GTK_ENTRY(g_object_get_data(
 										G_OBJECT(dialog), "entry_ctags_options"));
@@ -851,19 +820,7 @@ static void configure_response_cb(GtkDialog *dialog, gint response,
 	SAVE_CONF_BOOL(print_to_msg_win);
 #undef SAVE_CONF_BOOL
 	
-	if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR) &&
-		utils_mkdir(config_dir, TRUE) != 0)
-	{
-		dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-			_("Plugin configuration directory could not be created."));
-	}
-	else
-	{	/* write config to file */
-		gchar *data = g_key_file_to_data(config, NULL, NULL);
-		utils_write_file(gtags_info->config_file, data);
-		g_free(data);
-	}
-	g_free(config_dir);
+	write_config_to_file(config, gtags_info->config_file, MSGBOX);
 	g_key_file_free(config);
 }
 

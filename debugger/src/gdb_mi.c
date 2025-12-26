@@ -24,18 +24,10 @@
  * https://sourceware.org/gdb/current/onlinedocs/gdb/GDB_002fMI-Output-Syntax.html
  */
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <glib.h>
-
 #include "gdb_mi.h"
 
-
 #define ascii_isodigit(c) (((guchar) (c)) >= '0' && ((guchar) (c)) <= '7')
-
 
 static struct gdb_mi_value *parse_value(const gchar **p);
 

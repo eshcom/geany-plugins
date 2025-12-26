@@ -19,7 +19,6 @@
 #ifndef __SIDEBAR_H__
 #define __SIDEBAR_H__
 
-#include <gtk/gtk.h>
 #include "wb_project.h"
 
 enum
@@ -42,7 +41,7 @@ typedef struct
 	gchar          *file;
 	gchar          *wb_bookmark;
 	gchar          *prj_bookmark;
-}SIDEBAR_CONTEXT;
+} SIDEBAR_CONTEXT;
 
 typedef enum
 {
@@ -64,7 +63,7 @@ typedef enum
 	SIDEBAR_CONTEXT_PRJ_BOOKMARK_REMOVED,
 	SIDEBAR_CONTEXT_FILE_ADDED,
 	SIDEBAR_CONTEXT_FILE_REMOVED,
-}SIDEBAR_EVENT;
+} SIDEBAR_EVENT;
 
 void sidebar_init(void);
 void sidebar_cleanup(void);

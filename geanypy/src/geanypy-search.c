@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -20,11 +24,10 @@ SearchPrefs_dealloc(SearchPrefs *self)
 }
 
 
-static int
-SearchPrefs_init(SearchPrefs *self)
+static int SearchPrefs_init(SearchPrefs *self)
 {
 	g_return_val_if_fail(self != NULL, -1);
-	self->search_prefs = geany_data->search_prefs;
+	self->search_prefs = geany->search_prefs;
 	return 0;
 }
 

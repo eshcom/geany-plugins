@@ -16,13 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <gdk/gdkkeysyms.h> // for the key bindings
+
 #include "vi.h"
-#include "cmd-runner.h"
 #include "utils.h"
 #include "keypress.h"
+#include "cmd-runner.h"
 #include "excmd-prompt.h"
 
-#include <gdk/gdkkeysyms.h>
 
 struct
 {

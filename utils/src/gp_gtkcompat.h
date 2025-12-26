@@ -25,7 +25,7 @@ G_BEGIN_DECLS
 
 /* Remove gtk_window_set_has_resize_grip() starting from version 3.14 */
 #if GTK_CHECK_VERSION(3, 14, 0)
-#define gtk_window_set_has_resize_grip(window, value)
+	#define gtk_window_set_has_resize_grip(window, value)
 #endif
 
 /* Replace calls to gtk_widget_set_state() with call to
@@ -40,7 +40,7 @@ G_BEGIN_DECLS
 #define GTK_STATE_INCONSISTENT GTK_STATE_FLAG_INCONSISTENT
 #define GTK_STATE_FOCUSED      GTK_STATE_FLAG_FOCUSED
 #define gtk_widget_set_state(widget, state) \
-        gtk_widget_set_state_flags(widget, state, FALSE)
+		gtk_widget_set_state_flags(widget, state, FALSE)
 #endif
 
 /* Replace some GTK_STOCK constants with labels.
@@ -51,14 +51,14 @@ G_BEGIN_DECLS
 #undef GTK_STOCK_OK
 #define GTK_STOCK_OPEN   _("_Open")
 #define GTK_STOCK_CANCEL _("_Cancel")
-#define GTK_STOCK_OK _("_OK")
+#define GTK_STOCK_OK     _("_OK")
 #endif
 
 /* Replace calls to gtk_icon_info_free() with call to
    g_object_unref(). Starting from version 3.8.*/
 #if GTK_CHECK_VERSION(3, 8, 0)
 #define gtk_icon_info_free(icon_info) \
-        g_object_unref(icon_info)
+		g_object_unref(icon_info)
 #endif
 
 G_END_DECLS

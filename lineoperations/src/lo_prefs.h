@@ -22,16 +22,12 @@
 #ifndef LO_PREFS_H
 #define LO_PREFS_H
 
-#include <geanyplugin.h>
-
-
 typedef struct
 {
 	/* general settings */
 	gchar *config_file;
 	gboolean use_collation_compare;
 } LineOpsInfo;
-
 
 extern LineOpsInfo *lo_info;
 

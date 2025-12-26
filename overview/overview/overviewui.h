@@ -23,8 +23,8 @@
 #ifndef OVERVIEWUI_H_
 #define OVERVIEWUI_H_
 
-#include "overviewprefs.h"
 #include "overviewplugin.h"
+#include "overviewprefs.h"
 
 // This should match the API version of when the patch gets applied to
 // make putting overview on left work.

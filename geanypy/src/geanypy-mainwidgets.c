@@ -1,5 +1,9 @@
+/*
+ * 
+ */
+
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #include "geanypy.h"
@@ -15,7 +19,7 @@ MainWidgets_dealloc(MainWidgets *self)
 static int
 MainWidgets_init(MainWidgets *self)
 {
-	self->main_widgets = geany_data->main_widgets;
+	self->main_widgets = geany->main_widgets;
 	return 0;
 }
 

@@ -20,7 +20,7 @@
  */
 
 #if defined(HAVE_CONFIG_H) && !defined(GEANYPY_WINDOWS)
-# include "config.h"
+	#include "config.h" // for the gettext domain
 #endif
 
 #define INCLUDE_PYGOBJECT_ONCE_FULL
@@ -28,10 +28,6 @@
 #include "geanypy.h"
 #include "geanypy-keybindings.h"
 
-#include <glib.h>
-#include <glib/gstdio.h>
-
-GeanyData *geany_data;
 
 /* Forward declarations to prevent compiler warnings. */
 PyMODINIT_FUNC initapp(void);
@@ -57,8 +53,8 @@ PyMODINIT_FUNC initkeybindings(void);
 static void
 GeanyPy_start_interpreter(void)
 {
-    gchar *init_code;
-    gchar *py_dir = NULL;
+	gchar *init_code;
+	gchar *py_dir = NULL;
 
 
 #ifndef GEANYPY_WINDOWS
@@ -73,27 +69,27 @@ GeanyPy_start_interpreter(void)
 	}
 #endif
 
-    Py_Initialize();
+	Py_Initialize();
 
-    /* Import the C modules */
-    initapp();
-    initdialogs();
-    initdocument();
-    initeditor();
-    initencoding();
-    initfiletypes();
-    initglog();
-    inithighlighting();
-    initmain();
-    initmsgwin();
-    initnavqueue();
-    initprefs();
-    initproject();
-    initscintilla();
-    initsearch();
-    inittemplates();
-    initui_utils();
-    initkeybindings();
+	/* Import the C modules */
+	initapp();
+	initdialogs();
+	initdocument();
+	initeditor();
+	initencoding();
+	initfiletypes();
+	initglog();
+	inithighlighting();
+	initmain();
+	initmsgwin();
+	initnavqueue();
+	initprefs();
+	initproject();
+	initscintilla();
+	initsearch();
+	inittemplates();
+	initui_utils();
+	initkeybindings();
 
 #ifdef GEANYPY_WINDOWS
 	{ /* On windows, get path at runtime since we don't really know where
@@ -116,28 +112,28 @@ GeanyPy_start_interpreter(void)
 	py_dir = g_strdup(GEANYPY_PYTHON_DIR);
 #endif
 
-    /* Adjust Python path to find wrapper package (geany) */
-    init_code = g_strdup_printf(
-        "import os, sys\n"
-        "path = '%s'.replace('~', os.path.expanduser('~'))\n"
-        "sys.path.append(path)\n"
-        "path = '%s/plugins'.replace('~', os.path.expanduser('~'))\n"
-        "sys.path.append(path)\n"
-        "path = '%s'.replace('~', os.path.expanduser('~'))\n"
-        "sys.path.append(path)\n"
-        "import geany\n", py_dir, geany_data->app->configdir, GEANYPY_PLUGIN_DIR);
-    g_free(py_dir);
+	/* Adjust Python path to find wrapper package (geany) */
+	init_code = g_strdup_printf(
+		"import os, sys\n"
+		"path = '%s'.replace('~', os.path.expanduser('~'))\n"
+		"sys.path.append(path)\n"
+		"path = '%s/plugins'.replace('~', os.path.expanduser('~'))\n"
+		"sys.path.append(path)\n"
+		"path = '%s'.replace('~', os.path.expanduser('~'))\n"
+		"sys.path.append(path)\n"
+		"import geany\n", py_dir, geany->app->configdir, GEANYPY_PLUGIN_DIR);
+	g_free(py_dir);
 
-    PyRun_SimpleString(init_code);
-    g_free(init_code);
+	PyRun_SimpleString(init_code);
+	g_free(init_code);
 
 }
 
 static void
 GeanyPy_stop_interpreter(void)
 {
-    if (Py_IsInitialized())
-        Py_Finalize();
+	if (Py_IsInitialized())
+		Py_Finalize();
 }
 
 typedef struct

@@ -19,20 +19,19 @@
 /*
  * Code for setup and control of the sidebar.
  */
-#include <sys/time.h>
-#include <gdk/gdkkeysyms.h>
-#include <string.h>
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include "wb_globals.h"
+
 #include <gtkcompat.h>
 #include <gp_gtkcompat.h>
 
+#include "wb_globals.h"
 #include "sidebar.h"
 #include "popup_menu.h"
 #include "utils.h"
+
 
 enum
 {
@@ -56,7 +55,7 @@ typedef struct
 	GtkTreeIter iter;
 	gboolean parent_valid;
 	GtkTreeIter parent;
-}ITER_SEARCH_RESULT;
+} ITER_SEARCH_RESULT;
 
 typedef struct
 {
@@ -71,7 +70,7 @@ typedef struct
 	guint dataid;
 	void (*func)(SIDEBAR_CONTEXT *, gpointer userdata);
 	gpointer userdata;
-}SB_CALLFOREACH_CONTEXT;
+} SB_CALLFOREACH_CONTEXT;
 
 typedef struct SIDEBAR
 {
@@ -79,7 +78,7 @@ typedef struct SIDEBAR
     GtkWidget *file_view;
     GtkTreeStore *file_store;
     GtkWidget *file_view_label;
-}SIDEBAR;
+} SIDEBAR;
 static SIDEBAR sidebar = {NULL, NULL, NULL, NULL};
 
 static gboolean sidebar_get_directory_iter(WB_PROJECT *prj, WB_PROJECT_DIR *dir, GtkTreeIter *iter);

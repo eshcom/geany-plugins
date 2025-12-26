@@ -11,19 +11,17 @@
  * 2010-11-01
 */
 
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-#include "utils.h"
-#include "Scintilla.h"
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>	// for the key bindings
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
+#include "../../utils/src/common.h"
+
+GeanyData *geany_data;		// the code uses the macro "geany" (see geany->)
+
 
 /* structure to hold details of Macro event */
 typedef struct
@@ -172,8 +170,6 @@ enum GEANY_MACRO_BUTTON {
 	GEANY_MACRO_BUTTON_APPLY
 };
 
-GeanyPlugin     *geany_plugin;
-GeanyData       *geany_data;
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -195,12 +191,14 @@ static Macro *RecordingMacro=NULL;
 static GSList *mList=NULL;
 static gboolean bMacrosHaveChanged=FALSE;
 
+#define MACROS_SECTION "macros"
+
 /* default config file */
 const gchar default_config[] =
-	"[Settings]\n"
-	"Save_Macros = true\n"
-	"Question_Macro_Overwrite = true\n"
-	"[Macros]";
+	"["CONFIG_SECTION"]\n"
+	"save_macros = true\n"
+	"question_macro_overwrite = true\n"
+	"["MACROS_SECTION"]";
 
 /* clear macro events list and free up any memory they are using */
 static GSList * ClearMacroList(GSList *gsl)
@@ -414,7 +412,7 @@ static gchar * MakeStringSaveable(gchar *s)
 /* create a macro event from an array of stings. This command may move past more than one array
  * entry if the macro event details require it
 */
-static MacroEvent * GetMacroEventFromString(gchar **s,gint *k)
+static MacroEvent *GetMacroEventFromString(gchar **s, gint *k)
 {
 	MacroEvent *me;
 
@@ -609,203 +607,168 @@ static gchar *GetPretyKeyName(guint keyval,guint state)
 /* save settings (preferences, and macro data) */
 static void SaveSettings(void)
 {
-	GKeyFile *config = NULL;
-	gchar *config_file = NULL;
-	gchar *data;
-	gchar *cKey;
-	gchar *pcTemp;
-	gint i,k;
-	GSList *gsl=mList;
-	GSList *gslTemp;
-	gchar **pszMacroStrings;
-	Macro *m;
-
 	/* create new config from default settings */
-	config=g_key_file_new();
-
+	GKeyFile *config = g_key_file_new();
+	
 	/* now set settings */
-	g_key_file_set_boolean(config,"Settings","Save_Macros",bSaveMacros);
-	g_key_file_set_boolean(config,"Settings","Question_Macro_Overwrite",bQueryOverwriteMacros);
-
+	g_key_file_set_boolean(config, CONFIG_SECTION, "save_macros", bSaveMacros);
+	g_key_file_set_boolean(config, CONFIG_SECTION, "question_macro_overwrite",
+						   bQueryOverwriteMacros);
 	/* now save macros */
-	if(bSaveMacros==TRUE)
+	if (bSaveMacros)
 	{
-		i=0;
-
+		gint i = 0;
+		GSList *gsl = mList;
+		
 		/* iterate through macros and save them */
-		while(gsl!=NULL)
+		while (gsl)
 		{
-			m=(Macro*)(gsl->data);
-			cKey=g_strdup_printf("A%d",i);
-
+			Macro *m = (Macro *)(gsl->data);
+			gchar *cKey = g_strdup_printf("A%d", i);
+			
 			/* save macro name */
-			pcTemp=MakeStringSaveable(m->name);
-			g_key_file_set_string(config,"Macros",cKey,pcTemp);
+			gchar *pcTemp = MakeStringSaveable(m->name);
+			g_key_file_set_string(config, MACROS_SECTION, cKey, pcTemp);
 			g_free(pcTemp);
 			/* save trigger data */
-			cKey[0]='B';
-			g_key_file_set_integer(config,"Macros",cKey,m->keyval);
-			cKey[0]='C';
-			g_key_file_set_integer(config,"Macros",cKey,m->state);
+			cKey[0] = 'B';
+			g_key_file_set_integer(config, MACROS_SECTION, cKey, m->keyval);
+			cKey[0] = 'C';
+			g_key_file_set_integer(config, MACROS_SECTION, cKey, m->state);
 			/* convert macros to saveable format
 			* first generate list of all macrodetails
 			*/
-			pszMacroStrings=(gchar **)
-				(g_malloc(sizeof(gchar *)*(g_slist_length(m->MacroEvents)+1)));
-			gslTemp=m->MacroEvents;
-			k=0;
-			while(gslTemp!=NULL)
+			gchar **pszMacroStrings = (gchar **)(g_malloc(sizeof(gchar *) *
+													(g_slist_length(m->MacroEvents) + 1)));
+			GSList *gslTemp = m->MacroEvents;
+			gint k = 0;
+			while (gslTemp)
 			{
-				pszMacroStrings[k++]=MacroEventToString((MacroEvent*)(gslTemp->data));
-				gslTemp=g_slist_next(gslTemp);
+				pszMacroStrings[k++] = MacroEventToString((MacroEvent*)(gslTemp->data));
+				gslTemp = g_slist_next(gslTemp);
 			}
-
+			
 			/* null terminate array for g_strfreev to work */
-			pszMacroStrings[k]=NULL;
+			pszMacroStrings[k] = NULL;
 			/* now transfer to single string */
-			pcTemp=g_strjoinv(",",pszMacroStrings);
+			pcTemp = g_strjoinv(",", pszMacroStrings);
 			/* save data */
-			cKey[0]='D';
-			g_key_file_set_string(config,"Macros",cKey,pcTemp);
+			cKey[0] = 'D';
+			g_key_file_set_string(config, MACROS_SECTION, cKey, pcTemp);
 			/* free up memory */
-			g_free(pcTemp);
 			g_strfreev(pszMacroStrings);
+			g_free(pcTemp);
 			g_free(cKey);
-
+			
 			/* move to next macro */
 			i++;
-			gsl=g_slist_next(gsl);
+			gsl = g_slist_next(gsl);
 		}
 	}
-
-	/* turn config into data */
-	data=g_key_file_to_data(config,NULL,NULL);
-
-	/* calculate setting directory name */
-	config_file=g_build_filename(geany->app->configdir,"plugins","Geany_Macros",NULL);
-	/* ensure directory exists */
-	g_mkdir_with_parents(config_file,0755);
-
-	/* make config_file hold name of settings file */
-	SETPTR(config_file,g_build_filename(config_file,"settings.conf",NULL));
-
+	
 	/* write data */
-	utils_write_file(config_file, data);
-
-	/* free memory */
-	g_free(config_file);
+	write_plugin_config(PLUGIN, config);
 	g_key_file_free(config);
-	g_free(data);
-
+	
 	/* Macros have now been saved */
-	bMacrosHaveChanged=FALSE;
+	bMacrosHaveChanged = FALSE;
 }
 
 
 /* load settings (preferences, file data, and macro data) */
 static void LoadSettings(void)
 {
-	gchar *pcTemp;
-	gchar *pcKey;
-	gint i,k;
-	gchar *config_file=NULL;
-	GKeyFile *config=NULL;
-	Macro *m;
-	gchar **pcMacroCommands;
-
-	/* Make config_file hold directory name of settings file */
-	config_file=g_build_filename(geany->app->configdir,"plugins","Geany_Macros",NULL);
-	/* ensure directory exists */
-	g_mkdir_with_parents(config_file,0755);
-
-	/* make config_file hold name of settings file */
-	SETPTR(config_file,g_build_filename(config_file,"settings.conf",NULL));
-
 	/* either load settings file, or create one from default */
-	config=g_key_file_new();
-	if(!g_key_file_load_from_file(config,config_file, G_KEY_FILE_KEEP_COMMENTS,NULL))
-		g_key_file_load_from_data(config,default_config,sizeof(default_config),
-								G_KEY_FILE_KEEP_COMMENTS,NULL);
-
-	/* extract settings */
-	bQueryOverwriteMacros=utils_get_setting_boolean(config,"Settings",
-	                                                "Question_Macro_Overwrite",FALSE);
-	bSaveMacros=utils_get_setting_boolean(config,"Settings","Save_Macros",FALSE);
-
-	/* extract macros */
-	i=0;
-	while(TRUE)
+	gboolean result = FALSE;
+	GKeyFile *config = load_plugin_config(PLUGIN, &result);
+	if (!result)
 	{
-		pcKey=g_strdup_printf("A%d",i);
-		i++;
+		g_key_file_free(config);
+		config = load_config_from_data(default_config, NULL);
+	}
+	
+	/* extract settings */
+	bQueryOverwriteMacros = utils_get_setting_boolean(config, CONFIG_SECTION,
+													  "question_macro_overwrite", FALSE);
+	bSaveMacros = utils_get_setting_boolean(config, CONFIG_SECTION, "save_macros", FALSE);
+	
+	gint i = 0;
+	gchar *pcKey;
+	gchar *pcTemp;
+	
+	/* extract macros */
+	while (TRUE)
+	{
+		pcKey = g_strdup_printf("A%d", i++);
 		/* get macro name */
-		pcTemp=(gchar*)(utils_get_setting_string(config,"Macros",pcKey,NULL));
+		pcTemp = (gchar*)(utils_get_setting_string(config, MACROS_SECTION, pcKey, NULL));
 		/* if null then have reached end of macros */
-		if(pcTemp==NULL)
+		if (!pcTemp)
 		{
 			g_free(pcKey);
 			break;
 		}
-
-		m=CreateMacro();
-		m->name=pcTemp;
+		
+		Macro *m = CreateMacro();
+		m->name = pcTemp;
 		/* load triggers */
-		pcKey[0]='B';
-		m->keyval=utils_get_setting_integer(config,"Macros",pcKey,0);
-		pcKey[0]='C';
-		m->state=utils_get_setting_integer(config,"Macros",pcKey,0);
+		pcKey[0] = 'B';
+		m->keyval = utils_get_setting_integer(config, MACROS_SECTION, pcKey, 0);
+		pcKey[0] = 'C';
+		m->state = utils_get_setting_integer(config, MACROS_SECTION, pcKey, 0);
 		/* Load macro list */
-		pcKey[0]='D';
-		pcTemp=(gchar*)(utils_get_setting_string(config,"Macros",pcKey,NULL));
+		pcKey[0] = 'D';
+		pcTemp = (gchar*)(utils_get_setting_string(config, MACROS_SECTION, pcKey, NULL));
 		g_free(pcKey);
+		
 		/* break into individual macro data */
-		pcMacroCommands=g_strsplit(pcTemp,",",0);
+		gchar **pcMacroCommands = g_strsplit(pcTemp,",",0);
 		/* can now free up pcTemp */
 		g_free(pcTemp);
+		
 		/* now go through macro data generating macros */
-		for(k=0,m->MacroEvents=NULL;pcMacroCommands[k]!=NULL;)
-			m->MacroEvents=g_slist_prepend(m->MacroEvents,
-			                               GetMacroEventFromString(pcMacroCommands,
-		                                       &k));
-
+		gint k = 0;
+		m->MacroEvents = NULL;
+		while (pcMacroCommands[k])
+			m->MacroEvents = g_slist_prepend(m->MacroEvents,
+											 GetMacroEventFromString(pcMacroCommands, &k));
 		/* list created in reverse as more efficient, now turn it around */
-		m->MacroEvents=g_slist_reverse(m->MacroEvents);
+		m->MacroEvents = g_slist_reverse(m->MacroEvents);
+		
 		/* macro now complete, add it to the list */
 		AddMacroToList(m);
 		/* free up memory used by pcMacroCommands */
 		g_strfreev(pcMacroCommands);
 	}
-
+	
 	/* free memory */
-	g_free(config_file);
 	g_key_file_free(config);
 }
 
 
 /* handle button presses in the preferences dialog box */
-static void on_configure_response(GtkDialog *dialog, gint response, gpointer user_data)
+static void on_configure_response(GtkDialog *dialog, gint response,
+								  gpointer user_data)
 {
+	if (!ok_apply(response)) return;
+	
 	gboolean bSettingsChanged;
-	GtkCheckButton *cb1,*cb2;
-
-	if(response!=GTK_RESPONSE_OK && response!=GTK_RESPONSE_APPLY)
-		return;
-
+	GtkCheckButton *cb1, *cb2;
+	
 	/* retreive pointers to check boxes */
-	cb1=(GtkCheckButton*)(g_object_get_data(G_OBJECT(dialog),"GeanyMacros_cb1"));
-	cb2=(GtkCheckButton*)(g_object_get_data(G_OBJECT(dialog),"GeanyMacros_cb2"));
-
+	cb1 = (GtkCheckButton*)(g_object_get_data(G_OBJECT(dialog),"GeanyMacros_cb1"));
+	cb2 = (GtkCheckButton*)(g_object_get_data(G_OBJECT(dialog),"GeanyMacros_cb2"));
+	
 	/* first see if settings are going to change */
-	bSettingsChanged=(bSaveMacros!=gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb1)));
-	bSettingsChanged|=(bQueryOverwriteMacros!=gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb2)));
-
+	bSettingsChanged = (bSaveMacros != gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb1)));
+	bSettingsChanged |= (bQueryOverwriteMacros != gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb2)));
+	
 	/* set new settings settings */
-	bSaveMacros=gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb1));
-	bQueryOverwriteMacros=gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb2));
-
+	bSaveMacros = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb1));
+	bQueryOverwriteMacros = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cb2));
+	
 	/* now save new settings if they have changed */
-	if(bSettingsChanged)
-		SaveSettings();
+	if (bSettingsChanged) SaveSettings();
 }
 
 

@@ -23,14 +23,12 @@
 #ifndef OVERVIEW_PLUGIN_H
 #define OVERVIEW_PLUGIN_H
 
-#include <gtk/gtk.h>
-#include <gdk/gdk.h>
-#include <geanyplugin.h>
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
-extern GeanyData      *geany_data;
-extern GeanyPlugin    *geany_plugin;
+extern GeanyPlugin	*geany_plugin;
+extern GeanyData	*geany_data;
 
-void     overview_plugin_queue_update (void);
-gboolean overview_geany_supports_left_position (void);
+void     overview_plugin_queue_update(void);
+gboolean overview_geany_supports_left_position(void);
 
 #endif // OVERVIEW_PLUGIN_H

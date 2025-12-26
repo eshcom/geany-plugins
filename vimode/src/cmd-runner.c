@@ -16,8 +16,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "cmd-runner.h"
+#include <gdk/gdkkeysyms.h> // for the key bindings
+
 #include "utils.h"
+#include "cmd-runner.h"
 
 #include "cmds/motion.h"
 #include "cmds/txtobjs.h"
@@ -25,7 +27,6 @@
 #include "cmds/edit.h"
 #include "cmds/special.h"
 
-#include <gdk/gdkkeysyms.h>
 
 typedef struct {
 	Cmd cmd;

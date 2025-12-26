@@ -44,14 +44,13 @@ vimode_la_SOURCES = \
 viw_SOURCES = \
 	backends/backend-viw.c \
 	$(vi_srcs)
-    
-vimode_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DG_LOG_DOMAIN=\"Vimode\"
-vimode_la_CFLAGS = $(AM_CFLAGS)
-vimode_la_LIBADD = $(COMMONLIBS)
 
-viw_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DG_LOG_DOMAIN=\"Vimode\"
+vimode_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Vimode\" \
+					 -Wno-deprecated-declarations
+vimode_la_CFLAGS = $(AM_CFLAGS)
+vimode_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
+
+viw_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"Vimode\" -Wno-deprecated-declarations
 viw_CFLAGS = $(AM_CFLAGS)
 viw_LDADD = $(COMMONLIBS)
 

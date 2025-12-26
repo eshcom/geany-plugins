@@ -20,15 +20,18 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #include <string.h>
-#include <gtk/gtk.h>
+#include <gtkcompat.h>
 
 #ifdef GDK_WINDOWING_X11
-#include <unistd.h>
-#include <gdk/gdkx.h>
-#define WNCK_I_KNOW_THIS_IS_UNSTABLE
-#include <libwnck/libwnck.h>
+  #include <unistd.h>
+  #include <gdk/gdkx.h>
+  #define WNCK_I_KNOW_THIS_IS_UNSTABLE
+  #include <libwnck/libwnck.h>
 #endif
 
 #include "dh-window.h"
@@ -37,9 +40,9 @@
 #include "dh-preferences.h"
 #include "dh-assistant.h"
 #include "dh-util.h"
-#include "ige-conf.h"
 #include "dh-base.h"
 #include "dh-book-manager.h"
+#include "ige-conf.h"
 
 typedef struct {
         GSList        *windows;

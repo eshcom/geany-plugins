@@ -24,22 +24,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
-#include <geanyplugin.h>
 
-extern GeanyPlugin		*geany_plugin;
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "keys.h"
 #include "callbacks.h"
 
-/* geany debugger key group */
-struct GeanyKeyGroup* key_group;
+extern GeanyPlugin *geany_plugin;
+
 
 /* type to hold information about a hotkey */
 typedef struct _keyinfo {
-	const char* key_name;
-	const char* key_label;
+	const char *key_name;
+	const char *key_label;
 	enum KEYS key_id;
 } keyinfo; 
 
@@ -62,36 +61,21 @@ keyinfo keys[] = {
  */
 gboolean keys_init(void)
 {
-	int _index, count;
-
 	/* keys count */
-	count = 0;
-	while (keys[count++].key_name)
-		;
+	int count = 0;
+	while (keys[count++].key_name);
 	
 	/* set keygroup */
-	key_group = plugin_set_key_group(
-		geany_plugin,
-		_("Debug"),
-		count - 1,
-		keys_callback);
-
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													count - 1, keys_callback);
 	/* add keys */
-	_index = 0;
+	int _index = 0;
 	while (keys[_index].key_name)
 	{
-		keybindings_set_item(
-			key_group,
-			keys[_index].key_id,
-			NULL,
-			0,
-			0,
-			keys[_index].key_name,
-			_(keys[_index].key_label),
-			NULL);
+		keybindings_set_item(key_group, keys[_index].key_id, NULL, 0, 0,
+							 keys[_index].key_name, _(keys[_index].key_label), NULL);
 		_index++;
 	}
-	 	
+	
 	return 1;
 }
-

@@ -21,13 +21,11 @@
 
 /*===================================== INCLUDES =====================================*/
 
-#include <gtk/gtk.h>
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h"			// for the gettext domain
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "PrettyPrinter.h"
 
@@ -38,8 +36,8 @@ extern PrettyPrintingOptions* prettyPrintingOptions;
 /*===================================== FUNCTIONS ====================================*/
 
 GtkWidget *createPrettyPrinterConfigUI(GtkDialog *dialog);
-gboolean prefsLoad(const gchar *filename, GError **error);
-gboolean prefsSave(const gchar *filename, GError **error);
-gchar *getDefaultPrefs(GError **error);
+GKeyFile *prefsToConfig(PrettyPrintingOptions *ppo);
+gboolean prefsLoad(const gchar *filename);
+void fetchSettingsFromConfigUI(PrettyPrintingOptions *ppo);
 
 #endif

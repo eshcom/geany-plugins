@@ -24,13 +24,7 @@
  *		Working with debug paned.
  */
 
-#include <sys/stat.h>
-
-#include <memory.h>
-#include <string.h>
-
-#include <geanyplugin.h>
-extern GeanyData		*geany_data;
+#include <geanyplugin.h> // includes geany.h, gtkcompat.h, etc.
 
 #include "dpaned.h"
 #include "tabs.h"
@@ -39,6 +33,7 @@ extern GeanyData		*geany_data;
 #include "btnpanel.h"
 #include "stree.h"
 #include "dconfig.h"
+
 
 #define NOTEBOOK_GROUP "notebook-438948394"
 #define HPANED_BORDER_WIDTH 4

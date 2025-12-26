@@ -19,7 +19,6 @@
 #ifndef __PRJORG_SIDEBAR_H__
 #define __PRJORG_SIDEBAR_H__
 
-
 void prjorg_sidebar_init(void);
 void prjorg_sidebar_cleanup(void);
 void prjorg_sidebar_activate(gboolean activate);
@@ -28,7 +27,5 @@ void prjorg_sidebar_find_file_in_active(void);
 void prjorg_sidebar_find_tag_in_active(void);
 
 void prjorg_sidebar_update(gboolean reload);
-
-
 
 #endif

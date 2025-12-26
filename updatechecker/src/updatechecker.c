@@ -20,38 +20,38 @@
 
 /* A little plugin for regular checks for updates of Geany */
 
-#include "libsoup/soup.h"
-#include "stdlib.h"
-
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <libsoup/soup.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
-GeanyPlugin     *geany_plugin;
-GeanyData       *geany_data;
+#include "../../utils/src/common.h"
+
+GeanyData *geany_data;
+
 
 PLUGIN_VERSION_CHECK(224)
 
 PLUGIN_SET_TRANSLATABLE_INFO(
-    LOCALEDIR,
-    GETTEXT_PACKAGE,
-    _("Updatechecker"),
-    _("Checks whether there are updates for Geany available"),
-    VERSION,
-    "Frank Lanitz <frank@frank.uvena.de>")
+	LOCALEDIR,
+	GETTEXT_PACKAGE,
+	_("Updatechecker"),
+	_("Checks whether there are updates for Geany available"),
+	VERSION,
+	"Frank Lanitz <frank@frank.uvena.de>")
 
 enum {
-    UPDATECHECK_MANUAL,
-    UPDATECHECK_STARTUP
+	UPDATECHECK_MANUAL,
+	UPDATECHECK_STARTUP
 };
 
 #define UPDATE_CHECK_URL "https://geany.org/service/version/"
 
 static GtkWidget *main_menu_item = NULL;
 static void update_check_result_cb(SoupSession *session,
-    SoupMessage *msg, gpointer user_data);
+	SoupMessage *msg, gpointer user_data);
 
 static gboolean check_on_startup = FALSE;
 
@@ -61,50 +61,50 @@ static gchar *config_file = NULL;
 
 static struct
 {
-    GtkWidget *run_on_startup;
+	GtkWidget *run_on_startup;
 }
 config_widgets;
 
 typedef struct
 {
-    gint major;
-    gint minor;
-    gint mini;
-    gchar *extra;
+	gint major;
+	gint minor;
+	gint mini;
+	gchar *extra;
 }
 version_struct;
 
 
 static void update_check(gint type)
 {
-    SoupSession *soup;
-    SoupMessage *msg;
-    gchar *user_agent = g_strconcat("Updatechecker ", VERSION, " at Geany ",
-                                     GEANY_VERSION, NULL);
+	SoupSession *soup;
+	SoupMessage *msg;
+	gchar *user_agent = g_strconcat("Updatechecker ", VERSION, " at Geany ",
+									 GEANY_VERSION, NULL);
 
-    g_message("Checking for updates (querying URL \"%s\")", UPDATE_CHECK_URL);
-    soup = soup_session_new_with_options(
-            SOUP_SESSION_USER_AGENT, user_agent,
-            SOUP_SESSION_TIMEOUT, 10,
-            NULL);
+	g_message("Checking for updates (querying URL \"%s\")", UPDATE_CHECK_URL);
+	soup = soup_session_new_with_options(
+			SOUP_SESSION_USER_AGENT, user_agent,
+			SOUP_SESSION_TIMEOUT, 10,
+			NULL);
 
-    g_free(user_agent);
+	g_free(user_agent);
 
-    msg = soup_message_new ("GET", UPDATE_CHECK_URL);
+	msg = soup_message_new ("GET", UPDATE_CHECK_URL);
 
-    soup_session_queue_message (soup, msg, update_check_result_cb, GINT_TO_POINTER(type));
+	soup_session_queue_message (soup, msg, update_check_result_cb, GINT_TO_POINTER(type));
 }
 
 
 
 static void
 on_geany_startup_complete(G_GNUC_UNUSED GObject *obj,
-                          G_GNUC_UNUSED gpointer user_data)
+						  G_GNUC_UNUSED gpointer user_data)
 {
-    if (check_on_startup == TRUE)
-    {
-        update_check(UPDATECHECK_STARTUP);
-    }
+	if (check_on_startup == TRUE)
+	{
+		update_check(UPDATECHECK_STARTUP);
+	}
 }
 
 
@@ -112,43 +112,43 @@ on_geany_startup_complete(G_GNUC_UNUSED GObject *obj,
  * http://sylpheed.sraoss.jp/en/
  * GPL FTW! */
 static void parse_version_string(const gchar *ver, gint *major, gint *minor,
-                 gint *micro, gchar **extra)
+				 gint *micro, gchar **extra)
 {
-    gchar **vers;
-    vers = g_strsplit(ver, ".", 4);
-    if (vers[0])
-    {
-        *major = atoi(vers[0]);
-        if (vers[1])
-        {
-            *minor = atoi(vers[1]);
-            if (vers[2])
-            {
-                *micro = atoi(vers[2]);
-                if (vers[3])
-                {
-                    *extra = g_strdup(vers[3]);
-                }
-                else
-                {
-                    *extra = NULL;
-                }
-            }
-            else
-            {
-                *micro = 0;
-            }
-        }
-        else
-        {
-            *minor = 0;
-        }
-    }
-    else
-    {
-        *major = 0;
-    }
-    g_strfreev(vers);
+	gchar **vers;
+	vers = g_strsplit(ver, ".", 4);
+	if (vers[0])
+	{
+		*major = atoi(vers[0]);
+		if (vers[1])
+		{
+			*minor = atoi(vers[1]);
+			if (vers[2])
+			{
+				*micro = atoi(vers[2]);
+				if (vers[3])
+				{
+					*extra = g_strdup(vers[3]);
+				}
+				else
+				{
+					*extra = NULL;
+				}
+			}
+			else
+			{
+				*micro = 0;
+			}
+		}
+		else
+		{
+			*minor = 0;
+		}
+	}
+	else
+	{
+		*major = 0;
+	}
+	g_strfreev(vers);
 }
 
 
@@ -157,184 +157,158 @@ static void parse_version_string(const gchar *ver, gint *major, gint *minor,
 static gboolean
 version_compare(const gchar *current_version)
 {
-    version_struct geany_running;
-    version_struct geany_current;
+	version_struct geany_running;
+	version_struct geany_current;
 
-    parse_version_string(GEANY_VERSION, &geany_running.major,
-        &geany_running.minor, &geany_running.mini, &geany_running.extra);
+	parse_version_string(GEANY_VERSION, &geany_running.major,
+		&geany_running.minor, &geany_running.mini, &geany_running.extra);
 
-    parse_version_string(current_version, &geany_current.major,
-        &geany_current.minor, &geany_current.mini, &geany_current.extra);
+	parse_version_string(current_version, &geany_current.major,
+		&geany_current.minor, &geany_current.mini, &geany_current.extra);
 
-    if ((geany_running.major < geany_current.major) ||
-        (geany_running.minor < geany_current.minor) ||
-        (geany_running.minor < geany_current.minor))
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
+	if ((geany_running.major < geany_current.major) ||
+		(geany_running.minor < geany_current.minor) ||
+		(geany_running.minor < geany_current.minor))
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
 static void update_check_result_cb(SoupSession *session,
-    SoupMessage *msg, gpointer user_data)
+	SoupMessage *msg, gpointer user_data)
 {
-    gint type = GPOINTER_TO_INT(user_data);
+	gint type = GPOINTER_TO_INT(user_data);
 
-    /* Checking whether we did get a valid (200) result */
-    if (msg->status_code == 200)
-    {
-        const gchar *remote_version = msg->response_body->data;
-        if (version_compare(remote_version) == TRUE)
-        {
-            gchar *update_msg = g_strdup_printf(
-                _("There is a more recent version of Geany available: %s"),
-                remote_version);
-            dialogs_show_msgbox(GTK_MESSAGE_INFO, "%s", update_msg);
-            g_message("%s", update_msg);
-            g_free(update_msg);
-        }
-        else
-        {
-            const gchar *no_update_msg = _("No newer Geany version available.");
-            if (type == UPDATECHECK_MANUAL)
-            {
-                dialogs_show_msgbox(GTK_MESSAGE_INFO, "%s", no_update_msg);
-            }
-            else
-            {
-                msgwin_status_add("%s", no_update_msg);
-            }
-            g_message("%s", no_update_msg);
-        }
-    }
-    else
-    {
-        gchar *error_message = g_strdup_printf(
-            _("Unable to perform version check.\nError code: %d \nError message: »%s«"),
-            msg->status_code, msg->reason_phrase);
-        if (type == UPDATECHECK_MANUAL)
-        {
-            dialogs_show_msgbox(GTK_MESSAGE_ERROR, "%s", error_message);
-        }
-        else
-        {
-            msgwin_status_add("%s", error_message);
-        }
-        g_warning("Connection error: Code: %d; Message: %s", msg->status_code, msg->reason_phrase);
-        g_free(error_message);
-    }
+	/* Checking whether we did get a valid (200) result */
+	if (msg->status_code == 200)
+	{
+		const gchar *remote_version = msg->response_body->data;
+		if (version_compare(remote_version) == TRUE)
+		{
+			gchar *update_msg = g_strdup_printf(
+				_("There is a more recent version of Geany available: %s"),
+				remote_version);
+			dialogs_show_msgbox(GTK_MESSAGE_INFO, "%s", update_msg);
+			g_message("%s", update_msg);
+			g_free(update_msg);
+		}
+		else
+		{
+			const gchar *no_update_msg = _("No newer Geany version available.");
+			if (type == UPDATECHECK_MANUAL)
+			{
+				dialogs_show_msgbox(GTK_MESSAGE_INFO, "%s", no_update_msg);
+			}
+			else
+			{
+				msgwin_status_add("%s", no_update_msg);
+			}
+			g_message("%s", no_update_msg);
+		}
+	}
+	else
+	{
+		gchar *error_message = g_strdup_printf(
+			_("Unable to perform version check.\nError code: %d \nError message: »%s«"),
+			msg->status_code, msg->reason_phrase);
+		if (type == UPDATECHECK_MANUAL)
+		{
+			dialogs_show_msgbox(GTK_MESSAGE_ERROR, "%s", error_message);
+		}
+		else
+		{
+			msgwin_status_add("%s", error_message);
+		}
+		g_warning("Connection error: Code: %d; Message: %s", msg->status_code, msg->reason_phrase);
+		g_free(error_message);
+	}
 }
 
 static void manual_check_activated_cb(GtkMenuItem *menuitem, gpointer gdata)
 {
-    update_check(UPDATECHECK_MANUAL);
+	update_check(UPDATECHECK_MANUAL);
 }
 
 
-static void
-on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
-                      G_GNUC_UNUSED gpointer user_data)
+static void on_configure_response(G_GNUC_UNUSED GtkDialog *dialog, gint response,
+								  G_GNUC_UNUSED gpointer user_data)
 {
-    if (response == GTK_RESPONSE_OK || response == GTK_RESPONSE_APPLY)
-    {
-        GKeyFile *config = g_key_file_new();
-        gchar *data;
-        gchar *config_dir = g_path_get_dirname(config_file);
-
-        /* Crabbing options that has been set */
-        check_on_startup =
-            gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(config_widgets.run_on_startup));
-
-        /* write stuff to file */
-        g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-        g_key_file_set_boolean(config, "general", "check_for_updates_on_startup",
-            check_on_startup);
-
-        if (!g_file_test(config_dir, G_FILE_TEST_IS_DIR)
-            && utils_mkdir(config_dir, TRUE) != 0)
-        {
-            dialogs_show_msgbox(GTK_MESSAGE_ERROR,
-                _("Plugin configuration directory could not be created."));
-        }
-        else
-        {
-            /* write config to file */
-            data = g_key_file_to_data(config, NULL, NULL);
-            utils_write_file(config_file, data);
-            g_free(data);
-        }
-
-        g_free(config_dir);
-        g_key_file_free(config);
-    }
+	if (!ok_apply(response)) return;
+	
+	/* Crabbing options that has been set */
+	check_on_startup = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(
+										config_widgets.run_on_startup));
+	
+	/* write stuff to file */
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	g_key_file_set_boolean(config, CONFIG_SECTION, "check_for_updates_on_startup",
+						   check_on_startup);
+	
+	write_config_to_file(config, config_file, MSGBOX);
+	g_key_file_free(config);
 }
 
 
 GtkWidget *
 plugin_configure(GtkDialog * dialog)
 {
-    GtkWidget   *vbox;
-    vbox = gtk_vbox_new(FALSE, 6);
+	GtkWidget   *vbox;
+	vbox = gtk_vbox_new(FALSE, 6);
 
-    config_widgets.run_on_startup = gtk_check_button_new_with_label(
-        _("Run updatecheck on startup"));
+	config_widgets.run_on_startup = gtk_check_button_new_with_label(
+		_("Run updatecheck on startup"));
 
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.run_on_startup),
-        check_on_startup);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(config_widgets.run_on_startup),
+		check_on_startup);
 
-    gtk_box_pack_start(GTK_BOX(vbox), config_widgets.run_on_startup, FALSE, FALSE, 2);
-    gtk_widget_show_all(vbox);
-    g_signal_connect(dialog, "response", G_CALLBACK(on_configure_response), NULL);
-    return vbox;
+	gtk_box_pack_start(GTK_BOX(vbox), config_widgets.run_on_startup, FALSE, FALSE, 2);
+	gtk_widget_show_all(vbox);
+	g_signal_connect(dialog, "response", G_CALLBACK(on_configure_response), NULL);
+	return vbox;
 }
 
 
 /* Registering of callbacks for Geany events */
 PluginCallback plugin_callbacks[] =
 {
-    { "geany-startup-complete", (GCallback) &on_geany_startup_complete, FALSE, NULL },
-    { NULL, NULL, FALSE, NULL }
+	{ "geany-startup-complete", (GCallback) &on_geany_startup_complete, FALSE, NULL },
+	{ NULL, NULL, FALSE, NULL }
 };
 
 
 static void init_configuration(void)
 {
-    GKeyFile *config = g_key_file_new();
-
-    /* loading configurations from file ...*/
-    config_file = g_strconcat(geany->app->configdir, G_DIR_SEPARATOR_S,
-    "plugins", G_DIR_SEPARATOR_S,
-    "updatechecker", G_DIR_SEPARATOR_S, "general.conf", NULL);
-
-    /* ... and Initialising options from config file */
-    g_key_file_load_from_file(config, config_file, G_KEY_FILE_NONE, NULL);
-
-    check_on_startup = utils_get_setting_boolean(config, "general",
-        "check_for_updates_on_startup", FALSE);
-
-    g_key_file_free(config);
+	/* loading configurations from file ...*/
+	config_file = get_config_filepath(PLUGIN, NULL);
+	GKeyFile *config = load_config_from_file(config_file, NULL);
+	
+	check_on_startup = utils_get_setting_boolean(config, CONFIG_SECTION,
+												 "check_for_updates_on_startup",
+												 FALSE);
+	g_key_file_free(config);
 }
 
 
 void plugin_init(GeanyData *data)
 {
-    init_configuration();
+	init_configuration();
 
-    main_menu_item = gtk_menu_item_new_with_mnemonic(_("Check for Updates"));
-    gtk_widget_show(main_menu_item);
-    gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
-        main_menu_item);
-    g_signal_connect(main_menu_item, "activate",
-        G_CALLBACK(manual_check_activated_cb), NULL);
+	main_menu_item = gtk_menu_item_new_with_mnemonic(_("Check for Updates"));
+	gtk_widget_show(main_menu_item);
+	gtk_container_add(GTK_CONTAINER(geany->main_widgets->tools_menu),
+		main_menu_item);
+	g_signal_connect(main_menu_item, "activate",
+		G_CALLBACK(manual_check_activated_cb), NULL);
 }
 
 void plugin_cleanup(void)
 {
-    gtk_widget_destroy(main_menu_item);
-    g_free(config_file);
+	gtk_widget_destroy(main_menu_item);
+	g_free(config_file);
 }

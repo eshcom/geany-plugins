@@ -21,12 +21,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+  #include "config.h" // for the gettext domain
 #endif
 
-#include "overviewscintilla.h"
 #include "overviewplugin.h"
-#include <string.h>
+#include "overviewscintilla.h"
 
 #define OVERVIEW_SCINTILLA_CURSOR        GDK_ARROW
 #define OVERVIEW_SCINTILLA_CURSOR_CLICK  GDK_ARROW

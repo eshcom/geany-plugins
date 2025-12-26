@@ -22,17 +22,11 @@
 #ifndef CODENAVIGATION_H
 #define CODENAVIGATION_H
 
-/* First */
-#include <geanyplugin.h>
+#include <gdk/gdkkeysyms.h>		// for the key bindings
+#include <geanyplugin.h>		// includes geany.h, gtkcompat.h, etc.
 
-/* Other includes */
-#include "Scintilla.h"	/* for the SCNotification struct */
-
-#include <gdk/gdkkeysyms.h>
-
-#include <string.h>
-
-#include "switch_head_impl.h"
+extern GeanyData *geany_data;	// the code uses the macro "geany" (see geany->)
+extern GeanyKeyGroup *plugin_key_group;
 
 /* Debug flag */
 /*#define CODE_NAVIGATION_DEBUG*/
@@ -41,23 +35,22 @@
 
 /* Log utilities */
 #ifdef CODE_NAVIGATION_DEBUG
-#include <glib/gprintf.h>
-
-
-static void log_debug(const gchar* s, ...)
-{
-	gchar* format = g_strconcat("[CODENAV DEBUG] : ", s, "\n", NULL);
-	va_list l;
-	va_start(l, s);
-	g_vprintf(format, l);
-	g_free(format);
-	va_end(l);
-}
-
-#define log_func() g_print("[CODENAV FUNC] : %s\n", G_STRFUNC)
+	#include <glib/gprintf.h>
+	
+	static void log_debug(const gchar* s, ...)
+	{
+		gchar *format = g_strconcat("[CODENAV DEBUG] : ", s, "\n", NULL);
+		va_list l;
+		va_start(l, s);
+		g_vprintf(format, l);
+		g_free(format);
+		va_end(l);
+	}
+	
+	#define log_func() g_print("[CODENAV FUNC] : %s\n", G_STRFUNC)
 #else
-#define log_debug(...) {}
-#define log_func() {}
+	#define log_debug(...) {}
+	#define log_func() {}
 #endif
 
 /* IDs for keybindings */
@@ -67,11 +60,5 @@ enum
 	KEY_ID_GOTO_FILE,
 	NB_KEY_IDS
 };
-
-/* Items for controlling geany */
-extern GeanyPlugin		*geany_plugin;
-extern GeanyData		*geany_data;
-
-extern GeanyKeyGroup *plugin_key_group;
 
 #endif /* CODENAVIGATION_H */

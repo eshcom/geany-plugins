@@ -18,10 +18,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h" // for the gettext domain
+#endif
+
 #import <Cocoa/Cocoa.h>
 #include <string.h>
+
 #include "ige-conf-private.h"
+
 
 typedef struct {
         NSUserDefaults *defaults;

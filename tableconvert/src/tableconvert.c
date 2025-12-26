@@ -19,11 +19,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-	#include "config.h" /* for the gettext domain */
+	#include "config.h"		// for the gettext domain
 #endif
+
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
 
 #include "tableconvert.h"
 #include "tableconvert_ui.h"
+
+GeanyPlugin	*geany_plugin;
+GeanyData	*geany_data;	// the code uses the macro "geany" (see geany->)
+
 
 PLUGIN_VERSION_CHECK(224)
 
@@ -31,9 +37,6 @@ PLUGIN_SET_TRANSLATABLE_INFO(
     LOCALEDIR, GETTEXT_PACKAGE, _("Tableconvert"),
     _("Converts lists into tables for different filetypes"),
     VERSION, "Frank Lanitz <frank@frank.uvena.de>")
-
-GeanyPlugin	 	*geany_plugin;
-GeanyData	   	*geany_data;
 
 TableConvertRule tablerules[] = {
 	/* LaTeX */
@@ -321,8 +324,8 @@ static void kb_convert_to_table(G_GNUC_UNUSED guint key_id)
 
 static void init_keybindings(void)
 {
-	GeanyKeyGroup *key_group;
-	key_group = plugin_set_key_group(geany_plugin, "htmltable", COUNT_KB, NULL);
+	GeanyKeyGroup *key_group = plugin_set_key_group(geany_plugin, PLUGIN,
+													COUNT_KB, NULL);
 	keybindings_set_item(key_group, KB_HTMLTABLE_CONVERT_TO_TABLE,
 		kb_convert_to_table, 0, 0, "convert_to_table",
 		_("Convert selection to table"), NULL);

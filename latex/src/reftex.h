@@ -24,7 +24,6 @@
 
 #include "latex.h"
 
-
 void glatex_add_Labels(GtkWidget *combobox, GSList *dir);
 
 LaTeXLabel *glatex_parseLine(const gchar *line);

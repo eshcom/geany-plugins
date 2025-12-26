@@ -8,9 +8,9 @@ geanyctags_la_SOURCES = \
 	readtags.h \
 	readtags.c
 
-geanyctags_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyCtags\"
+geanyctags_la_CPPFLAGS = $(AM_CPPFLAGS) -DG_LOG_DOMAIN=\"GeanyCtags\" \
+						 -Wno-deprecated-declarations
 geanyctags_la_CFLAGS = $(AM_CFLAGS)
-geanyctags_la_LIBADD = $(COMMONLIBS) \
-					   $(top_builddir)/utils/src/libgeanypluginutils.la
+geanyctags_la_LIBADD = $(COMMONLIBS) $(top_builddir)/utils/src/libgeanypluginutils.la
 
 include $(top_srcdir)/build/cppcheck.mk

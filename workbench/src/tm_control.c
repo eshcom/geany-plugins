@@ -19,16 +19,19 @@
 /*
  * Code for the Workbench internal tag-manager-control.
  */
-#include <glib/gstdio.h>
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+	#include "config.h"		// for the gettext domain
 #endif
 
-#include <geanyplugin.h>
+#include <glib/gstdio.h>
+#include <geanyplugin.h>	// includes geany.h, gtkcompat.h, etc.
+
+#include "wb_globals.h"
 #include "idle_queue.h"
 
 extern GeanyData *geany_data;
+
 static GHashTable *wb_tm_file_table = NULL;
 
 
@@ -147,7 +150,7 @@ static gboolean match_basename(gconstpointer pft, gconstpointer user_data)
 	{
 		GPatternSpec *pattern = g_pattern_spec_new(ft->pattern[j]);
 
-		if (g_pattern_match_string(pattern, utf8_base_filename))
+		if (g_pattern_spec_match_string(pattern, utf8_base_filename))
 		{
 			ret = TRUE;
 			g_pattern_spec_free(pattern);
@@ -184,7 +187,7 @@ static GeanyFiletype *filetypes_detect(const gchar *utf8_filename)
 		SETPTR(utf8_base_filename, g_utf8_strdown(utf8_base_filename, -1));
 #endif
 
-		for (i = 0; i < geany_data->filetypes_array->len; i++)
+		for (i = 0; i < wb_globals.geany_plugin->geany_data->filetypes_array->len; i++)
 		{
 			GeanyFiletype *ftype = filetypes[i];
 

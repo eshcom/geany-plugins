@@ -56,7 +56,7 @@ static void geanypg_encrypt(encrypt_data * ed, gpgme_key_t * recp, int sign, int
     gpgme_data_release(cipher);
 }
 
-void geanypg_encrypt_cb(GtkMenuItem * menuitem, gpointer user_data)
+void geanypg_encrypt_cb(GtkMenuItem *menuitem, gpointer user_data)
 {
     int sign;
     encrypt_data ed;

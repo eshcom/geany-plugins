@@ -19,7 +19,6 @@
 #ifndef __WB_MONITOR_H__
 #define __WB_MONITOR_H__
 
-#include <glib.h>
 #include "wb_project.h"
 
 typedef struct S_WB_MONITOR WB_MONITOR;

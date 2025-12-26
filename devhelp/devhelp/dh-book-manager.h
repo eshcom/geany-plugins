@@ -21,8 +21,6 @@
 #ifndef __DH_BOOK_MANAGER_H__
 #define __DH_BOOK_MANAGER_H__
 
-#include <gtk/gtk.h>
-
 #include "dh-book.h"
 
 G_BEGIN_DECLS
