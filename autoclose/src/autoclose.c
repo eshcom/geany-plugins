@@ -209,8 +209,16 @@ static gboolean lexer_cpp_like(gint lexer, gint style, gint filetype)
 {
 	// esh: not only C/C++ lexers are based on the SCLEX_CPP lexer,
 	//		so let's also check the filetype
-	return lexer == SCLEX_CPP && style == SCE_C_IDENTIFIER &&
-			filetype != GEANY_FILETYPES_GO;
+	return lexer == SCLEX_CPP && filetype != GEANY_FILETYPES_GO
+			&& (style == SCE_C_IDENTIFIER ||
+				style == SCE_C_STD_FUNC ||
+				style == SCE_C_ADD_FUNC ||
+				style == SCE_C_FUNCTION ||
+				// esh: macros can have parameters just like functions,
+				//		so they will have parentheses
+				style == SCE_C_STD_MACRO ||
+				style == SCE_C_ADD_MACRO ||
+				style == SCE_C_MACRO);
 }
 
 static gboolean filetype_c_or_cpp(gint type)
